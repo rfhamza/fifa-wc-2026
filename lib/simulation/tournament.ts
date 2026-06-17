@@ -10,12 +10,14 @@
  *   3. Qualify top-2 of each group + the best 8 third-placed teams (32 total).
  *   4. Seed those 32 into a bracket and simulate single-elimination knockouts.
  *
- * ⚠️  PLACEHOLDER: the mapping of qualifiers onto bracket positions is a
- *     documented, balanced seeding — NOT the official 2026 position chart.
- *     Replace `seedBracket` / qualifier ordering when the real bracket lands.
- *     See docs/MODEL_METHOD.md → "Bracket builder".
+ * NOTE - PLACEHOLDER: the mapping of qualifiers onto bracket positions is a
+ *   documented, balanced seeding - NOT the official 2026 position chart. The
+ *   official path (lib/simulation/bracket.ts) is used only when verified; until
+ *   then `seedBracket` / qualifier ordering is the fallback. See
+ *   docs/MODEL_METHOD.md -> "Bracket: official structure + placeholder fallback".
  */
 import type {
+  BracketDefinition,
   GroupId,
   GroupStanding,
   SimulationSnapshot,
@@ -33,7 +35,12 @@ import {
   rankThirdPlacedTeams,
   type MatchResult,
 } from "./standings";
-import { fixtures, groups, teams as allTeams } from "@/lib/data";
+import { bracket as officialBracketDefinition, fixtures, groups, teams as allTeams } from "@/lib/data";
+import {
+  isBracketActive,
+  realiseOfficialBracket,
+  type GroupResult,
+} from "./bracket";
 
 const QUALIFYING_THIRDS = 8; // best third-placed teams that advance
 
@@ -111,6 +118,12 @@ interface StandingAccumulator {
 export interface SimulationOptions {
   iterations?: number;
   seed?: number;
+  /**
+   * Override the bracket definition (used by tests to inject a verified
+   * synthetic bracket). Defaults to the resolved dataset bracket, which in
+   * production is the placeholder-seeded `mock` template.
+   */
+  bracket?: BracketDefinition;
 }
 
 /**
@@ -163,8 +176,13 @@ export function runTournamentSimulation(
     conductScore: 0,
   }));
 
+  // Official bracket is used ONLY when verified AND structurally valid; otherwise
+  // the simulator keeps the placeholder strength-seeding (production default).
+  const bracketDef = options.bracket ?? officialBracketDefinition;
+  const activeBracket = isBracketActive(bracketDef) ? bracketDef : null;
+
   for (let i = 0; i < iterations; i++) {
-    simulateOneTournament(prepared, feat, rng, counts, standingSums, teamMeta);
+    simulateOneTournament(prepared, feat, rng, counts, standingSums, teamMeta, activeBracket);
   }
 
   return {
@@ -183,6 +201,7 @@ function simulateOneTournament(
   counts: Map<string, StageCounts>,
   standingSums: Map<string, StandingAccumulator>,
   teamMeta: TeamMeta[],
+  activeBracket: BracketDefinition | null,
 ): void {
   // 1. Simulate group matches.
   const resultsByGroup = new Map<GroupId, MatchResult[]>();
@@ -199,9 +218,10 @@ function simulateOneTournament(
     resultsByGroup.set(pf.group, list);
   }
 
-  // 2. Standings + collect qualifiers.
+  // 2. Standings + collect qualifiers (and per-group finishers for the bracket).
   const winnersAndRunners: GroupStanding[] = [];
   const thirdPlaced: GroupStanding[] = [];
+  const groupResults = new Map<GroupId, GroupResult>();
 
   for (const group of groups) {
     const standings = computeGroupStandings(
@@ -210,6 +230,11 @@ function simulateOneTournament(
       resultsByGroup.get(group.id) ?? [],
       teamMeta,
     );
+    groupResults.set(group.id, {
+      winner: standings[0]!.teamId,
+      runnerUp: standings[1]!.teamId,
+      third: standings[2]!.teamId,
+    });
     for (const s of standings) {
       const acc = standingSums.get(s.teamId)!;
       acc.played += s.played;
@@ -238,38 +263,72 @@ function simulateOneTournament(
     counts.get(s.teamId)!.qualifyThird += 1;
   }
 
-  // 4. Seed the 32 qualifiers and run the knockout bracket.
-  const qualifiers = [...winnersAndRunners, ...qualifyingThirds].sort(
-    byStrength,
-  );
+  // 4. Knockout stage: official bracket when active, else placeholder seeding.
+  if (activeBracket) {
+    runOfficialKnockout(activeBracket, groupResults, qualifyingThirds, feat, rng, counts);
+  } else {
+    runPlaceholderKnockout(winnersAndRunners, qualifyingThirds, feat, rng, counts);
+  }
+}
+
+const STAGE_KEYS: (keyof StageCounts)[] = [
+  "roundOf32",
+  "roundOf16",
+  "quarterFinal",
+  "semiFinal",
+  "final",
+  "winner",
+];
+
+/** Placeholder knockout: strength-seeded balanced bracket (production default). */
+function runPlaceholderKnockout(
+  winnersAndRunners: GroupStanding[],
+  qualifyingThirds: GroupStanding[],
+  feat: (id: string) => TeamFeatureSet,
+  rng: Rng,
+  counts: Map<string, StageCounts>,
+): void {
+  const qualifiers = [...winnersAndRunners, ...qualifyingThirds].sort(byStrength);
   const order = seedBracket(32); // bracket positions (1-indexed seeds)
   let alive: string[] = order.map((seedNo) => qualifiers[seedNo - 1]!.teamId);
 
-  const stageKeys: (keyof StageCounts)[] = [
-    "roundOf32",
-    "roundOf16",
-    "quarterFinal",
-    "semiFinal",
-    "final",
-    "winner",
-  ];
-
-  // Everyone alive entered the Round of 32.
   for (const id of alive) counts.get(id)!.roundOf32 += 1;
 
   let stageIdx = 1; // next stage reached by winners is roundOf16
   while (alive.length > 1) {
     const next: string[] = [];
     for (let m = 0; m < alive.length; m += 2) {
-      const a = alive[m]!;
-      const b = alive[m + 1]!;
-      next.push(knockoutWinner(a, b, feat, rng));
+      next.push(knockoutWinner(alive[m]!, alive[m + 1]!, feat, rng));
     }
-    const stageKey = stageKeys[stageIdx]!;
+    const stageKey = STAGE_KEYS[stageIdx]!;
     for (const id of next) counts.get(id)![stageKey] += 1;
     alive = next;
     stageIdx += 1;
   }
+}
+
+/** Official knockout: realise the source-verified bracket + Annexe C allocation. */
+function runOfficialKnockout(
+  bracketDef: BracketDefinition,
+  groupResults: Map<GroupId, GroupResult>,
+  qualifyingThirds: GroupStanding[],
+  feat: (id: string) => TeamFeatureSet,
+  rng: Rng,
+  counts: Map<string, StageCounts>,
+): void {
+  const realised = realiseOfficialBracket({
+    graph: bracketDef.graph,
+    allocation: bracketDef.thirdPlaceAllocation,
+    groupResults,
+    thirdGroups: qualifyingThirds.map((s) => s.group),
+    decideWinner: (a, b) => knockoutWinner(a, b, feat, rng),
+  });
+  for (const id of realised.r32Entrants) counts.get(id)!.roundOf32 += 1;
+  for (const id of realised.roundOf16) counts.get(id)!.roundOf16 += 1;
+  for (const id of realised.quarterFinal) counts.get(id)!.quarterFinal += 1;
+  for (const id of realised.semiFinal) counts.get(id)!.semiFinal += 1;
+  for (const id of realised.finalists) counts.get(id)!.final += 1;
+  counts.get(realised.champion)!.winner += 1;
 }
 
 /** Simulate a single knockout match; ties resolved by a strength-weighted shootout. */

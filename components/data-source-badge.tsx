@@ -1,16 +1,17 @@
 import { Badge } from "@/components/ui/badge";
-import { sourceStatus, fixtureSource } from "@/lib/data";
+import { sourceStatus, fixtureSource, bracket } from "@/lib/data";
+import { isBracketActive } from "@/lib/simulation/bracket";
 import type { FixtureSource, SourceStatus } from "@/lib/types";
 
 const STATUS_COPY: Record<SourceStatus, { label: string; variant: "default" | "accent" | "muted" }> = {
-  verified: { label: "Verified · official FIFA data", variant: "default" },
-  candidate: { label: "Candidate · cross-verified, not official", variant: "accent" },
-  mock: { label: "Mock · placeholder data", variant: "muted" },
+  verified: { label: "Verified - official FIFA data", variant: "default" },
+  candidate: { label: "Candidate - cross-verified, not official", variant: "accent" },
+  mock: { label: "Mock - placeholder data", variant: "muted" },
 };
 
 const FIXTURE_COPY: Record<FixtureSource, string> = {
   official: "official fixture schedule",
-  generated: "fixture order simulated · pending official schedule",
+  generated: "fixture order simulated - pending official schedule",
 };
 
 /**
@@ -19,10 +20,14 @@ const FIXTURE_COPY: Record<FixtureSource, string> = {
  */
 export function DataSourceBadge({ className }: { className?: string }) {
   const status = STATUS_COPY[sourceStatus];
+  const bracketActive = isBracketActive(bracket);
   return (
     <div className={className}>
       <Badge variant={status.variant}>Data: {status.label}</Badge>{" "}
-      <Badge variant="muted">Fixtures: {FIXTURE_COPY[fixtureSource]}</Badge>
+      <Badge variant="muted">Fixtures: {FIXTURE_COPY[fixtureSource]}</Badge>{" "}
+      <Badge variant={bracketActive ? "default" : "muted"}>
+        Bracket: {bracketActive ? "official path active" : "placeholder seeding"}
+      </Badge>
     </div>
   );
 }

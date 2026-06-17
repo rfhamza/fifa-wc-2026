@@ -2,12 +2,12 @@
  * Data access layer
  * -----------------
  * The ONLY module the rest of the app imports data from. It resolves the active
- * dataset once (official/candidate → mock fallback) and exposes the same stable
+ * dataset once (official/candidate -> mock fallback) and exposes the same stable
  * surface the app already used (teams, venues, groups, fixtures, getters), plus
  * provenance (`sourceStatus`, `fixtureSource`, `bracket`) for UI/docs labelling.
  */
 import type {
-  BracketSpec,
+  BracketDefinition,
   Fixture,
   FixtureSource,
   Group,
@@ -25,7 +25,7 @@ export const teams: Team[] = dataset.teams;
 export const venues: Venue[] = dataset.venues;
 export const groups: Group[] = dataset.groups;
 export const fixtures: Fixture[] = dataset.fixtures;
-export const bracket: BracketSpec = dataset.bracket;
+export const bracket: BracketDefinition = dataset.bracket;
 
 /** Provenance of the active dataset and fixtures (A2/A3). */
 export const sourceStatus: SourceStatus = dataset.sourceStatus;

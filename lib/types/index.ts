@@ -1,5 +1,5 @@
 /**
- * World Cup Probability Lab — Domain Types
+ * World Cup Probability Lab - Domain Types
  * ----------------------------------------
  * Single source of truth for the shapes that flow through the data layer,
  * the prediction model, and the simulation engine. Keep these types pure
@@ -17,7 +17,7 @@ export type SourceStatus = "mock" | "candidate" | "verified";
 /**
  * Provenance of the fixture list (A3):
  *  - "official":  the published FIFA match schedule.
- *  - "generated": deterministically generated round-robin — simulation only,
+ *  - "generated": deterministically generated round-robin - simulation only,
  *                 pending official verification.
  */
 export type FixtureSource = "official" | "generated";
@@ -47,7 +47,7 @@ export type TournamentStage =
 /**
  * A national team participating in the tournament.
  * Numeric fields prefixed conceptually as "placeholder" in seed data are
- * realistic but mockable — swap them for real feeds later (see docs).
+ * realistic but mockable - swap them for real feeds later (see docs).
  */
 export interface Team {
   /** Stable lowercase slug, e.g. "argentina". Used as a key everywhere. */
@@ -77,7 +77,7 @@ export interface Team {
   /** Recent form 0..100 (results over last ~10 matches). Placeholder. */
   recentForm: number;
   /**
-   * Climate / acclimatization familiarity 0..100 — how well the squad copes
+   * Climate / acclimatization familiarity 0..100 - how well the squad copes
    * with North American summer venues (heat, humidity, altitude). Placeholder.
    */
   climateFamiliarity: number;
@@ -101,7 +101,7 @@ export interface Venue {
   country: HostNation;
   /** Rough climate descriptor used by the acclimatization signal. */
   climate: "hot" | "humid" | "temperate" | "altitude" | "arid";
-  /** Average daytime temperature in °C during the tournament window. */
+  /** Average daytime temperature in deg C during the tournament window. */
   avgTempC: number;
   capacity: number;
 }
@@ -132,13 +132,13 @@ export interface TeamFeatureSet {
   recentForm: number;
   climateFamiliarity: number;
   sameNationalityManager: boolean;
-  /** Raw GDP per capita (USD) — carried for transparency. */
+  /** Raw GDP per capita (USD) - carried for transparency. */
   gdpPerCapita: number;
-  /** Raw population — carried for transparency. */
+  /** Raw population - carried for transparency. */
   population: number;
   /**
    * Normalized 0..1 "structural depth" prior, blended from log-scaled GDP per
-   * capita and log-scaled population. Experimental weak prior — NOT a strong
+   * capita and log-scaled population. Experimental weak prior - NOT a strong
    * match-level predictor (see docs/MODEL_METHOD.md).
    */
   structuralDepth: number;
@@ -259,36 +259,118 @@ export interface TeamMeta {
   conductScore: number;
 }
 
-/**
- * One official knockout match slot (A4). Sources are group finishers or the
- * winner of an earlier match. `thirdPlaceGroups` lists the candidate groups a
- * best-third slot may draw from (Annexe C), when known.
- */
-export interface BracketMatch {
-  /** Official match number, e.g. 73..104. */
-  matchNumber: number;
-  stage: Exclude<TournamentStage, "groupStage" | "winner">;
-  home: BracketSlot;
-  away: BracketSlot;
+/* ----------------------------------------------------------------------------
+ * Official knockout bracket (Phase 1.2)
+ * ------------------------------------------------------------------------- */
+
+/** Provenance of the bracket data (tri-state, reuses the dataset scale). */
+export type BracketSourceStatus = SourceStatus;
+
+/** Knockout stages a match can belong to (M73..M104). */
+export type KnockoutStage =
+  | "roundOf32"
+  | "roundOf16"
+  | "quarterFinal"
+  | "semiFinal"
+  | "thirdPlace"
+  | "final";
+
+/** The eight R32 slots that receive a best third-placed team (Annexe C). */
+export type ThirdPlaceSlotId = "T1" | "T2" | "T3" | "T4" | "T5" | "T6" | "T7" | "T8";
+
+/** A slot filled by a group finisher (winner = position 1, runner-up = 2). */
+export interface GroupPositionQualifier {
+  kind: "groupPosition";
+  group: GroupId;
+  position: 1 | 2;
 }
 
-export type BracketSlot =
-  | { kind: "winner"; group: GroupId }
-  | { kind: "runnerUp"; group: GroupId }
-  | { kind: "thirdPlace"; thirdPlaceGroups?: GroupId[] }
-  | { kind: "matchWinner"; matchNumber: number };
+/** A slot filled by a best third-placed team, resolved via Annexe C. */
+export interface ThirdPlaceQualifierSlot {
+  kind: "thirdPlace";
+  slot: ThirdPlaceSlotId;
+  /** Display/validation hint, e.g. the "3C/D/E/F" eligible groups. */
+  eligibleGroups?: GroupId[];
+}
 
-/** The official bracket skeleton + its provenance. */
-export interface BracketSpec {
-  sourceStatus: SourceStatus;
-  /** R32 → final match graph. Empty when not source-verified. */
-  matches: BracketMatch[];
-  /**
-   * Annexe C: maps the set of groups the 8 qualifying thirds come from to the
-   * specific R32 slots they fill. Empty/undefined until parsed confidently.
-   */
-  thirdPlaceAllocation?: Record<string, Partial<Record<GroupId, number>>>;
+/** A slot filled by the winner of an earlier match. */
+export interface MatchWinnerQualifier {
+  kind: "matchWinner";
+  matchNumber: number;
+}
+
+/** A slot filled by the loser of an earlier match (third-place playoff). */
+export interface MatchLoserQualifier {
+  kind: "matchLoser";
+  matchNumber: number;
+}
+
+export type QualifierSlot =
+  | GroupPositionQualifier
+  | ThirdPlaceQualifierSlot
+  | MatchWinnerQualifier
+  | MatchLoserQualifier;
+
+/** One official knockout match (M73..M104) with its two qualifier slots. */
+export interface KnockoutMatchDefinition {
+  /** Official match number, e.g. 73..104. */
+  matchNumber: number;
+  stage: KnockoutStage;
+  home: QualifierSlot;
+  away: QualifierSlot;
+  /** Source reference for this row (transcription provenance). */
+  source?: string;
+  /** Per-row provenance, defaults to the bracket's overall status. */
+  validationStatus?: BracketSourceStatus;
+}
+
+/** The full knockout graph: R32 through final, deterministic by matchNumber. */
+export interface KnockoutGraph {
+  matches: KnockoutMatchDefinition[];
+}
+
+/**
+ * Annexe C combination key - the eight selected third-placed groups, NORMALIZED
+ * (sorted, uppercase), e.g. "ABCDEFGH". Use `normalizeCombinationKey`.
+ */
+export type ThirdPlaceCombinationKey = string;
+
+/**
+ * Annexe C table: for each of the 495 (= C(12,8)) combinations of qualifying
+ * third-placed groups, which group fills each of the eight T-slots.
+ */
+export type ThirdPlaceAllocationMap = Record<
+  ThirdPlaceCombinationKey,
+  Record<ThirdPlaceSlotId, GroupId>
+>;
+
+/** A cited source for transcribed bracket data. */
+export interface BracketSource {
+  url: string;
+  method: string;
+  retrievedAt: string;
+}
+
+/** The official bracket definition + its provenance. */
+export interface BracketDefinition {
+  sourceStatus: BracketSourceStatus;
+  /** R32 -> final match graph. Empty until transcribed. */
+  graph: KnockoutGraph;
+  /** Annexe C allocation. Empty until transcribed (must be all 495 to verify). */
+  thirdPlaceAllocation: ThirdPlaceAllocationMap;
+  sources: BracketSource[];
   notes?: string;
+}
+
+/** Result of validating a bracket definition. */
+export interface BracketValidationResult {
+  valid: boolean;
+  errors: string[];
+  coverage: {
+    combinations: number;
+    expected: number;
+    complete: boolean;
+  };
 }
 
 /** A resolved dataset plus its provenance, returned by the data layer. */
@@ -299,5 +381,5 @@ export interface ResolvedDataset {
   venues: Venue[];
   groups: Group[];
   fixtures: Fixture[];
-  bracket: BracketSpec;
+  bracket: BracketDefinition;
 }

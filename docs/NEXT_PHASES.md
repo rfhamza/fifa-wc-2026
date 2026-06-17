@@ -13,6 +13,17 @@ A roadmap from the foundation to a richer product. Each item lists the
   pure `computeProbabilityDeltas` snapshot-delta seam.
 - CI on pull requests into `main` and pushes to `main`; expanded test suite.
 
+## Done in phase 1.2 (official bracket engine)
+
+- Typed knockout graph (R32 M73-M88 + R16/QF/SF/3rd/final propagation) and an
+  explicit 495-row Annexe C allocation type as the source of truth.
+- Validation layer (`bracket-validate.ts`): 16 R32 matches, each group
+  winner/runner-up once, 8 third slots, valid propagation, full 495 coverage.
+- Realiser (`realiseOfficialBracket`) + simulator integration behind an
+  `isBracketActive` gate; placeholder seeding preserved as fallback.
+- Synthetic fixture proves the engine; real graph + Annexe C stay empty
+  templates (`sourceStatus: "mock"`) until transcribed and confirmed verified.
+
 ## Phase 2 - Verified data
 
 - Obtain official FIFA group/fixture/venue data (or authoritative JSON);
@@ -27,18 +38,18 @@ A roadmap from the foundation to a richer product. Each item lists the
 
 > **Bracket note (R32 / Annexe C).**
 >
-> The official FIFA regulations PDF contains the **Round-of-32 slot skeleton
-> (matches M73-M88)** and the downstream R16 / QF / SF / final propagation
-> graph. That part is well-defined and can be transcribed once the PDF is
-> accessible (it returned HTTP 403 here).
+> The engine (types, validation, realiser, integration, fallback) is built and
+> tested against a synthetic fixture as of phase 1.2. What remains is the
+> **data**: transcribe the R32 skeleton (M73-M88) + propagation into
+> `data/official/knockout-graph.ts`, and all 495 Annexe C rows into
+> `data/official/third-place-allocation.ts`, from the official regulations PDF
+> (which returned HTTP 403 to our fetch agent).
 >
-> The harder piece is **Annexe C**: the table mapping *which* groups the eight
-> best third-placed teams come from to *which* R32 slots. It has many
-> combinations and needs careful, source-verified implementation.
->
-> **Until Annexe C is implemented, the simulator stays placeholder-seeded**
-> (`seedBracket`). Do not flip `data/official/bracket.ts` to `verified` with
-> only the skeleton populated.
+> **The official path stays inactive until everything is source-verified.** Do
+> not flip `data/official/bracket.ts` to `verified` until the graph + all 495
+> Annexe C rows are present, `validateBracket` passes, and the source is
+> confirmed authoritative. Until then the simulator uses placeholder seeding
+> (`seedBracket`).
 
 ## Phase 3 - Stronger model
 
