@@ -1,16 +1,31 @@
 # World Cup Probability Lab ⚽📊
 
 A beautiful, **explainable** FIFA World Cup 2026 prediction and simulation app.
-It blends football strength, squad quality, manager nationality, economic
-indicators and climate/acclimatization into transparent probabilities, then
-runs a Monte Carlo simulation of the whole tournament.
+It blends football strength, squad quality, manager nationality, a weak
+economic/structural prior and climate/acclimatization into transparent
+probabilities, then runs a Monte Carlo simulation of the whole tournament.
 
 > Educational forecasting — **not** a betting product. All figures are model
-> estimates from seed data, not certainties.
+> estimates, not certainties.
 
-This repository is **phase one**: a clean, extensible foundation built on static
-seed data and deterministic model logic, designed to be upgraded with real data
-and stronger models later.
+This repository is the **phase-one foundation** (+ phase 1.1 hardening): a clean,
+extensible base designed to be upgraded with fully official data and stronger
+models later.
+
+### Data provenance (tri-state)
+The data layer tags every dataset so candidate data is never implied to be
+official:
+
+| Status | Meaning | Current use |
+| --- | --- | --- |
+| `verified` | Official FIFA source / authoritative JSON | *(none yet)* |
+| `candidate` | Cross-verified from credible non-FIFA sources | **Group composition + 48-team identities** (Final Draw, 5 Dec 2025) |
+| `mock` | Hand-authored placeholder | Fallback dataset; all **model feature values** (Elo, economy, squad, form, climate) |
+
+Fixtures are tagged `official` or `generated`. Currently **generated** (the
+official 72-match schedule and the Round-of-32 / Annexe C bracket could not be
+fetched — FIFA endpoints returned HTTP 403 — so they remain TODO and the
+simulator uses a documented placeholder bracket).
 
 ## Features
 - **Forecast Dashboard** — title-win table, stage columns, probability bars,

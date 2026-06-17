@@ -41,6 +41,7 @@ export default function MethodologyPage() {
           <li><strong>Manager cohesion</strong> — {MODEL_WEIGHTS.manager} pts for a same-nationality manager.</li>
           <li><strong>Host &amp; regional advantage</strong> — {MODEL_WEIGHTS.host} pts (co-host), {MODEL_WEIGHTS.regional} pts (region).</li>
           <li><strong>Climate familiarity</strong> — {MODEL_WEIGHTS.climate} pts per acclimatization point.</li>
+          <li><strong>Structural prior (economic)</strong> — up to {MODEL_WEIGHTS.structural} pts across the 0–1 range, blended from log-scaled GDP per capita and population. An <em>experimental weak prior</em>, deliberately small and never determinative.</li>
         </ul>
       </Section>
 

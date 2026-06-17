@@ -1,7 +1,11 @@
 import { Hero } from "@/components/dashboard/hero";
 import { WinnerTable, type WinnerRow } from "@/components/dashboard/winner-table";
 import { ModelSummary } from "@/components/dashboard/model-summary";
-import { TopMovers, type MoverRow } from "@/components/dashboard/top-movers";
+import {
+  StandoutContenders,
+  type StandoutRow,
+} from "@/components/dashboard/standout-contenders";
+import { DataSourceBadge } from "@/components/data-source-badge";
 import { WinnerBarChart } from "@/components/charts/winner-bar-chart";
 import {
   Card,
@@ -10,7 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { getSnapshot, getTopMovers, getWinnerRanking } from "@/lib/model/forecast";
+import { getSnapshot, getStandoutContenders, getWinnerRanking } from "@/lib/model/forecast";
 import { getTeam, teams } from "@/lib/data";
 
 export default function DashboardPage() {
@@ -29,7 +33,7 @@ export default function DashboardPage() {
     winner: r.probability.winner,
   }));
 
-  const movers: MoverRow[] = getTopMovers("winner", 5).map((delta) => ({
+  const standouts: StandoutRow[] = getStandoutContenders("winner", 5).map((delta) => ({
     team: getTeam(delta.teamId),
     delta,
   }));
@@ -41,6 +45,9 @@ export default function DashboardPage() {
         iterations={snapshot.iterations}
         teamsCount={teams.length}
       />
+
+      <DataSourceBadge />
+
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
@@ -66,7 +73,7 @@ export default function DashboardPage() {
               <WinnerBarChart data={chartData} />
             </CardContent>
           </Card>
-          <TopMovers rows={movers} />
+          <StandoutContenders rows={standouts} />
           <ModelSummary />
         </div>
       </div>

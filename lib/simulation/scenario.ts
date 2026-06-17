@@ -9,7 +9,7 @@
  * Phase-one scope: group-stage standings + top-2 qualification. The shape is
  * deliberately ready for richer knockout re-simulation later.
  */
-import type { Fixture, GroupId, MatchPrediction } from "@/lib/types";
+import type { Fixture, GroupId, MatchPrediction, TeamMeta } from "@/lib/types";
 import { computeGroupStandings, type MatchResult } from "./standings";
 
 export interface ScenarioFixtureResult extends MatchResult {
@@ -34,11 +34,12 @@ export function defaultResult(
   };
 }
 
-/** Recompute a group's standings from the current scenario results. */
+/** Recompute a group's standings from the current scenario results (Article 13). */
 export function computeScenarioStandings(
   groupId: GroupId,
   teamIds: string[],
   results: ScenarioFixtureResult[],
+  teamMeta: TeamMeta[] = [],
 ) {
-  return computeGroupStandings(groupId, teamIds, results);
+  return computeGroupStandings(groupId, teamIds, results, teamMeta);
 }

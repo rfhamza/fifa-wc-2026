@@ -19,6 +19,7 @@ export default function ScenarioPage() {
       id: t.id,
       name: t.name,
       flag: t.flag,
+      fifaRanking: t.fifaRanking,
     })),
     fixtures: getFixturesForGroup(groupId).map((fixture) => {
       const prediction = predictFixture(fixture);

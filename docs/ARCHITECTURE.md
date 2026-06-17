@@ -39,6 +39,26 @@ UI components **never** call the model or simulator directly — they call
 `lib/model/forecast.ts`, which runs the simulation **once** and memoizes the
 snapshot for the process. This keeps pages fast and the data contract narrow.
 
+## Data resolution & provenance
+`lib/data/index.ts` resolves the active dataset once via
+`lib/data/source.ts → resolveDataset()`:
+
+- **Candidates** are assembled in `data/official/` (real Final-Draw identities,
+  `sourceStatus: "candidate"`) and `data/mock/` (placeholders, `"mock"`).
+- The resolver prefers the highest-priority dataset (`verified` > `candidate` >
+  `mock`) **that passes `validateDataset()`** (48 teams, 12 groups × 4, unique
+  ids, referential integrity). Fallback is keyed on **validity/completeness**, not
+  on any boolean flag.
+- Fixtures: an official schedule is used only if present **and** referentially
+  valid (`fixtureSource: "official"`); otherwise they are deterministically
+  generated (`"generated"`).
+- `sourceStatus`, `fixtureSource`, and `bracket` are re-exported and surfaced in
+  the UI (`components/data-source-badge.tsx`, footer) so candidate/generated data
+  is never implied to be official.
+
+Swapping in fully official data later means only editing `data/official/*` and
+flipping its status — consumers and the simulator are untouched.
+
 ## Directory map
 ```
 app/                      App Router pages

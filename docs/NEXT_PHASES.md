@@ -1,15 +1,24 @@
 # Next Phases
 
-A roadmap from the phase-one foundation to a richer product. Each item lists the
-**seam** it plugs into so work stays modular.
+A roadmap from the foundation to a richer product. Each item lists the **seam**
+it plugs into so work stays modular.
 
-## Phase 2 — Real data
+## Done in phase 1.1 (hardening)
+- Tri-state data provenance + resolver/validation with mock fallback.
+- Candidate official group composition + 48-team identities.
+- FIFA Article 13 group tiebreakers + separate third-place ranking.
+- Weak structural/economic driver; honest "Standout contenders" + the pure
+  `computeProbabilityDeltas` snapshot-delta seam.
+- CI (PRs into `main`, pushes to `main`); expanded test suite.
+
+## Phase 2 — Verified data
+- Obtain official FIFA group/fixture/venue data (or authoritative JSON);
+  populate `data/official/*` and flip `sourceStatus` to `verified`.
+- Parse the regulations PDF for the R32 skeleton (M73–M88) + Annexe C; implement
+  `lib/simulation/bracket.ts` and un-skip the guarded bracket tests.
 - Build `lib/data/sources/` adapters for Elo, FIFA ranking, market value,
-  World Bank (see `DATA_SOURCES_TO_ADD_LATER.md`).
-- Add a refresh script that normalizes into the existing `Team`/`Venue` types.
-- Compute `recentForm` and `climateFamiliarity` from data instead of hand
-  values.
-- Replace the generated fixtures + bracket with the official 2026 schedule.
+  World Bank; compute `recentForm`/`climateFamiliarity`/`conductScore` from data.
+- Replace generated fixtures with the official schedule (`fixtureSource: "official"`).
 
 ## Phase 3 — Stronger model
 - Upgrade the scoreline engine to **bivariate Poisson / Dixon-Coles** (goal

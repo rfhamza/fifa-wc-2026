@@ -6,6 +6,22 @@
  * (no runtime logic) so they can be imported anywhere without side effects.
  */
 
+/**
+ * Provenance of a dataset (A2). Tri-state, never a boolean:
+ *  - "mock":      hand-authored placeholder values.
+ *  - "candidate": cross-verified from credible non-FIFA sources, NOT official.
+ *  - "verified":  official FIFA source or user-supplied authoritative JSON.
+ */
+export type SourceStatus = "mock" | "candidate" | "verified";
+
+/**
+ * Provenance of the fixture list (A3):
+ *  - "official":  the published FIFA match schedule.
+ *  - "generated": deterministically generated round-robin — simulation only,
+ *                 pending official verification.
+ */
+export type FixtureSource = "official" | "generated";
+
 /** Six FIFA confederations. */
 export type Confederation =
   | "UEFA"
@@ -116,6 +132,16 @@ export interface TeamFeatureSet {
   recentForm: number;
   climateFamiliarity: number;
   sameNationalityManager: boolean;
+  /** Raw GDP per capita (USD) — carried for transparency. */
+  gdpPerCapita: number;
+  /** Raw population — carried for transparency. */
+  population: number;
+  /**
+   * Normalized 0..1 "structural depth" prior, blended from log-scaled GDP per
+   * capita and log-scaled population. Experimental weak prior — NOT a strong
+   * match-level predictor (see docs/MODEL_METHOD.md).
+   */
+  structuralDepth: number;
   /** True if the team is a co-host. */
   isHost: boolean;
   /** True if the team's confederation is regionally close to host region. */
@@ -219,4 +245,59 @@ export interface ProbabilityDelta {
   previous: number;
   current: number;
   delta: number;
+}
+
+/**
+ * Per-team metadata the standings tiebreaker needs beyond match results
+ * (FIFA Article 13 lower-priority criteria). `conductScore` is a documented
+ * placeholder (0 for all teams) until real disciplinary data is integrated.
+ */
+export interface TeamMeta {
+  teamId: string;
+  fifaRanking: number;
+  /** Fair-play / disciplinary points placeholder (lower = better). Always 0 for now. */
+  conductScore: number;
+}
+
+/**
+ * One official knockout match slot (A4). Sources are group finishers or the
+ * winner of an earlier match. `thirdPlaceGroups` lists the candidate groups a
+ * best-third slot may draw from (Annexe C), when known.
+ */
+export interface BracketMatch {
+  /** Official match number, e.g. 73..104. */
+  matchNumber: number;
+  stage: Exclude<TournamentStage, "groupStage" | "winner">;
+  home: BracketSlot;
+  away: BracketSlot;
+}
+
+export type BracketSlot =
+  | { kind: "winner"; group: GroupId }
+  | { kind: "runnerUp"; group: GroupId }
+  | { kind: "thirdPlace"; thirdPlaceGroups?: GroupId[] }
+  | { kind: "matchWinner"; matchNumber: number };
+
+/** The official bracket skeleton + its provenance. */
+export interface BracketSpec {
+  sourceStatus: SourceStatus;
+  /** R32 → final match graph. Empty when not source-verified. */
+  matches: BracketMatch[];
+  /**
+   * Annexe C: maps the set of groups the 8 qualifying thirds come from to the
+   * specific R32 slots they fill. Empty/undefined until parsed confidently.
+   */
+  thirdPlaceAllocation?: Record<string, Partial<Record<GroupId, number>>>;
+  notes?: string;
+}
+
+/** A resolved dataset plus its provenance, returned by the data layer. */
+export interface ResolvedDataset {
+  sourceStatus: SourceStatus;
+  fixtureSource: FixtureSource;
+  teams: Team[];
+  venues: Venue[];
+  groups: Group[];
+  fixtures: Fixture[];
+  bracket: BracketSpec;
 }

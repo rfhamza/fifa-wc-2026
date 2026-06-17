@@ -61,6 +61,28 @@ describe("tournament simulation", () => {
     expect(total).toBeCloseTo(32, 0);
   });
 
+  it("per team: qualifyTop2 + qualifyThird equals roundOf32", () => {
+    for (const p of snapshot.stageProbabilities) {
+      expect(p.qualifyTop2 + p.qualifyThird).toBeCloseTo(p.roundOf32, 6);
+    }
+  });
+
+  it("total qualifyTop2 across all teams averages 24 (12 groups × 2)", () => {
+    const total = snapshot.stageProbabilities.reduce(
+      (s, p) => s + p.qualifyTop2,
+      0,
+    );
+    expect(total).toBeCloseTo(24, 1);
+  });
+
+  it("total qualifyThird across all teams averages 8 (best thirds)", () => {
+    const total = snapshot.stageProbabilities.reduce(
+      (s, p) => s + p.qualifyThird,
+      0,
+    );
+    expect(total).toBeCloseTo(8, 1);
+  });
+
   it("is deterministic for a fixed seed", () => {
     const again = runTournamentSimulation({ iterations: 400, seed: 123 });
     expect(again.stageProbabilities).toEqual(snapshot.stageProbabilities);

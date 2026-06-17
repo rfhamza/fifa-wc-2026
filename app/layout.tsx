@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
+import { DataSourceBadge } from "@/components/data-source-badge";
 
 export const metadata: Metadata = {
   title: "World Cup Probability Lab",
@@ -19,13 +20,14 @@ export default function RootLayout({
         <SiteHeader />
         <main className="container py-8 lg:py-12">{children}</main>
         <footer className="border-t border-border/60 py-8">
-          <div className="container flex flex-col gap-1 text-xs text-muted-foreground">
+          <div className="container flex flex-col gap-2 text-xs text-muted-foreground">
+            <DataSourceBadge />
             <p>
               World Cup Probability Lab — an educational forecasting project.
-              All figures are model estimates from seed data, not predictions of
-              certainty and not betting advice.
+              All figures are model estimates, not predictions of certainty and
+              not betting advice.
             </p>
-            <p>Phase one · static seed data · deterministic model + Monte Carlo.</p>
+            <p>Deterministic model + Monte Carlo. Model feature values (Elo, economy, squad, form) remain placeholders.</p>
           </div>
         </footer>
       </body>

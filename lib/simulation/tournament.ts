@@ -20,6 +20,7 @@ import type {
   GroupStanding,
   SimulationSnapshot,
   TeamFeatureSet,
+  TeamMeta,
   TournamentStageProbability,
 } from "@/lib/types";
 import { round } from "@/lib/utils";
@@ -27,7 +28,11 @@ import { SIMULATION_CONFIG } from "@/lib/model/config";
 import { buildFeatureSet } from "@/lib/model/features";
 import { computeDrivers, expectedGoalsFromAdvantage } from "@/lib/model/predict";
 import { createRng, samplePoisson, type Rng } from "./rng";
-import { computeGroupStandings, type MatchResult } from "./standings";
+import {
+  computeGroupStandings,
+  rankThirdPlacedTeams,
+  type MatchResult,
+} from "./standings";
 import { fixtures, groups, teams as allTeams } from "@/lib/data";
 
 const QUALIFYING_THIRDS = 8; // best third-placed teams that advance
@@ -151,8 +156,15 @@ export function runTournamentSimulation(
     ]),
   );
 
+  // Per-team metadata for Article 13 tiebreakers (conduct is a 0 placeholder).
+  const teamMeta: TeamMeta[] = allTeams.map((t) => ({
+    teamId: t.id,
+    fifaRanking: t.fifaRanking,
+    conductScore: 0,
+  }));
+
   for (let i = 0; i < iterations; i++) {
-    simulateOneTournament(prepared, feat, rng, counts, standingSums);
+    simulateOneTournament(prepared, feat, rng, counts, standingSums, teamMeta);
   }
 
   return {
@@ -170,6 +182,7 @@ function simulateOneTournament(
   rng: Rng,
   counts: Map<string, StageCounts>,
   standingSums: Map<string, StandingAccumulator>,
+  teamMeta: TeamMeta[],
 ): void {
   // 1. Simulate group matches.
   const resultsByGroup = new Map<GroupId, MatchResult[]>();
@@ -195,6 +208,7 @@ function simulateOneTournament(
       group.id,
       group.teamIds,
       resultsByGroup.get(group.id) ?? [],
+      teamMeta,
     );
     for (const s of standings) {
       const acc = standingSums.get(s.teamId)!;
@@ -215,9 +229,11 @@ function simulateOneTournament(
     }
   }
 
-  // 3. Best third-placed teams advance.
-  thirdPlaced.sort(byStrength);
-  const qualifyingThirds = thirdPlaced.slice(0, QUALIFYING_THIRDS);
+  // 3. Best third-placed teams advance (official all-group criteria, NOT H2H).
+  const qualifyingThirds = rankThirdPlacedTeams(thirdPlaced, teamMeta).slice(
+    0,
+    QUALIFYING_THIRDS,
+  );
   for (const s of qualifyingThirds) {
     counts.get(s.teamId)!.qualifyThird += 1;
   }

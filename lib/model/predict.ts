@@ -87,6 +87,12 @@ export function computeDrivers(
         (a.climateFamiliarity - b.climateFamiliarity) * w.climate,
       detail: `Acclimatization ${a.climateFamiliarity} vs ${b.climateFamiliarity}.`,
     },
+    {
+      label: "Structural depth",
+      contribution: (a.structuralDepth - b.structuralDepth) * w.structural,
+      detail:
+        "Experimental weak economic prior (log-scaled GDP per capita + population).",
+    },
   ];
 
   return drivers;

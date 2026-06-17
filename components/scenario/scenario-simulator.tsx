@@ -31,7 +31,7 @@ export interface ScenarioFixture {
 
 export interface ScenarioGroup {
   id: GroupId;
-  teams: { id: string; name: string; flag: string }[];
+  teams: { id: string; name: string; flag: string; fifaRanking: number }[];
   fixtures: ScenarioFixture[];
 }
 
@@ -43,6 +43,12 @@ export function ScenarioSimulator({ groups }: { groups: ScenarioGroup[] }) {
 
   const group = groups.find((g) => g.id === groupId)!;
   const teamIds = group.teams.map((t) => t.id);
+  // TeamMeta for Article 13 fallbacks (conduct is a 0 placeholder).
+  const teamMeta = group.teams.map((t) => ({
+    teamId: t.id,
+    fifaRanking: t.fifaRanking,
+    conductScore: 0,
+  }));
   const teamName = (id: string) =>
     group.teams.find((t) => t.id === id)?.name ?? id;
   const teamFlag = (id: string) =>
@@ -69,7 +75,9 @@ export function ScenarioSimulator({ groups }: { groups: ScenarioGroup[] }) {
           awayGoals: f.defaultAwayGoals,
           overridden: false,
         })),
+        teamMeta,
       ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [groupId, group.fixtures, teamIds],
   );
 
@@ -90,6 +98,7 @@ export function ScenarioSimulator({ groups }: { groups: ScenarioGroup[] }) {
             overridden: !!overrides[f.fixtureId],
           };
         }),
+        teamMeta,
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [groupId, group.fixtures, overrides],

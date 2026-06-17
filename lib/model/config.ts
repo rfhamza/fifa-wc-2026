@@ -27,6 +27,12 @@ export const MODEL_WEIGHTS = {
   regional: 18,
   /** Elo points per climate-familiarity point (0..100 scale). */
   climate: 0.8,
+  /**
+   * Elo points across the full 0..1 structural-depth range (log-scaled GDP per
+   * capita + population). Deliberately SMALL — an experimental weak structural
+   * prior, never a determinative match-level predictor.
+   */
+  structural: 10,
 } as const;
 
 export const SCORELINE_CONFIG = {

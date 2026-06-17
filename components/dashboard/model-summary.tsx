@@ -12,6 +12,7 @@ const SIGNALS: { label: string; weight: number; unit: string }[] = [
   { label: "Host advantage", weight: MODEL_WEIGHTS.host, unit: "pts" },
   { label: "Regional edge", weight: MODEL_WEIGHTS.regional, unit: "pts" },
   { label: "Climate familiarity", weight: MODEL_WEIGHTS.climate, unit: "pts/pt" },
+  { label: "Structural prior (economic)", weight: MODEL_WEIGHTS.structural, unit: "pts (weak)" },
 ];
 
 /** Card summarising the model's inputs and tunable weights. */

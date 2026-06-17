@@ -3,23 +3,25 @@ import { TeamFlag } from "@/components/team-flag";
 import type { ProbabilityDelta, Team } from "@/lib/types";
 import { signedPct } from "@/lib/utils";
 
-export interface MoverRow {
+export interface StandoutRow {
   team: Team;
   delta: ProbabilityDelta;
 }
 
 /**
- * Top movers placeholder. Phase one shows the biggest positive gaps versus the
- * field average; later this will diff two dated snapshots to show real change.
+ * Standout contenders — teams furthest ABOVE the field baseline (mean) for the
+ * chosen metric. This is intentionally NOT "top movers": it does not compare to
+ * a prior snapshot. Snapshot-over-snapshot movers arrive with run history later
+ * (see lib/model/snapshot-delta.ts).
  */
-export function TopMovers({ rows }: { rows: MoverRow[] }) {
+export function StandoutContenders({ rows }: { rows: StandoutRow[] }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Top movers</CardTitle>
+        <CardTitle>Standout contenders</CardTitle>
         <CardDescription>
-          Standout title contenders vs. the field average (placeholder — will
-          track snapshot-over-snapshot change later).
+          Furthest above the field baseline (average win probability) — not a
+          snapshot-over-snapshot change, which arrives with run history.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">

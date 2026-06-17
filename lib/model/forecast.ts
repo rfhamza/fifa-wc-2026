@@ -94,11 +94,13 @@ export function getFixturePredictionsForGroup(groupId: GroupId) {
 export { groups };
 
 /**
- * "Top movers": teams whose winner probability most exceeds a naive baseline
- * (uniform-ish prior across qualifiers). In phase one this surfaces standout
- * favourites; later it can diff two real snapshots over time.
+ * "Standout contenders": teams whose probability for `metric` most exceeds the
+ * field baseline (the mean across all teams). This is explicitly an
+ * above-baseline comparison, NOT a snapshot-over-snapshot mover — the honest
+ * framing for phase one. Real movers will use `computeProbabilityDeltas` against
+ * snapshot history once that exists (see lib/model/snapshot-delta.ts).
  */
-export function getTopMovers(metric: keyof Omit<TournamentStageProbability, "teamId"> = "winner", limit = 5): ProbabilityDelta[] {
+export function getStandoutContenders(metric: keyof Omit<TournamentStageProbability, "teamId"> = "winner", limit = 5): ProbabilityDelta[] {
   const probs = getSnapshot().stageProbabilities;
   // Baseline = mean probability across all teams for the metric.
   const baseline =

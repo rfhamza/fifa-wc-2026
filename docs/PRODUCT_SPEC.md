@@ -2,10 +2,15 @@
 
 ## Vision
 A beautiful, **explainable** FIFA World Cup 2026 prediction and simulation web
-app. It blends football strength, squad quality, manager nationality, economic
-indicators and climate/acclimatization into transparent probabilities, and uses
-Monte Carlo simulation to project the whole tournament. It is an **educational
-data-science hobby project** — never a betting product.
+app. It blends football strength, squad quality, manager nationality, a **weak
+economic/structural prior** and climate/acclimatization into transparent
+probabilities, and uses Monte Carlo simulation to project the whole tournament.
+It is an **educational data-science hobby project** — never a betting product.
+
+> Phase 1.1 note: group composition + team identities are `candidate`
+> (cross-verified, not official-FIFA-fetched); fixtures are `generated`; model
+> feature values remain `mock` placeholders. Economic indicators are now a
+> small, documented prior — not a determinative predictor.
 
 ## Phase one (this build) — what exists
 A clean, extensible foundation running entirely on **static seed data** and
