@@ -68,7 +68,7 @@ describe("tournament simulation", () => {
     }
   });
 
-  it("total qualifyTop2 across all teams averages 24 (12 groups × 2)", () => {
+  it("total qualifyTop2 across all teams averages 24 (12 groups x 2)", () => {
     const total = snapshot.stageProbabilities.reduce(
       (s, p) => s + p.qualifyTop2,
       0,

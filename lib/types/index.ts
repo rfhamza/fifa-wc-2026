@@ -1,5 +1,5 @@
 /**
- * World Cup Probability Lab — Domain Types
+ * World Cup Probability Lab - Domain Types
  * ----------------------------------------
  * Single source of truth for the shapes that flow through the data layer,
  * the prediction model, and the simulation engine. Keep these types pure
@@ -17,7 +17,7 @@ export type SourceStatus = "mock" | "candidate" | "verified";
 /**
  * Provenance of the fixture list (A3):
  *  - "official":  the published FIFA match schedule.
- *  - "generated": deterministically generated round-robin — simulation only,
+ *  - "generated": deterministically generated round-robin - simulation only,
  *                 pending official verification.
  */
 export type FixtureSource = "official" | "generated";
@@ -47,7 +47,7 @@ export type TournamentStage =
 /**
  * A national team participating in the tournament.
  * Numeric fields prefixed conceptually as "placeholder" in seed data are
- * realistic but mockable — swap them for real feeds later (see docs).
+ * realistic but mockable - swap them for real feeds later (see docs).
  */
 export interface Team {
   /** Stable lowercase slug, e.g. "argentina". Used as a key everywhere. */
@@ -77,7 +77,7 @@ export interface Team {
   /** Recent form 0..100 (results over last ~10 matches). Placeholder. */
   recentForm: number;
   /**
-   * Climate / acclimatization familiarity 0..100 — how well the squad copes
+   * Climate / acclimatization familiarity 0..100 - how well the squad copes
    * with North American summer venues (heat, humidity, altitude). Placeholder.
    */
   climateFamiliarity: number;
@@ -101,7 +101,7 @@ export interface Venue {
   country: HostNation;
   /** Rough climate descriptor used by the acclimatization signal. */
   climate: "hot" | "humid" | "temperate" | "altitude" | "arid";
-  /** Average daytime temperature in °C during the tournament window. */
+  /** Average daytime temperature in deg C during the tournament window. */
   avgTempC: number;
   capacity: number;
 }
@@ -132,13 +132,13 @@ export interface TeamFeatureSet {
   recentForm: number;
   climateFamiliarity: number;
   sameNationalityManager: boolean;
-  /** Raw GDP per capita (USD) — carried for transparency. */
+  /** Raw GDP per capita (USD) - carried for transparency. */
   gdpPerCapita: number;
-  /** Raw population — carried for transparency. */
+  /** Raw population - carried for transparency. */
   population: number;
   /**
    * Normalized 0..1 "structural depth" prior, blended from log-scaled GDP per
-   * capita and log-scaled population. Experimental weak prior — NOT a strong
+   * capita and log-scaled population. Experimental weak prior - NOT a strong
    * match-level predictor (see docs/MODEL_METHOD.md).
    */
   structuralDepth: number;
@@ -330,7 +330,7 @@ export interface KnockoutGraph {
 }
 
 /**
- * Annexe C combination key — the eight selected third-placed groups, NORMALIZED
+ * Annexe C combination key - the eight selected third-placed groups, NORMALIZED
  * (sorted, uppercase), e.g. "ABCDEFGH". Use `normalizeCombinationKey`.
  */
 export type ThirdPlaceCombinationKey = string;
@@ -354,7 +354,7 @@ export interface BracketSource {
 /** The official bracket definition + its provenance. */
 export interface BracketDefinition {
   sourceStatus: BracketSourceStatus;
-  /** R32 → final match graph. Empty until transcribed. */
+  /** R32 -> final match graph. Empty until transcribed. */
   graph: KnockoutGraph;
   /** Annexe C allocation. Empty until transcribed (must be all 495 to verify). */
   thirdPlaceAllocation: ThirdPlaceAllocationMap;

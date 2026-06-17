@@ -10,10 +10,11 @@
  *   3. Qualify top-2 of each group + the best 8 third-placed teams (32 total).
  *   4. Seed those 32 into a bracket and simulate single-elimination knockouts.
  *
- * ⚠️  PLACEHOLDER: the mapping of qualifiers onto bracket positions is a
- *     documented, balanced seeding — NOT the official 2026 position chart.
- *     Replace `seedBracket` / qualifier ordering when the real bracket lands.
- *     See docs/MODEL_METHOD.md → "Bracket builder".
+ * NOTE - PLACEHOLDER: the mapping of qualifiers onto bracket positions is a
+ *   documented, balanced seeding - NOT the official 2026 position chart. The
+ *   official path (lib/simulation/bracket.ts) is used only when verified; until
+ *   then `seedBracket` / qualifier ordering is the fallback. See
+ *   docs/MODEL_METHOD.md -> "Bracket: official structure + placeholder fallback".
  */
 import type {
   BracketDefinition,

@@ -17,7 +17,7 @@ const mockBracket: BracketDefinition = {
   graph: { matches: [] },
   thirdPlaceAllocation: {},
   sources: [],
-  notes: "Mock fallback — placeholder strength-seeded bracket.",
+  notes: "Mock fallback - placeholder strength-seeded bracket.",
 };
 
 /** Original hand-authored placeholder dataset (the guaranteed fallback). */

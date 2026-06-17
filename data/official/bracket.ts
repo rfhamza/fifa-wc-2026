@@ -25,5 +25,7 @@ export const officialBracket: BracketDefinition = {
     },
   ],
   notes:
-    "Pending source verification - FIFA regulations PDF returned 403. Graph + Annexe C are empty templates; simulator uses placeholder seeding until fully transcribed, validated, and confirmed verified.",
+    "Pending source verification - FIFA regulations PDF returned 403. " +
+    "Graph + Annexe C are empty templates; the simulator uses placeholder " +
+    "seeding until fully transcribed, validated, and confirmed verified.",
 };
