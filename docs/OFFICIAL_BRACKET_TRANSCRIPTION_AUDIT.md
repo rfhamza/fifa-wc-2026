@@ -86,6 +86,41 @@ Run via `npm run test` (see `tests/bracket.test.ts`,
   simulator still uses placeholder seeding**. The official path is exercised in
   tests only, via a verified-marked COPY (preview), never the shipped data.
 
+## Manual spot-checks for reviewer
+
+### R32 third-place slot mapping (graph)
+
+| Slot | R32 match | Annexe C column | Eligible groups (Art. 12.6) |
+| ---- | --------- | --------------- | --------------------------- |
+| T1   | M74       | 1E              | ABCDF                       |
+| T2   | M77       | 1I              | CDFGH                       |
+| T3   | M79       | 1A              | CEFHI                       |
+| T4   | M80       | 1L              | EHIJK                       |
+| T5   | M81       | 1D              | BEFIJ                       |
+| T6   | M82       | 1G              | AEHIJ                       |
+| T7   | M85       | 1B              | EFGIJ                       |
+| T8   | M87       | 1K              | DEIJL                       |
+
+### Sample Annexe C rows (verify against the noted PDF page)
+
+The PDF prints columns in the order `1A 1B 1D 1E 1G 1I 1K 1L`; the table below
+already remaps them to slots T1..T8 (mapping: 1A->T3, 1B->T7, 1D->T5, 1E->T1,
+1G->T6, 1I->T2, 1K->T8, 1L->T4).
+
+| Option | Page | Key      | T1 | T2 | T3 | T4 | T5 | T6 | T7 | T8 |
+| ------ | ---- | -------- | -- | -- | -- | -- | -- | -- | -- | -- |
+| 1      | 80   | EFGHIJKL | F  | G  | E  | K  | I  | H  | J  | L  |
+| 60     | 82   | BDFGHIJK | D  | F  | H  | K  | B  | J  | G  | I  |
+| 150    | 85   | BCDEFHKL | D  | F  | C  | K  | B  | H  | E  | L  |
+| 248    | 88   | ACDFGHIL | C  | D  | H  | I  | F  | A  | G  | L  |
+| 372    | 93   | ABCGHJKL | C  | G  | H  | K  | B  | A  | J  | L  |
+| 460    | 96   | ABCDFGHI | C  | F  | H  | I  | B  | A  | G  | D  |
+
+Annexe C spans **pages 80-97** (Options 1-495), about 29 options per page
+(p.80 has 18 rows, p.97 has 13). Page for any option N (approx):
+p.80 = 1-18, then p.81+ in blocks of 29 (p.81 = 19-47, p.82 = 48-76, ...,
+p.96 = 454-482, p.97 = 483-495).
+
 ## Reviewer checklist before flipping to `verified`
 
 - [ ] Spot-check 5-10 Annexe C options against the PDF (e.g. Option 1 ->

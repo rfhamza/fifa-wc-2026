@@ -6,7 +6,10 @@ import {
   realiseOfficialBracket,
   type GroupResult,
 } from "@/lib/simulation/bracket";
-import { validateGraph, GROUP_LETTERS } from "@/lib/simulation/bracket-validate";
+import {
+  validateGraph,
+  GROUP_LETTERS,
+} from "@/lib/simulation/bracket-validate";
 import { runTournamentSimulation } from "@/lib/simulation/tournament";
 import type { BracketDefinition, GroupId } from "@/lib/types";
 
@@ -17,9 +20,12 @@ describe("official knockout graph (candidate)", () => {
 
   it("preserves the eight Art. 12.6 third-place eligible-group sets", () => {
     const elig = (mn: number) => {
-      const m = officialKnockoutGraph.matches.find((x) => x.matchNumber === mn)!;
+      const m = officialKnockoutGraph.matches.find(
+        (x) => x.matchNumber === mn,
+      )!;
       const slot = m.home.kind === "thirdPlace" ? m.home : m.away;
-      if (slot.kind !== "thirdPlace") throw new Error("expected third-place slot");
+      if (slot.kind !== "thirdPlace")
+        throw new Error("expected third-place slot");
       return (slot.eligibleGroups ?? []).join("");
     };
     expect(elig(74)).toBe("ABCDF");
@@ -35,7 +41,10 @@ describe("official knockout graph (candidate)", () => {
 
 describe("realiser on the real candidate bracket", () => {
   const groupResults = new Map<GroupId, GroupResult>(
-    GROUP_LETTERS.map((g) => [g, { winner: `${g}1`, runnerUp: `${g}2`, third: `${g}3` }]),
+    GROUP_LETTERS.map((g) => [
+      g,
+      { winner: `${g}1`, runnerUp: `${g}2`, third: `${g}3` },
+    ]),
   );
 
   it("resolves 32 distinct teams + correct stage counts for a sample combination", () => {
@@ -71,7 +80,10 @@ describe("realiser on the real candidate bracket", () => {
 describe("tournament under the official bracket (verified-for-test preview)", () => {
   // Production stays gated (candidate); tests may preview the official path by
   // marking a COPY verified. This does not change the shipped data.
-  const verified: BracketDefinition = { ...officialBracket, sourceStatus: "verified" };
+  const verified: BracketDefinition = {
+    ...officialBracket,
+    sourceStatus: "verified",
+  };
 
   it("activates only the verified copy, never the shipped candidate", () => {
     expect(isBracketActive(officialBracket)).toBe(false);
@@ -79,9 +91,20 @@ describe("tournament under the official bracket (verified-for-test preview)", ()
   });
 
   it("holds the stage invariants (32, 16, 8, 4, 2, 1)", () => {
-    const snap = runTournamentSimulation({ iterations: 300, seed: 7, bracket: verified });
-    const sum = (k: "roundOf32" | "roundOf16" | "quarterFinal" | "semiFinal" | "final" | "winner") =>
-      snap.stageProbabilities.reduce((s, p) => s + p[k], 0);
+    const snap = runTournamentSimulation({
+      iterations: 300,
+      seed: 7,
+      bracket: verified,
+    });
+    const sum = (
+      k:
+        | "roundOf32"
+        | "roundOf16"
+        | "quarterFinal"
+        | "semiFinal"
+        | "final"
+        | "winner",
+    ) => snap.stageProbabilities.reduce((s, p) => s + p[k], 0);
     expect(sum("roundOf32")).toBeCloseTo(32, 1);
     expect(sum("roundOf16")).toBeCloseTo(16, 1);
     expect(sum("quarterFinal")).toBeCloseTo(8, 1);

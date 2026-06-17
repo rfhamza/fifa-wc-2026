@@ -13,7 +13,9 @@ describe("official bracket (candidate transcription)", () => {
 
   it("has the transcribed graph (32 matches, M73-M104) and 495 Annexe C rows", () => {
     expect(officialBracket.graph.matches).toHaveLength(32);
-    const r32 = officialBracket.graph.matches.filter((m) => m.stage === "roundOf32");
+    const r32 = officialBracket.graph.matches.filter(
+      (m) => m.stage === "roundOf32",
+    );
     expect(r32).toHaveLength(16);
     expect(Object.keys(officialBracket.thirdPlaceAllocation)).toHaveLength(495);
   });
@@ -22,6 +24,10 @@ describe("official bracket (candidate transcription)", () => {
     const result = validateBracket(officialBracket);
     expect(result.errors).toEqual([]);
     expect(result.valid).toBe(true);
-    expect(result.coverage).toEqual({ combinations: 495, expected: 495, complete: true });
+    expect(result.coverage).toEqual({
+      combinations: 495,
+      expected: 495,
+      complete: true,
+    });
   });
 });
