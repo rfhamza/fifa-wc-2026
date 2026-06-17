@@ -100,15 +100,36 @@ reproducible). The **third-placed ranking is separate** and uses points →
 all-group GD → all-group GF → conduct → FIFA ranking (NO head-to-head, since
 those teams did not meet).
 
-### Bracket builder — ⚠️ PLACEHOLDER (Round of 32)
-`seedBracket()` + qualifier ordering produce a **balanced, deterministic** bracket
-(1v32, 2v31, …). This is **not** the official 2026 position chart. The official
-R32 slot skeleton (M73–M88) and the Annexe C third-place allocation live in the
-FIFA regulations PDF, which returned **HTTP 403** to our fetch agent, so it could
-not be source-verified. `data/official/bracket.ts` ships a typed template
-(`sourceStatus: "mock"`) and `lib/simulation/bracket.ts` exposes
-`isBracketVerified()`; the official-bracket tests stay **skipped** until the
-mapping is populated and flipped to `verified`.
+### Bracket: official structure + placeholder fallback (Phase 1.2)
+The knockout stage is a typed, validated structure built to be **credible** while
+staying honest about provenance:
+
+- **Knockout graph** (`data/official/knockout-graph.ts`): the R32 skeleton
+  (M73–M88) + downstream R16/QF/SF/3rd-place/final propagation, as
+  `KnockoutMatchDefinition`s whose slots reference group winners/runners-up,
+  Annexe C third-place slots (`T1`..`T8`), or earlier match winners/losers.
+- **Annexe C** (`data/official/third-place-allocation.ts`): an **explicit
+  495-row lookup table** (`C(12,8)`), key = the 8 selected third-placed groups
+  normalized (e.g. `"ABCDEFGH"`) → `{ slot → group }`. The explicit table is the
+  source of truth (no algorithmic reconstruction).
+- **Validation** (`lib/simulation/bracket-validate.ts`): 16 R32 matches; every
+  group winner + runner-up used once; 8 third slots; valid propagation; and full
+  495-combination coverage with exact-once assignment.
+- **Realiser** (`lib/simulation/bracket.ts → realiseOfficialBracket`): resolves
+  all 32 slots from group results + Annexe C and evaluates M73–M104 in order. The
+  3rd-place match (M103) is simulated for completeness but **not aggregated**.
+
+**Production gate (`isBracketActive`):** the official path runs **only** when the
+bracket is `sourceStatus: "verified"` **and** `validateBracket` passes. Otherwise
+the simulator falls back to the transparent `seedBracket()` balanced seeding. The
+FIFA regulations PDF returned **HTTP 403**, so the graph + Annexe C remain empty
+templates (`sourceStatus: "mock"`) and the official path is **inactive**;
+real-data tests stay **skipped**. Engine correctness is proven against a synthetic
+fixture (`tests/fixtures/sample-bracket.ts`).
+
+**Go/No-Go to `verified`:** graph transcribed + valid; all 495 Annexe C rows
+present + valid; realiser resolves 32 distinct teams deterministically; user
+confirms the source is authoritative; CI green and invariants hold.
 
 ## 6. Tuning guide
 All knobs live in `lib/model/config.ts`:

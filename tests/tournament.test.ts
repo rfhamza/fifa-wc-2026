@@ -4,6 +4,7 @@ import {
   seedBracket,
 } from "@/lib/simulation/tournament";
 import { teams } from "@/lib/data";
+import { sampleBracket } from "./fixtures/sample-bracket";
 
 describe("tournament simulation", () => {
   // Small iteration count keeps the test fast but still meaningful.
@@ -96,5 +97,52 @@ describe("tournament simulation", () => {
     for (let i = 0; i < bracket.length; i += 2) {
       expect(bracket[i]! + bracket[i + 1]!).toBe(33);
     }
+  });
+});
+
+describe("tournament simulation under the official (fixture) bracket", () => {
+  // Inject a fully-valid, verified synthetic bracket so the official path runs.
+  const snapshot = runTournamentSimulation({
+    iterations: 400,
+    seed: 123,
+    bracket: sampleBracket,
+  });
+
+  const sum = (key: "roundOf32" | "roundOf16" | "quarterFinal" | "semiFinal" | "final" | "winner") =>
+    snapshot.stageProbabilities.reduce((s, p) => s + p[key], 0);
+
+  it("holds the stage invariants (32, 16, 8, 4, 2, 1)", () => {
+    expect(sum("roundOf32")).toBeCloseTo(32, 1);
+    expect(sum("roundOf16")).toBeCloseTo(16, 1);
+    expect(sum("quarterFinal")).toBeCloseTo(8, 1);
+    expect(sum("semiFinal")).toBeCloseTo(4, 1);
+    expect(sum("final")).toBeCloseTo(2, 1);
+    expect(sum("winner")).toBeCloseTo(1, 1);
+  });
+
+  it("keeps qualifyTop2 + qualifyThird == roundOf32 per team", () => {
+    for (const p of snapshot.stageProbabilities) {
+      expect(p.qualifyTop2 + p.qualifyThird).toBeCloseTo(p.roundOf32, 6);
+    }
+  });
+
+  it("respects the stage funnel monotonicity", () => {
+    for (const p of snapshot.stageProbabilities) {
+      expect(p.roundOf32).toBeGreaterThanOrEqual(p.roundOf16 - 1e-9);
+      expect(p.roundOf16).toBeGreaterThanOrEqual(p.quarterFinal - 1e-9);
+      expect(p.quarterFinal).toBeGreaterThanOrEqual(p.semiFinal - 1e-9);
+      expect(p.semiFinal).toBeGreaterThanOrEqual(p.final - 1e-9);
+      expect(p.final).toBeGreaterThanOrEqual(p.winner - 1e-9);
+    }
+  });
+
+  it("is deterministic for a fixed seed under the official bracket", () => {
+    const again = runTournamentSimulation({ iterations: 400, seed: 123, bracket: sampleBracket });
+    expect(again.stageProbabilities).toEqual(snapshot.stageProbabilities);
+  });
+
+  it("differs from the placeholder path (official routing changes outcomes)", () => {
+    const placeholder = runTournamentSimulation({ iterations: 400, seed: 123 });
+    expect(snapshot.stageProbabilities).not.toEqual(placeholder.stageProbabilities);
   });
 });

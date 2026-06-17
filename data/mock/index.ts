@@ -1,4 +1,4 @@
-import type { BracketSpec, SourceStatus, Team, Venue } from "@/lib/types";
+import type { BracketDefinition, SourceStatus, Team, Venue } from "@/lib/types";
 import { teams } from "./teams";
 import { venues } from "./venues";
 
@@ -9,12 +9,14 @@ export interface SourceDataset {
   venues: Venue[];
   /** Present only when an official published schedule is available. */
   officialFixtures?: import("@/lib/types").Fixture[];
-  bracket: BracketSpec;
+  bracket: BracketDefinition;
 }
 
-const mockBracket: BracketSpec = {
+const mockBracket: BracketDefinition = {
   sourceStatus: "mock",
-  matches: [],
+  graph: { matches: [] },
+  thirdPlaceAllocation: {},
+  sources: [],
   notes: "Mock fallback — placeholder strength-seeded bracket.",
 };
 

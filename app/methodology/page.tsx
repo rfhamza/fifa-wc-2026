@@ -7,10 +7,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { MODEL_WEIGHTS, SCORELINE_CONFIG, SIMULATION_CONFIG } from "@/lib/model/config";
+import { bracket } from "@/lib/data";
+import { isBracketActive } from "@/lib/simulation/bracket";
 
 export const metadata = {
   title: "Methodology · World Cup Probability Lab",
 };
+
+const BRACKET_ACTIVE = isBracketActive(bracket);
 
 export default function MethodologyPage() {
   return (
@@ -64,6 +68,30 @@ export default function MethodologyPage() {
           third-placed teams, then simulate the knockout bracket. Counting how
           often each team reaches each stage gives the probabilities you see. The
           simulation is seeded, so results are reproducible.
+        </p>
+      </Section>
+
+      <Section title="Knockout bracket">
+        <p>
+          The official 2026 knockout path is a typed, validated structure: the
+          Round of 32 skeleton (matches M73&ndash;M88), the downstream
+          R16/QF/SF/final propagation graph, and the <strong>Annexe C</strong>
+          table that allocates the eight best third-placed teams across the 495
+          possible group combinations.
+        </p>
+        <p>
+          Current bracket status:{" "}
+          <Badge variant={BRACKET_ACTIVE ? "default" : "muted"}>
+            {bracket.sourceStatus}
+            {BRACKET_ACTIVE ? " · official path active" : " · placeholder seeding"}
+          </Badge>
+        </p>
+        <p>
+          Because the official FIFA regulations PDF is not machine-retrievable
+          here, the bracket data is not yet source-verified. Until the graph and
+          all 495 Annexe C rows are transcribed, validated, and confirmed, the
+          simulator uses a transparent balanced-seeding placeholder &mdash; it is
+          never silently presented as the official bracket.
         </p>
       </Section>
 
