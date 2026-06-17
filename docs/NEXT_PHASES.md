@@ -20,6 +20,16 @@ it plugs into so work stays modular.
   World Bank; compute `recentForm`/`climateFamiliarity`/`conductScore` from data.
 - Replace generated fixtures with the official schedule (`fixtureSource: "official"`).
 
+> **Bracket note (R32 / Annexe C).** The official FIFA regulations PDF contains
+> the **Round-of-32 slot skeleton (matches M73–M88)** and the downstream
+> R16/QF/SF/final propagation graph — that part is well-defined and can be
+> transcribed once the PDF is accessible (it returned HTTP 403 here). The harder
+> piece is **Annexe C**: the table mapping *which* groups the eight best
+> third-placed teams come from to *which* R32 slots. It has many combinations and
+> needs careful, source-verified implementation. **Until Annexe C is implemented,
+> the simulator stays placeholder-seeded** (`seedBracket`); do not flip
+> `data/official/bracket.ts` to `verified` with only the skeleton populated.
+
 ## Phase 3 — Stronger model
 - Upgrade the scoreline engine to **bivariate Poisson / Dixon-Coles** (goal
   correlation + low-score correction). Seam: `lib/simulation/poisson.ts`.
