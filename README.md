@@ -29,7 +29,7 @@ simulator uses a documented placeholder bracket).
 
 ## Features
 - **Forecast Dashboard** — title-win table, stage columns, probability bars,
-  top contenders chart, top movers, model summary.
+  top contenders chart, standout contenders, model summary.
 - **Match Predictor** — every group fixture with win/draw/loss, expected goals,
   most-likely scorelines and key drivers.
 - **Team Detail** — full feature profile, manager & climate signals, stage

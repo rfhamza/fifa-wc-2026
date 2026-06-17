@@ -72,7 +72,7 @@ app/                      App Router pages
 components/
   ui/                     shadcn-style primitives (card, badge, button, table)
   charts/                 ProbabilityBar/Meter, Recharts (winner, stage funnel)
-  dashboard/              Hero, winner table, model summary, top movers
+  dashboard/              Hero, winner table, model summary, standout contenders
   matches/                FixtureCard
   teams/                  StatTile
   scenario/               ScenarioSimulator (client)
