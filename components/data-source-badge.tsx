@@ -4,14 +4,14 @@ import { isBracketActive } from "@/lib/simulation/bracket";
 import type { FixtureSource, SourceStatus } from "@/lib/types";
 
 const STATUS_COPY: Record<SourceStatus, { label: string; variant: "default" | "accent" | "muted" }> = {
-  verified: { label: "Verified · official FIFA data", variant: "default" },
-  candidate: { label: "Candidate · cross-verified, not official", variant: "accent" },
-  mock: { label: "Mock · placeholder data", variant: "muted" },
+  verified: { label: "Verified - official FIFA data", variant: "default" },
+  candidate: { label: "Candidate - cross-verified, not official", variant: "accent" },
+  mock: { label: "Mock - placeholder data", variant: "muted" },
 };
 
 const FIXTURE_COPY: Record<FixtureSource, string> = {
   official: "official fixture schedule",
-  generated: "fixture order simulated · pending official schedule",
+  generated: "fixture order simulated - pending official schedule",
 };
 
 /**
