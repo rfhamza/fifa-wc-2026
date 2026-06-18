@@ -95,15 +95,18 @@ A roadmap from the foundation to a richer product. Each item lists the
 - Provenance kept (v17 / 10 Apr 2026 / ET / subject-to-change) on every staged
   row + the raw snapshot; the PDF binary is NOT committed; no runtime deps added.
 
-> **Staging only - production unchanged.** `data/official/fixtures.ts` stays
-> empty, no non-host draw slot is verified, and `fixtureSource` stays
-> `position-generated`. A safety regression test locks this.
->
-> **Go/no-go to activate (Step B, separate approved PR).** Requires explicit user
-> approval of the transcription. Then populate `data/official/fixtures.ts` (72
-> position-keyed rows) + set all 48 `Team.drawPosition`/`drawSlot`/`drawSlotStatus
-> : "verified"`; the resolver flips `fixtureSource` to `"official"`. The UI must
-> keep the "Official FIFA schedule, v17, 10 Apr 2026 - subject to change" label.
+## Done in phase 1.6 Step B (official schedule ACTIVATED)
+
+- Populated `data/official/fixtures.ts` from the staged schedule (72 rows, derived
+  via `.map` - no duplication) and wrote all 48 verified draw positions to
+  `data/official/teams.ts` from `stagedDrawPositions` (host slots A1/B1/D1
+  preserved). The resolver now serves `fixtureSource: "official"` (no fallback);
+  72 official fixtures materialise with match numbers, kickoffs and venues.
+- UI surfaces official venues/dates/match numbers and the provenance label
+  "Official FIFA schedule, v17, 10 Apr 2026, subject to change". Team identities +
+  model features are unchanged (`sourceStatus` stays `candidate`); the
+  Telegraph/Excel candidate layer remains a cross-check only.
+- No bracket/model/simulation/nav changes; bracket + tournament suites stay green.
 
 ## Phase 2 - Verified data
 

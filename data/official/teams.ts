@@ -1,4 +1,5 @@
 import type { Team } from "@/lib/types";
+import { stagedDrawPositions } from "./staging/schedule";
 
 /**
  * OFFICIAL (CANDIDATE) 2026 FIELD — group composition from the Final Draw
@@ -20,15 +21,16 @@ import type { Team } from "@/lib/types";
  *
  * Seed (Pot 1 / co-host) is listed first in each group as position 1.
  *
- * DRAW POSITIONS (A3): only the three co-hosts have SOURCE-BACKED draw slots,
- * fixed by FIFA regulation (Art. 12.3): Mexico A1, Canada B1, USA D1 (each opens
- * the tournament in its named slot). Every other team's `drawPosition`/`drawSlot`
- * is intentionally OMITTED until the official Final Draw positions are supplied -
- * the listing order below is NOT a draw position. The fixture generator uses an
- * internal placeholder ordering for non-host pairings (see lib/data/fixtures.ts);
- * it never writes a placeholder slot back onto a Team.
+ * DRAW POSITIONS (A3): ACTIVE (Phase 1.6 Step B). All 48 draw slots are now
+ * source-backed from the OFFICIAL FIFA schedule (v17, 10 Apr 2026): they are
+ * SOLVED from the schedule's Art. 12.4 pairings and applied below from
+ * `stagedDrawPositions` with `drawSlotStatus: "verified"`. The three regulation
+ * host slots (Mexico A1, Canada B1, USA D1) are part of that set and preserved.
+ * The host literals on the rows below are retained for readability; the map
+ * reasserts them with identical values. Team identities + model fields are
+ * unchanged (still candidate/mock).
  */
-export const officialTeams: Team[] = [
+const RAW_TEAMS: Team[] = [
   // ---------------- Group A ----------------
   { id: "mexico", name: "Mexico", countryCode: "MEX", confederation: "CONCACAF", group: "A", drawPosition: 1, drawSlot: "A1", drawSlotStatus: "verified", flag: "🇲🇽", fifaRanking: 15, elo: 1875, gdpPerCapita: 11500, population: 128900000, managerNationality: "Mexico", sameNationalityManager: true, squadQuality: 74, recentForm: 66, climateFamiliarity: 90 },
   { id: "south-korea", name: "South Korea", countryCode: "KOR", confederation: "AFC", group: "A", flag: "🇰🇷", fifaRanking: 22, elo: 1845, gdpPerCapita: 32400, population: 51700000, managerNationality: "South Korea", sameNationalityManager: true, squadQuality: 73, recentForm: 68, climateFamiliarity: 76 },
@@ -101,3 +103,22 @@ export const officialTeams: Team[] = [
   { id: "panama", name: "Panama", countryCode: "PAN", confederation: "CONCACAF", group: "L", flag: "🇵🇦", fifaRanking: 41, elo: 1740, gdpPerCapita: 17000, population: 4400000, managerNationality: "Panama", sameNationalityManager: true, squadQuality: 60, recentForm: 56, climateFamiliarity: 87 },
   { id: "ghana", name: "Ghana", countryCode: "GHA", confederation: "CAF", group: "L", flag: "🇬🇭", fifaRanking: 68, elo: 1690, gdpPerCapita: 2400, population: 33500000, managerNationality: "Ghana", sameNationalityManager: true, squadQuality: 64, recentForm: 52, climateFamiliarity: 88 },
 ];
+
+/**
+ * Apply the verified draw positions (solved from the official FIFA schedule in
+ * Phase 1.6 Step A; see data/official/staging/schedule.ts) to every team. This is
+ * the single source of truth for draw slots, so all 48 stay consistent with the
+ * schedule and the solver, and the host slots A1/B1/D1 are preserved.
+ */
+const DRAW_BY_TEAM = new Map(stagedDrawPositions.map((p) => [p.teamId, p]));
+
+export const officialTeams: Team[] = RAW_TEAMS.map((team) => {
+  const draw = DRAW_BY_TEAM.get(team.id);
+  if (!draw) return team;
+  return {
+    ...team,
+    drawPosition: draw.position,
+    drawSlot: draw.slot,
+    drawSlotStatus: "verified" as const,
+  };
+});

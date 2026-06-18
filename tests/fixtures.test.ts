@@ -70,10 +70,11 @@ describe("Article 12.4 fixture generation", () => {
 });
 
 describe("resolver fixture provenance", () => {
-  it("position-generates from the candidate field (empty official template)", () => {
+  it("materialises the active official schedule (Phase 1.6 Step B)", () => {
     const ds = resolveDataset();
-    expect(ds.fixtureSource).toBe("position-generated");
+    expect(ds.fixtureSource).toBe("official");
     expect(ds.fixtures).toHaveLength(72);
+    // Official fixtures still carry Article 12.4 draw-position pairings.
     expect(validatePositionPairings(ds.fixtures)).toEqual([]);
   });
 });
