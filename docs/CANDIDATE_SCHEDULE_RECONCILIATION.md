@@ -1,6 +1,6 @@
 # Candidate Schedule & Draw-Order Reconciliation (Phase 1.5)
 
-> ⚠️ **CANDIDATE / STAGING ONLY — NOT OFFICIAL FIFA DATA.**
+> WARNING: **CANDIDATE / STAGING ONLY - NOT OFFICIAL FIFA DATA.**
 >
 > This document records a candidate 2026 group-stage schedule and intra-group
 > draw order cross-checked from **two third-party sources**. It is staged in an
@@ -9,19 +9,25 @@
 > **not** use it (the resolver never imports the candidate layer, so
 > `fixtureSource` stays `position-generated`).
 
+> **Update (Phase 1.6).** The OFFICIAL FIFA schedule PDF (v17, 10 Apr 2026) has
+> since been transcribed and now **supersedes this candidate layer as the
+> schedule source** - Telegraph/Excel are demoted to a cross-check. The official
+> transcription agrees with this candidate layer on all 72 fixtures and confirms
+> the M20/M36 resolutions. See `docs/OFFICIAL_SCHEDULE_TRANSCRIPTION_AUDIT.md`.
+
 ## 1. Sources & provenance
 
 | Source | Type | Role | Carries | Timezone |
 | --- | --- | --- | --- | --- |
 | FIFA World Cup 2026 Interactive Schedule & Automated Standings (V2.62 Free) | Third-party **xlsx** (fan-made) | Candidate **value** | match #, group, kickoff, home/away, venue | New York (ET) |
-| The Telegraph — World Cup 2026 wallchart | Third-party **pdf** (newspaper) | Visual **cross-check** | group, draw order, pairings, kickoff | UK (BST) |
+| The Telegraph - World Cup 2026 wallchart | Third-party **pdf** (newspaper) | Visual **cross-check** | group, draw order, pairings, kickoff | UK (BST) |
 
 Neither source is official FIFA data. The **source binaries are not committed**
 (third-party copyright / unclear redistribution). What is committed:
 
-- `data/candidate/raw/excel-matches.json` — derived snapshot + provenance header.
-- `data/candidate/raw/telegraph-fixtures.json` — transcribed snapshot + header.
-- `scripts/extract-candidate-schedule.py` — dev-only extractor (Python stdlib;
+- `data/candidate/raw/excel-matches.json` - derived snapshot + provenance header.
+- `data/candidate/raw/telegraph-fixtures.json` - transcribed snapshot + header.
+- `scripts/extract-candidate-schedule.py` - dev-only extractor (Python stdlib;
   no runtime deps). Point `--xlsx` at a local copy of the workbook to reproduce.
 
 Each raw snapshot states plainly: third-party candidate source, **not** official
@@ -30,13 +36,13 @@ in production.
 
 ## 2. Extraction method
 
-- **Excel** — parsed the OOXML directly (zip + XML, stdlib). The `Matches` sheet
+- **Excel** - parsed the OOXML directly (zip + XML, stdlib). The `Matches` sheet
   gives 72 group rows (match #, group, datetime serial, home, away, venue); the
   `Setup` sheet gives group membership. Kickoff serials are New York time and
-  were converted to **UTC** (EDT = UTC−4 in June 2026). The candidate **draw
-  order** was *solved* per group by brute-forcing the unique team→position map
+  were converted to **UTC** (EDT = UTC-4 in June 2026). The candidate **draw
+  order** was *solved* per group by brute-forcing the unique team->position map
   (1..4) whose directed pairings reproduce the Article 12.4 chart exactly.
-- **Telegraph** — manually transcribed from the 2-page wallchart: group listings
+- **Telegraph** - manually transcribed from the 2-page wallchart: group listings
   (draw order), the six pairings per group, and kickoffs in UK time (BST = UTC+1),
   converted to UTC. The wallchart has no match numbers or per-match venues.
 
@@ -46,9 +52,9 @@ Team-name and venue-string variants are resolved explicitly in
 `data/candidate/name-map.ts` (an unmapped value is surfaced by validation, never
 silently guessed). Notable variants:
 
-- Teams: `Korea Republic`→south-korea, `Cote D'Voire`→ivory-coast,
-  `Cabo Verde`→cape-verde, `Türkiye`→turkiye, `Curacao`→curacao,
-  `DR Congo`→congo-dr, `Bosnia and Herzegovina`→bosnia-herzegovina, `USA`→usa.
+- Teams: `Korea Republic`->south-korea, `Cote D'Voire`->ivory-coast,
+  `Cabo Verde`->cape-verde, `Turkiye`->turkiye, `Curacao`->curacao,
+  `DR Congo`->congo-dr, `Bosnia and Herzegovina`->bosnia-herzegovina, `USA`->usa.
 - Venues: matched on the stadium name before the comma; the source appends a city
   and a flag emoji that are ignored.
 
@@ -57,13 +63,13 @@ silently guessed). Notable variants:
 Both sources **agree** on group membership and draw order. The three regulation
 co-host slots are preserved (Mexico **A1**, Canada **B1**, USA **D1**).
 
-| Group | Draw order (1 → 4) |
+| Group | Draw order (1 -> 4) |
 | --- | --- |
 | A | 1=Mexico / 2=South Africa / 3=South Korea / 4=Czechia |
 | B | 1=Canada / 2=Bosnia & Herzegovina / 3=Qatar / 4=Switzerland |
 | C | 1=Brazil / 2=Morocco / 3=Haiti / 4=Scotland |
-| D | 1=USA / 2=Paraguay / 3=Australia / 4=Türkiye |
-| E | 1=Germany / 2=Curaçao / 3=Ivory Coast / 4=Ecuador |
+| D | 1=USA / 2=Paraguay / 3=Australia / 4=Turkiye |
+| E | 1=Germany / 2=Curacao / 3=Ivory Coast / 4=Ecuador |
 | F | 1=Netherlands / 2=Japan / 3=Sweden / 4=Tunisia |
 | G | 1=Belgium / 2=Egypt / 3=Iran / 4=New Zealand |
 | H | 1=Spain / 2=Cape Verde / 3=Saudi Arabia / 4=Uruguay |
@@ -110,7 +116,7 @@ empty; `reconcileSources` reports these two under `manuallyResolved`).
 > **Still candidate.** Selecting the Telegraph value here is a manual
 > reconciliation decision that raises confidence; it does **not** make the data
 > official. These values remain candidate until an official FIFA schedule, or
-> user-approved authoritative JSON, is supplied (see §8).
+> user-approved authoritative JSON, is supplied (see Sec 8).
 
 ### Venue-string variants (warnings, not errors)
 
@@ -121,8 +127,8 @@ Area`. The stadium itself resolves correctly in every case.
 
 ## 6. Timezone handling
 
-- Excel kickoffs: New York time (ET). June 2026 is EDT (UTC−4) → add 4h for UTC.
-- Telegraph kickoffs: UK time (BST = UTC+1) → subtract 1h for UTC.
+- Excel kickoffs: New York time (ET). June 2026 is EDT (UTC-4) -> add 4h for UTC.
+- Telegraph kickoffs: UK time (BST = UTC+1) -> subtract 1h for UTC.
 - All candidate fixtures store `kickoffUtc` (ISO) plus `kickoffSourceTz`.
 
 ## 7. Isolation & safety
@@ -137,7 +143,7 @@ Area`. The stadium itself resolves correctly in every case.
   `fixtureSource: "official"` nor mark any slot verified.
 - No runtime dependencies were added.
 
-## 8. Go / No-Go to promote candidate → official/verified
+## 8. Go / No-Go to promote candidate -> official/verified
 
 Promotion is **blocked** until an authoritative source is supplied:
 
@@ -146,11 +152,11 @@ Promotion is **blocked** until an authoritative source is supplied:
   authoritative.
 
 Agreement between the two third-party sources **raises confidence** but is **not
-sufficient** — two candidate sources agreeing does not make the data official.
+sufficient** - two candidate sources agreeing does not make the data official.
 
 When an authoritative source is supplied (a separate, approved change):
 
-1. Populate `data/official/fixtures.ts` (position-keyed M1–M72) and the 48
+1. Populate `data/official/fixtures.ts` (position-keyed M1-M72) and the 48
    `Team.drawPosition`/`drawSlot`/`drawSlotStatus`.
 2. Let `validateOfficialFixtures` + `validateDrawPositions` pass.
 3. The existing resolver then flips `fixtureSource` to `"official"`.

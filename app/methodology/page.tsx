@@ -113,6 +113,13 @@ export default function MethodologyPage() {
           regulation pairing chart - we never present the generated order as
           official until the FIFA schedule is supplied and validated.
         </p>
+        <p>
+          The official FIFA match schedule (PDF v17, 10 Apr 2026, &ldquo;subject
+          to change&rdquo;) has now been transcribed into an isolated staging
+          layer and verified, but is <strong>not yet activated</strong> &mdash;
+          production fixtures remain position-generated until activation is
+          reviewed and approved.
+        </p>
       </Section>
 
       <Section title="What is placeholder data">

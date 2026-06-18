@@ -79,6 +79,32 @@ A roadmap from the foundation to a richer product. Each item lists the
 > `validateOfficialFixtures`/`validateDrawPositions` pass, and the resolver
 > flips `fixtureSource` to `"official"`.
 
+## Done in phase 1.6 Step A (official schedule staged for verification)
+
+- Transcribed the **official** FIFA 2026 group-stage schedule (M1-M72) from the
+  user-supplied PDF (`FWC26_Match_Schedule_v17_10042026_EN.pdf`, v17 / 10 Apr
+  2026, all times ET, **subject to change**) into an isolated staging layer
+  (`data/official/staging/`) that the resolver never imports.
+- Solved + validated all 48 Final-Draw positions from the schedule's directed
+  Art. 12.4 pairings (unique solution per group; host slots A1/B1/D1 preserved),
+  and proved via a **dry-run** that activation would pass the existing
+  `validateOfficialFixtures` / `validateFixtures` / `validateDrawPositions`.
+- Cross-checked every fixture against the Telegraph/Excel candidate layer: 72/72
+  agree, and the official schedule **confirms** the manual M20/M36 resolutions.
+  See `docs/OFFICIAL_SCHEDULE_TRANSCRIPTION_AUDIT.md`.
+- Provenance kept (v17 / 10 Apr 2026 / ET / subject-to-change) on every staged
+  row + the raw snapshot; the PDF binary is NOT committed; no runtime deps added.
+
+> **Staging only - production unchanged.** `data/official/fixtures.ts` stays
+> empty, no non-host draw slot is verified, and `fixtureSource` stays
+> `position-generated`. A safety regression test locks this.
+>
+> **Go/no-go to activate (Step B, separate approved PR).** Requires explicit user
+> approval of the transcription. Then populate `data/official/fixtures.ts` (72
+> position-keyed rows) + set all 48 `Team.drawPosition`/`drawSlot`/`drawSlotStatus
+> : "verified"`; the resolver flips `fixtureSource` to `"official"`. The UI must
+> keep the "Official FIFA schedule, v17, 10 Apr 2026 - subject to change" label.
+
 ## Phase 2 - Verified data
 
 - Obtain official FIFA group/fixture/venue data (or authoritative JSON);

@@ -155,6 +155,14 @@ export interface Fixture {
   status?: FixtureStatus;
   /** Source reference for an official row (transcription provenance). */
   sourceRef?: string;
+  /** True when the official source is still labelled "subject to change". */
+  subjectToChange?: boolean;
+  /** IANA tz the source printed kickoffs in (e.g. "America/New_York"). */
+  kickoffSourceTz?: string;
+  /** Human kickoff in the source timezone (e.g. "2026-06-11 15:00 ET"). */
+  kickoffLocalSourceTime?: string;
+  /** Raw venue label as printed in the source. */
+  venueLabelRaw?: string;
 }
 
 /**
@@ -176,6 +184,72 @@ export interface OfficialFixture {
   kickoff: string;
   status?: FixtureStatus;
   sourceRef?: string;
+  /** True when the source schedule is still labelled "subject to change". */
+  subjectToChange?: boolean;
+  /** IANA tz the source printed kickoffs in (e.g. "America/New_York"). */
+  kickoffSourceTz?: string;
+  /** Human kickoff in the source timezone (e.g. "2026-06-11 15:00 ET"). */
+  kickoffLocalSourceTime?: string;
+  /** Raw venue label as printed in the source (e.g. "NEW YORK NEW JERSEY"). */
+  venueLabelRaw?: string;
+}
+
+/**
+ * Provenance for a transcribed OFFICIAL schedule source (Phase 1.6 staging).
+ * The source binary is never committed; this header travels with the staged
+ * data and audit so the version/date and "subject to change" status are explicit.
+ */
+export interface OfficialScheduleProvenance {
+  sourceName: string;
+  /** Original file name (the PDF itself is NOT committed). */
+  sourceFile: string;
+  /** Schedule version, e.g. "v17". */
+  version: string;
+  /** Source publication date (ISO), e.g. "2026-04-10". */
+  sourceDate: string;
+  /** Timezone the source prints kickoffs in, e.g. "America/New_York (ET)". */
+  timezone: string;
+  /** The source carries a "Subject to change" note. */
+  subjectToChange: boolean;
+  extractionMethod: string;
+  extractedAt: string;
+  notes?: string;
+}
+
+/**
+ * A TEAM-keyed staged row transcribed from the official schedule (Phase 1.6).
+ * Lives only in `data/official/staging/` - never read by the resolver. It carries
+ * both the solved draw positions and the resolved team ids so it can be
+ * cross-checked and (in a later, approved step) converted into position-keyed
+ * `OfficialFixture`s + verified draw positions.
+ */
+export interface StagedOfficialFixture {
+  matchNumber: number;
+  group: GroupId;
+  matchday: number;
+  homeTeamId: string;
+  awayTeamId: string;
+  /** Draw positions solved from the schedule + FIFA Art. 12.4 (see validators). */
+  homePosition: DrawPosition;
+  awayPosition: DrawPosition;
+  venueId: string;
+  /** Raw venue label as printed in the source (e.g. "SAN FRANCISCO BAY AREA"). */
+  venueLabelRaw: string;
+  /** Human kickoff in the source timezone (e.g. "2026-06-11 15:00 ET"). */
+  kickoffLocalSourceTime: string;
+  /** ISO UTC kickoff (= ET + 4h across the EDT tournament window). */
+  kickoffUtc: string;
+  status?: FixtureStatus;
+  subjectToChange: boolean;
+  sourceRef: string;
+}
+
+/** A solved draw slot for a single team (Phase 1.6 staging; not yet verified). */
+export interface StagedDrawPosition {
+  group: GroupId;
+  position: DrawPosition;
+  teamId: string;
+  slot: DrawSlot;
 }
 
 /**

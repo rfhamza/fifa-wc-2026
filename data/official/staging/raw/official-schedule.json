@@ -1,0 +1,664 @@
+{
+  "_provenance": {
+    "sourceName": "FIFA World Cup 2026 Match Schedule",
+    "sourceFile": "FWC26_Match_Schedule_v17_10042026_EN.pdf",
+    "version": "v17",
+    "sourceDate": "2026-04-10",
+    "timezone": "America/New_York (ET)",
+    "subjectToChange": true,
+    "extractionMethod": "scripts/extract-official-schedule.py (PDF text layer, stdlib zlib)",
+    "extractedAt": "2026-06-18T18:36:48Z",
+    "statement": "Derived from the OFFICIAL FIFA schedule PDF, transcribed for verification/staging only. Date and venue are reviewer-transcribed from the wallchart and cross-checked against the candidate layer. Not used in production."
+  },
+  "groupStageMatchCount": 72,
+  "matches": [
+    {
+      "matchNumber": 1,
+      "group": "A",
+      "homeCode": "MEX",
+      "awayCode": "RSA",
+      "homeTeamId": "mexico",
+      "awayTeamId": "south-africa",
+      "kickoffEt": "15:00"
+    },
+    {
+      "matchNumber": 2,
+      "group": "A",
+      "homeCode": "KOR",
+      "awayCode": "CZE",
+      "homeTeamId": "south-korea",
+      "awayTeamId": "czechia",
+      "kickoffEt": "22:00"
+    },
+    {
+      "matchNumber": 3,
+      "group": "B",
+      "homeCode": "CAN",
+      "awayCode": "BIH",
+      "homeTeamId": "canada",
+      "awayTeamId": "bosnia-herzegovina",
+      "kickoffEt": "15:00"
+    },
+    {
+      "matchNumber": 4,
+      "group": "D",
+      "homeCode": "USA",
+      "awayCode": "PAR",
+      "homeTeamId": "usa",
+      "awayTeamId": "paraguay",
+      "kickoffEt": "21:00"
+    },
+    {
+      "matchNumber": 5,
+      "group": "C",
+      "homeCode": "HAI",
+      "awayCode": "SCO",
+      "homeTeamId": "haiti",
+      "awayTeamId": "scotland",
+      "kickoffEt": "21:00"
+    },
+    {
+      "matchNumber": 6,
+      "group": "D",
+      "homeCode": "AUS",
+      "awayCode": "TUR",
+      "homeTeamId": "australia",
+      "awayTeamId": "turkiye",
+      "kickoffEt": "00:00"
+    },
+    {
+      "matchNumber": 7,
+      "group": "C",
+      "homeCode": "BRA",
+      "awayCode": "MAR",
+      "homeTeamId": "brazil",
+      "awayTeamId": "morocco",
+      "kickoffEt": "18:00"
+    },
+    {
+      "matchNumber": 8,
+      "group": "B",
+      "homeCode": "QAT",
+      "awayCode": "SUI",
+      "homeTeamId": "qatar",
+      "awayTeamId": "switzerland",
+      "kickoffEt": "15:00"
+    },
+    {
+      "matchNumber": 9,
+      "group": "E",
+      "homeCode": "CIV",
+      "awayCode": "ECU",
+      "homeTeamId": "ivory-coast",
+      "awayTeamId": "ecuador",
+      "kickoffEt": "19:00"
+    },
+    {
+      "matchNumber": 10,
+      "group": "E",
+      "homeCode": "GER",
+      "awayCode": "CUW",
+      "homeTeamId": "germany",
+      "awayTeamId": "curacao",
+      "kickoffEt": "13:00"
+    },
+    {
+      "matchNumber": 11,
+      "group": "F",
+      "homeCode": "NED",
+      "awayCode": "JPN",
+      "homeTeamId": "netherlands",
+      "awayTeamId": "japan",
+      "kickoffEt": "16:00"
+    },
+    {
+      "matchNumber": 12,
+      "group": "F",
+      "homeCode": "SWE",
+      "awayCode": "TUN",
+      "homeTeamId": "sweden",
+      "awayTeamId": "tunisia",
+      "kickoffEt": "22:00"
+    },
+    {
+      "matchNumber": 13,
+      "group": "H",
+      "homeCode": "KSA",
+      "awayCode": "URU",
+      "homeTeamId": "saudi-arabia",
+      "awayTeamId": "uruguay",
+      "kickoffEt": "18:00"
+    },
+    {
+      "matchNumber": 14,
+      "group": "H",
+      "homeCode": "ESP",
+      "awayCode": "CPV",
+      "homeTeamId": "spain",
+      "awayTeamId": "cape-verde",
+      "kickoffEt": "12:00"
+    },
+    {
+      "matchNumber": 15,
+      "group": "G",
+      "homeCode": "IRN",
+      "awayCode": "NZL",
+      "homeTeamId": "iran",
+      "awayTeamId": "new-zealand",
+      "kickoffEt": "21:00"
+    },
+    {
+      "matchNumber": 16,
+      "group": "G",
+      "homeCode": "BEL",
+      "awayCode": "EGY",
+      "homeTeamId": "belgium",
+      "awayTeamId": "egypt",
+      "kickoffEt": "15:00"
+    },
+    {
+      "matchNumber": 17,
+      "group": "I",
+      "homeCode": "FRA",
+      "awayCode": "SEN",
+      "homeTeamId": "france",
+      "awayTeamId": "senegal",
+      "kickoffEt": "15:00"
+    },
+    {
+      "matchNumber": 18,
+      "group": "I",
+      "homeCode": "IRQ",
+      "awayCode": "NOR",
+      "homeTeamId": "iraq",
+      "awayTeamId": "norway",
+      "kickoffEt": "18:00"
+    },
+    {
+      "matchNumber": 19,
+      "group": "J",
+      "homeCode": "ARG",
+      "awayCode": "ALG",
+      "homeTeamId": "argentina",
+      "awayTeamId": "algeria",
+      "kickoffEt": "21:00"
+    },
+    {
+      "matchNumber": 20,
+      "group": "J",
+      "homeCode": "AUT",
+      "awayCode": "JOR",
+      "homeTeamId": "austria",
+      "awayTeamId": "jordan",
+      "kickoffEt": "00:00"
+    },
+    {
+      "matchNumber": 21,
+      "group": "L",
+      "homeCode": "GHA",
+      "awayCode": "PAN",
+      "homeTeamId": "ghana",
+      "awayTeamId": "panama",
+      "kickoffEt": "19:00"
+    },
+    {
+      "matchNumber": 22,
+      "group": "L",
+      "homeCode": "ENG",
+      "awayCode": "CRO",
+      "homeTeamId": "england",
+      "awayTeamId": "croatia",
+      "kickoffEt": "16:00"
+    },
+    {
+      "matchNumber": 23,
+      "group": "K",
+      "homeCode": "POR",
+      "awayCode": "COD",
+      "homeTeamId": "portugal",
+      "awayTeamId": "congo-dr",
+      "kickoffEt": "13:00"
+    },
+    {
+      "matchNumber": 24,
+      "group": "K",
+      "homeCode": "UZB",
+      "awayCode": "COL",
+      "homeTeamId": "uzbekistan",
+      "awayTeamId": "colombia",
+      "kickoffEt": "22:00"
+    },
+    {
+      "matchNumber": 25,
+      "group": "A",
+      "homeCode": "CZE",
+      "awayCode": "RSA",
+      "homeTeamId": "czechia",
+      "awayTeamId": "south-africa",
+      "kickoffEt": "12:00"
+    },
+    {
+      "matchNumber": 26,
+      "group": "B",
+      "homeCode": "SUI",
+      "awayCode": "BIH",
+      "homeTeamId": "switzerland",
+      "awayTeamId": "bosnia-herzegovina",
+      "kickoffEt": "15:00"
+    },
+    {
+      "matchNumber": 27,
+      "group": "B",
+      "homeCode": "CAN",
+      "awayCode": "QAT",
+      "homeTeamId": "canada",
+      "awayTeamId": "qatar",
+      "kickoffEt": "18:00"
+    },
+    {
+      "matchNumber": 28,
+      "group": "A",
+      "homeCode": "MEX",
+      "awayCode": "KOR",
+      "homeTeamId": "mexico",
+      "awayTeamId": "south-korea",
+      "kickoffEt": "21:00"
+    },
+    {
+      "matchNumber": 29,
+      "group": "C",
+      "homeCode": "BRA",
+      "awayCode": "HAI",
+      "homeTeamId": "brazil",
+      "awayTeamId": "haiti",
+      "kickoffEt": "20:30"
+    },
+    {
+      "matchNumber": 30,
+      "group": "C",
+      "homeCode": "SCO",
+      "awayCode": "MAR",
+      "homeTeamId": "scotland",
+      "awayTeamId": "morocco",
+      "kickoffEt": "18:00"
+    },
+    {
+      "matchNumber": 31,
+      "group": "D",
+      "homeCode": "TUR",
+      "awayCode": "PAR",
+      "homeTeamId": "turkiye",
+      "awayTeamId": "paraguay",
+      "kickoffEt": "23:00"
+    },
+    {
+      "matchNumber": 32,
+      "group": "D",
+      "homeCode": "USA",
+      "awayCode": "AUS",
+      "homeTeamId": "usa",
+      "awayTeamId": "australia",
+      "kickoffEt": "15:00"
+    },
+    {
+      "matchNumber": 33,
+      "group": "E",
+      "homeCode": "GER",
+      "awayCode": "CIV",
+      "homeTeamId": "germany",
+      "awayTeamId": "ivory-coast",
+      "kickoffEt": "16:00"
+    },
+    {
+      "matchNumber": 34,
+      "group": "E",
+      "homeCode": "ECU",
+      "awayCode": "CUW",
+      "homeTeamId": "ecuador",
+      "awayTeamId": "curacao",
+      "kickoffEt": "20:00"
+    },
+    {
+      "matchNumber": 35,
+      "group": "F",
+      "homeCode": "NED",
+      "awayCode": "SWE",
+      "homeTeamId": "netherlands",
+      "awayTeamId": "sweden",
+      "kickoffEt": "13:00"
+    },
+    {
+      "matchNumber": 36,
+      "group": "F",
+      "homeCode": "TUN",
+      "awayCode": "JPN",
+      "homeTeamId": "tunisia",
+      "awayTeamId": "japan",
+      "kickoffEt": "00:00"
+    },
+    {
+      "matchNumber": 37,
+      "group": "H",
+      "homeCode": "URU",
+      "awayCode": "CPV",
+      "homeTeamId": "uruguay",
+      "awayTeamId": "cape-verde",
+      "kickoffEt": "18:00"
+    },
+    {
+      "matchNumber": 38,
+      "group": "H",
+      "homeCode": "ESP",
+      "awayCode": "KSA",
+      "homeTeamId": "spain",
+      "awayTeamId": "saudi-arabia",
+      "kickoffEt": "12:00"
+    },
+    {
+      "matchNumber": 39,
+      "group": "G",
+      "homeCode": "BEL",
+      "awayCode": "IRN",
+      "homeTeamId": "belgium",
+      "awayTeamId": "iran",
+      "kickoffEt": "15:00"
+    },
+    {
+      "matchNumber": 40,
+      "group": "G",
+      "homeCode": "NZL",
+      "awayCode": "EGY",
+      "homeTeamId": "new-zealand",
+      "awayTeamId": "egypt",
+      "kickoffEt": "21:00"
+    },
+    {
+      "matchNumber": 41,
+      "group": "I",
+      "homeCode": "NOR",
+      "awayCode": "SEN",
+      "homeTeamId": "norway",
+      "awayTeamId": "senegal",
+      "kickoffEt": "20:00"
+    },
+    {
+      "matchNumber": 42,
+      "group": "I",
+      "homeCode": "FRA",
+      "awayCode": "IRQ",
+      "homeTeamId": "france",
+      "awayTeamId": "iraq",
+      "kickoffEt": "17:00"
+    },
+    {
+      "matchNumber": 43,
+      "group": "J",
+      "homeCode": "ARG",
+      "awayCode": "AUT",
+      "homeTeamId": "argentina",
+      "awayTeamId": "austria",
+      "kickoffEt": "13:00"
+    },
+    {
+      "matchNumber": 44,
+      "group": "J",
+      "homeCode": "JOR",
+      "awayCode": "ALG",
+      "homeTeamId": "jordan",
+      "awayTeamId": "algeria",
+      "kickoffEt": "23:00"
+    },
+    {
+      "matchNumber": 45,
+      "group": "L",
+      "homeCode": "ENG",
+      "awayCode": "GHA",
+      "homeTeamId": "england",
+      "awayTeamId": "ghana",
+      "kickoffEt": "16:00"
+    },
+    {
+      "matchNumber": 46,
+      "group": "L",
+      "homeCode": "PAN",
+      "awayCode": "CRO",
+      "homeTeamId": "panama",
+      "awayTeamId": "croatia",
+      "kickoffEt": "19:00"
+    },
+    {
+      "matchNumber": 47,
+      "group": "K",
+      "homeCode": "POR",
+      "awayCode": "UZB",
+      "homeTeamId": "portugal",
+      "awayTeamId": "uzbekistan",
+      "kickoffEt": "13:00"
+    },
+    {
+      "matchNumber": 48,
+      "group": "K",
+      "homeCode": "COL",
+      "awayCode": "COD",
+      "homeTeamId": "colombia",
+      "awayTeamId": "congo-dr",
+      "kickoffEt": "22:00"
+    },
+    {
+      "matchNumber": 49,
+      "group": "C",
+      "homeCode": "SCO",
+      "awayCode": "BRA",
+      "homeTeamId": "scotland",
+      "awayTeamId": "brazil",
+      "kickoffEt": "18:00"
+    },
+    {
+      "matchNumber": 50,
+      "group": "C",
+      "homeCode": "MAR",
+      "awayCode": "HAI",
+      "homeTeamId": "morocco",
+      "awayTeamId": "haiti",
+      "kickoffEt": "18:00"
+    },
+    {
+      "matchNumber": 51,
+      "group": "B",
+      "homeCode": "SUI",
+      "awayCode": "CAN",
+      "homeTeamId": "switzerland",
+      "awayTeamId": "canada",
+      "kickoffEt": "15:00"
+    },
+    {
+      "matchNumber": 52,
+      "group": "B",
+      "homeCode": "BIH",
+      "awayCode": "QAT",
+      "homeTeamId": "bosnia-herzegovina",
+      "awayTeamId": "qatar",
+      "kickoffEt": "15:00"
+    },
+    {
+      "matchNumber": 53,
+      "group": "A",
+      "homeCode": "CZE",
+      "awayCode": "MEX",
+      "homeTeamId": "czechia",
+      "awayTeamId": "mexico",
+      "kickoffEt": "21:00"
+    },
+    {
+      "matchNumber": 54,
+      "group": "A",
+      "homeCode": "RSA",
+      "awayCode": "KOR",
+      "homeTeamId": "south-africa",
+      "awayTeamId": "south-korea",
+      "kickoffEt": "21:00"
+    },
+    {
+      "matchNumber": 55,
+      "group": "E",
+      "homeCode": "CUW",
+      "awayCode": "CIV",
+      "homeTeamId": "curacao",
+      "awayTeamId": "ivory-coast",
+      "kickoffEt": "16:00"
+    },
+    {
+      "matchNumber": 56,
+      "group": "E",
+      "homeCode": "ECU",
+      "awayCode": "GER",
+      "homeTeamId": "ecuador",
+      "awayTeamId": "germany",
+      "kickoffEt": "16:00"
+    },
+    {
+      "matchNumber": 57,
+      "group": "F",
+      "homeCode": "JPN",
+      "awayCode": "SWE",
+      "homeTeamId": "japan",
+      "awayTeamId": "sweden",
+      "kickoffEt": "19:00"
+    },
+    {
+      "matchNumber": 58,
+      "group": "F",
+      "homeCode": "TUN",
+      "awayCode": "NED",
+      "homeTeamId": "tunisia",
+      "awayTeamId": "netherlands",
+      "kickoffEt": "19:00"
+    },
+    {
+      "matchNumber": 59,
+      "group": "D",
+      "homeCode": "TUR",
+      "awayCode": "USA",
+      "homeTeamId": "turkiye",
+      "awayTeamId": "usa",
+      "kickoffEt": "22:00"
+    },
+    {
+      "matchNumber": 60,
+      "group": "D",
+      "homeCode": "PAR",
+      "awayCode": "AUS",
+      "homeTeamId": "paraguay",
+      "awayTeamId": "australia",
+      "kickoffEt": "22:00"
+    },
+    {
+      "matchNumber": 61,
+      "group": "I",
+      "homeCode": "NOR",
+      "awayCode": "FRA",
+      "homeTeamId": "norway",
+      "awayTeamId": "france",
+      "kickoffEt": "15:00"
+    },
+    {
+      "matchNumber": 62,
+      "group": "I",
+      "homeCode": "SEN",
+      "awayCode": "IRQ",
+      "homeTeamId": "senegal",
+      "awayTeamId": "iraq",
+      "kickoffEt": "15:00"
+    },
+    {
+      "matchNumber": 63,
+      "group": "G",
+      "homeCode": "EGY",
+      "awayCode": "IRN",
+      "homeTeamId": "egypt",
+      "awayTeamId": "iran",
+      "kickoffEt": "23:00"
+    },
+    {
+      "matchNumber": 64,
+      "group": "G",
+      "homeCode": "NZL",
+      "awayCode": "BEL",
+      "homeTeamId": "new-zealand",
+      "awayTeamId": "belgium",
+      "kickoffEt": "23:00"
+    },
+    {
+      "matchNumber": 65,
+      "group": "H",
+      "homeCode": "CPV",
+      "awayCode": "KSA",
+      "homeTeamId": "cape-verde",
+      "awayTeamId": "saudi-arabia",
+      "kickoffEt": "20:00"
+    },
+    {
+      "matchNumber": 66,
+      "group": "H",
+      "homeCode": "URU",
+      "awayCode": "ESP",
+      "homeTeamId": "uruguay",
+      "awayTeamId": "spain",
+      "kickoffEt": "20:00"
+    },
+    {
+      "matchNumber": 67,
+      "group": "L",
+      "homeCode": "PAN",
+      "awayCode": "ENG",
+      "homeTeamId": "panama",
+      "awayTeamId": "england",
+      "kickoffEt": "17:00"
+    },
+    {
+      "matchNumber": 68,
+      "group": "L",
+      "homeCode": "CRO",
+      "awayCode": "GHA",
+      "homeTeamId": "croatia",
+      "awayTeamId": "ghana",
+      "kickoffEt": "17:00"
+    },
+    {
+      "matchNumber": 69,
+      "group": "J",
+      "homeCode": "ALG",
+      "awayCode": "AUT",
+      "homeTeamId": "algeria",
+      "awayTeamId": "austria",
+      "kickoffEt": "22:00"
+    },
+    {
+      "matchNumber": 70,
+      "group": "J",
+      "homeCode": "JOR",
+      "awayCode": "ARG",
+      "homeTeamId": "jordan",
+      "awayTeamId": "argentina",
+      "kickoffEt": "22:00"
+    },
+    {
+      "matchNumber": 71,
+      "group": "K",
+      "homeCode": "COL",
+      "awayCode": "POR",
+      "homeTeamId": "colombia",
+      "awayTeamId": "portugal",
+      "kickoffEt": "19:30"
+    },
+    {
+      "matchNumber": 72,
+      "group": "K",
+      "homeCode": "COD",
+      "awayCode": "UZB",
+      "homeTeamId": "congo-dr",
+      "awayTeamId": "uzbekistan",
+      "kickoffEt": "19:30"
+    }
+  ]
+}
