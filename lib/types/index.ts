@@ -12,6 +12,15 @@
  *  - "candidate": cross-verified from credible non-FIFA sources, NOT official.
  *  - "verified":  official FIFA source or user-supplied authoritative JSON.
  */
+import type { ModelFeatureFamily, ModelInputStatus } from "./model-inputs";
+export type {
+  ModelInputStatus,
+  ModelFeatureFamily,
+  ModelInputSource,
+  TeamModelInputs,
+  ModelInputValidationResult,
+} from "./model-inputs";
+
 export type SourceStatus = "mock" | "candidate" | "verified";
 
 /**
@@ -292,6 +301,12 @@ export interface ModelDriver {
   contribution: number;
   /** Short plain-English description of why this matters. */
   detail: string;
+  /** Model-input feature family this driver comes from (Phase 1.7). */
+  family?: ModelFeatureFamily;
+  /** Provenance status of the underlying input family (Phase 1.7). */
+  status?: ModelInputStatus;
+  /** True when a placeholder-weight cap reduced this driver's contribution. */
+  capped?: boolean;
 }
 
 /** Aggregated, ordered explanation for a prediction. */

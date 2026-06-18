@@ -6,7 +6,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { MODEL_WEIGHTS, SCORELINE_CONFIG, SIMULATION_CONFIG } from "@/lib/model/config";
+import {
+  MODEL_WEIGHTS,
+  SCORELINE_CONFIG,
+  SIMULATION_CONFIG,
+  PLACEHOLDER_CONTRIBUTION_CAP,
+  TOTAL_PLACEHOLDER_CONTRIBUTION_CAP,
+} from "@/lib/model/config";
+import { MODEL_INPUT_SOURCES } from "@/data/model-inputs";
 import { bracket } from "@/lib/data";
 import { isBracketActive } from "@/lib/simulation/bracket";
 
@@ -38,15 +45,39 @@ export default function MethodologyPage() {
           into win, draw and loss probabilities.
         </p>
         <ul className="ml-5 list-disc space-y-1">
-          <li><strong>Elo rating</strong> - overall strength (the anchor, weight {MODEL_WEIGHTS.elo}x).</li>
-          <li><strong>FIFA ranking</strong> - {MODEL_WEIGHTS.fifaRankingPerPlace} pts per place, capped at {MODEL_WEIGHTS.fifaRankingCap}.</li>
-          <li><strong>Squad quality</strong> - {MODEL_WEIGHTS.squadQuality} pts per quality point.</li>
-          <li><strong>Recent form</strong> - {MODEL_WEIGHTS.recentForm} pts per form point.</li>
-          <li><strong>Manager cohesion</strong> - {MODEL_WEIGHTS.manager} pts for a same-nationality manager.</li>
-          <li><strong>Host &amp; regional advantage</strong> - {MODEL_WEIGHTS.host} pts (co-host), {MODEL_WEIGHTS.regional} pts (region).</li>
-          <li><strong>Climate familiarity</strong> - {MODEL_WEIGHTS.climate} pts per acclimatization point.</li>
-          <li><strong>Structural prior (economic)</strong> - up to {MODEL_WEIGHTS.structural} pts across the 0-1 range, blended from log-scaled GDP per capita and population. An <em>experimental weak prior</em>, deliberately small and never determinative.</li>
+          <li><strong>Elo rating</strong> - overall strength (the anchor, weight {MODEL_WEIGHTS.elo}x). Status: {MODEL_INPUT_SOURCES.eloRating.status}.</li>
+          <li><strong>FIFA ranking</strong> - {MODEL_WEIGHTS.fifaRankingPerPlace} pts per place, capped at {MODEL_WEIGHTS.fifaRankingCap}. Status: {MODEL_INPUT_SOURCES.fifaRanking.status}.</li>
+          <li><strong>Squad quality</strong> - {MODEL_WEIGHTS.squadQuality} pts per quality point. Status: {MODEL_INPUT_SOURCES.squadQuality.status} (capped).</li>
+          <li><strong>Recent form</strong> - {MODEL_WEIGHTS.recentForm} pts per form point. Status: {MODEL_INPUT_SOURCES.recentForm.status} (capped).</li>
+          <li><strong>Manager cohesion</strong> - {MODEL_WEIGHTS.manager} pts for a same-nationality manager. Status: {MODEL_INPUT_SOURCES.managerCohesion.status}.</li>
+          <li><strong>Host &amp; regional advantage</strong> - {MODEL_WEIGHTS.host} pts (co-host), {MODEL_WEIGHTS.regional} pts (region). Status: {MODEL_INPUT_SOURCES.hostAdvantage.status} / {MODEL_INPUT_SOURCES.regionalAdvantage.status}.</li>
+          <li><strong>Climate familiarity</strong> - {MODEL_WEIGHTS.climate} pts per acclimatization point. Status: {MODEL_INPUT_SOURCES.climateFamiliarity.status} (capped).</li>
+          <li><strong>Structural prior (economic)</strong> - up to {MODEL_WEIGHTS.structural} pts across the 0-1 range, blended from log-scaled GDP per capita and population. An <em>experimental weak prior</em>, deliberately small. Status: {MODEL_INPUT_SOURCES.structural.status}.</li>
         </ul>
+      </Section>
+
+      <Section title="Model inputs: source status and placeholder caps">
+        <p>
+          Each input family carries an explicit, honest <strong>status</strong>:{" "}
+          <em>verified</em> (regulation/official fact), <em>source-backed</em>
+          {" "}(transcribed from a supplied citable snapshot), <em>candidate</em>
+          {" "}(derived from cross-verified identity), <em>manual</em>
+          {" "}(hand-authored directional estimate, no source yet) and{" "}
+          <em>placeholder</em> (filler). Today every strength <em>value</em> is
+          hand-authored - nothing is claimed source-backed until an authoritative
+          snapshot is supplied and validated.
+        </p>
+        <p>
+          So low-confidence <strong>placeholder</strong> families cannot silently
+          drive the forecast, each placeholder driver is capped at{" "}
+          <strong>+/-{PLACEHOLDER_CONTRIBUTION_CAP}</strong> Elo-equivalent points,
+          and all placeholder families combined are capped at{" "}
+          <strong>+/-{TOTAL_PLACEHOLDER_CONTRIBUTION_CAP}</strong>. Squad quality,
+          recent form and climate familiarity are placeholders today, so their
+          influence is limited; the Elo anchor and FIFA ranking are hand-authored
+          (manual) estimates that keep their full weight. Capped contributions are
+          labelled in each match&apos;s driver explanation.
+        </p>
       </Section>
 
       <Section title="How expected goals become probabilities">

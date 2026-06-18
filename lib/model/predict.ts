@@ -20,8 +20,52 @@ import type {
   TeamFeatureSet,
 } from "@/lib/types";
 import { clamp, round } from "@/lib/utils";
-import { MODEL_WEIGHTS, SCORELINE_CONFIG } from "./config";
+import {
+  MODEL_WEIGHTS,
+  SCORELINE_CONFIG,
+  PLACEHOLDER_CONTRIBUTION_CAP,
+  TOTAL_PLACEHOLDER_CONTRIBUTION_CAP,
+} from "./config";
 import { buildFeatureSet } from "./features";
+import { getFeatureStatus } from "@/data/model-inputs";
+
+/** Coerce non-finite contributions to 0 so a missing input never yields NaN. */
+const finite = (x: number): number => (Number.isFinite(x) ? x : 0);
+
+/**
+ * Apply the Phase 1.7 placeholder-weight caps: tag every driver with its family
+ * status, clamp each `placeholder` driver to +/- PLACEHOLDER_CONTRIBUTION_CAP,
+ * then scale all placeholder drivers down together if their combined magnitude
+ * exceeds TOTAL_PLACEHOLDER_CONTRIBUTION_CAP. Deterministic; manual/candidate/
+ * source-backed/verified families are never capped.
+ */
+function applyInputStatusAndCaps(drivers: ModelDriver[]): ModelDriver[] {
+  const tagged = drivers.map((d) => {
+    const status = d.family ? getFeatureStatus(d.family) : undefined;
+    let contribution = finite(d.contribution);
+    let capped = false;
+    if (status === "placeholder" && Math.abs(contribution) > PLACEHOLDER_CONTRIBUTION_CAP) {
+      contribution = clamp(contribution, -PLACEHOLDER_CONTRIBUTION_CAP, PLACEHOLDER_CONTRIBUTION_CAP);
+      capped = true;
+    }
+    return { ...d, status, contribution, capped };
+  });
+
+  const placeholderTotal = tagged
+    .filter((d) => d.status === "placeholder")
+    .reduce((s, d) => s + d.contribution, 0);
+
+  if (Math.abs(placeholderTotal) > TOTAL_PLACEHOLDER_CONTRIBUTION_CAP) {
+    const factor = TOTAL_PLACEHOLDER_CONTRIBUTION_CAP / Math.abs(placeholderTotal);
+    for (const d of tagged) {
+      if (d.status === "placeholder") {
+        d.contribution = d.contribution * factor;
+        d.capped = true;
+      }
+    }
+  }
+  return tagged;
+}
 import {
   outcomeProbabilities,
   scorelineMatrix,
@@ -44,26 +88,31 @@ export function computeDrivers(
   const drivers: ModelDriver[] = [
     {
       label: "Elo rating",
+      family: "eloRating",
       contribution: (a.elo - b.elo) * w.elo,
       detail: `Elo ${a.elo} vs ${b.elo}.`,
     },
     {
       label: "FIFA ranking",
+      family: "fifaRanking",
       contribution: rankContribution,
       detail: `Ranked #${a.fifaRanking} vs #${b.fifaRanking} (capped).`,
     },
     {
       label: "Squad quality",
+      family: "squadQuality",
       contribution: (a.squadQuality - b.squadQuality) * w.squadQuality,
       detail: `Squad quality ${a.squadQuality} vs ${b.squadQuality}.`,
     },
     {
       label: "Recent form",
+      family: "recentForm",
       contribution: (a.recentForm - b.recentForm) * w.recentForm,
       detail: `Form ${a.recentForm} vs ${b.recentForm}.`,
     },
     {
       label: "Manager cohesion",
+      family: "managerCohesion",
       contribution:
         ((a.sameNationalityManager ? 1 : 0) -
           (b.sameNationalityManager ? 1 : 0)) *
@@ -72,30 +121,35 @@ export function computeDrivers(
     },
     {
       label: "Host advantage",
+      family: "hostAdvantage",
       contribution: ((a.isHost ? 1 : 0) - (b.isHost ? 1 : 0)) * w.host,
       detail: "Co-host crowd, travel and familiarity edge.",
     },
     {
       label: "Regional advantage",
+      family: "regionalAdvantage",
       contribution:
         ((a.isRegional ? 1 : 0) - (b.isRegional ? 1 : 0)) * w.regional,
       detail: "Same-region travel and climate familiarity.",
     },
     {
       label: "Climate familiarity",
+      family: "climateFamiliarity",
       contribution:
         (a.climateFamiliarity - b.climateFamiliarity) * w.climate,
       detail: `Acclimatization ${a.climateFamiliarity} vs ${b.climateFamiliarity}.`,
     },
     {
       label: "Structural depth",
+      family: "structural",
       contribution: (a.structuralDepth - b.structuralDepth) * w.structural,
       detail:
         "Experimental weak economic prior (log-scaled GDP per capita + population).",
     },
   ];
 
-  return drivers;
+  // Phase 1.7: tag provenance status + apply placeholder-weight caps.
+  return applyInputStatusAndCaps(drivers);
 }
 
 /** Group drivers into ordered positive/negative lists with a net total. */

@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { StatTile } from "@/components/teams/stat-tile";
+import { MODEL_INPUT_SOURCES } from "@/data/model-inputs";
 import { StageFunnelChart } from "@/components/charts/stage-funnel-chart";
 import { ProbabilityBar } from "@/components/charts/probability-bar";
 import { teams, teamById, getTeam, getVenue, getFixturesForTeam } from "@/lib/data";
@@ -57,21 +58,21 @@ export default function TeamPage({ params }: { params: { teamId: string } }) {
         </div>
       </header>
 
-      {/* Core metrics */}
+      {/* Core metrics (model inputs carry an honest source status; Phase 1.7) */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatTile label="Elo rating" value={team.elo} />
-        <StatTile label="Squad quality" value={`${team.squadQuality}/100`} />
-        <StatTile label="Recent form" value={`${team.recentForm}/100`} />
-        <StatTile label="Climate familiarity" value={`${team.climateFamiliarity}/100`} />
+        <StatTile label="Elo rating" value={team.elo} hint={MODEL_INPUT_SOURCES.eloRating.status} />
+        <StatTile label="Squad quality" value={`${team.squadQuality}/100`} hint={`${MODEL_INPUT_SOURCES.squadQuality.status} - capped`} />
+        <StatTile label="Recent form" value={`${team.recentForm}/100`} hint={`${MODEL_INPUT_SOURCES.recentForm.status} - capped`} />
+        <StatTile label="Climate familiarity" value={`${team.climateFamiliarity}/100`} hint={`${MODEL_INPUT_SOURCES.climateFamiliarity.status} - capped`} />
         <StatTile
           label="GDP per capita"
           value={`$${(team.gdpPerCapita / 1000).toFixed(1)}k`}
-          hint="Placeholder economic indicator"
+          hint={`structural: ${MODEL_INPUT_SOURCES.structural.status}`}
         />
         <StatTile
           label="Population"
           value={`${(team.population / 1_000_000).toFixed(1)}M`}
-          hint="Placeholder economic indicator"
+          hint={`structural: ${MODEL_INPUT_SOURCES.structural.status}`}
         />
         <StatTile label="Win title" value={pct(prob?.winner ?? 0, 1)} />
         <StatTile label="Reach last 16" value={pct(prob?.roundOf16 ?? 0, 0)} />
