@@ -1,0 +1,525 @@
+{
+  "_provenance": {
+    "sourceName": "The Telegraph — World Cup 2026 wallchart",
+    "sourceType": "third-party-pdf",
+    "sourceFile": "telegraph-world-cup-2026-wallchart.pdf",
+    "sourcePage": "1-2 (group fixtures)",
+    "extractionMethod": "manual transcription from the published wallchart (2 pages)",
+    "extractedAt": "2026-06-18T13:06:04+00:00",
+    "kickoffSourceTz": "Europe/London",
+    "confidence": "medium",
+    "disclaimer": [
+      "THIRD-PARTY CANDIDATE SOURCE — a newspaper wallchart.",
+      "NOT official FIFA schedule data.",
+      "Extracted for reconciliation / staging only.",
+      "NOT used in production; the production resolver never reads it."
+    ],
+    "notes": "Kickoff times printed in UK time (BST = UTC+1) and converted to UTC. The wallchart carries no match numbers or per-match venues; those are sourced from the Excel workbook. Used as an independent visual cross-check of group membership, draw order, pairings and kickoff times."
+  },
+  "fixtures": [
+    {
+      "group": "A",
+      "homeTeamId": "mexico",
+      "awayTeamId": "south-africa",
+      "kickoffUtc": "2026-06-11T19:00:00Z",
+      "kickoffUkLocal": "2026-06-11 20:00 BST"
+    },
+    {
+      "group": "A",
+      "homeTeamId": "south-korea",
+      "awayTeamId": "czechia",
+      "kickoffUtc": "2026-06-12T02:00:00Z",
+      "kickoffUkLocal": "2026-06-12 03:00 BST"
+    },
+    {
+      "group": "A",
+      "homeTeamId": "czechia",
+      "awayTeamId": "south-africa",
+      "kickoffUtc": "2026-06-18T16:00:00Z",
+      "kickoffUkLocal": "2026-06-18 17:00 BST"
+    },
+    {
+      "group": "A",
+      "homeTeamId": "mexico",
+      "awayTeamId": "south-korea",
+      "kickoffUtc": "2026-06-19T01:00:00Z",
+      "kickoffUkLocal": "2026-06-19 02:00 BST"
+    },
+    {
+      "group": "A",
+      "homeTeamId": "south-africa",
+      "awayTeamId": "south-korea",
+      "kickoffUtc": "2026-06-25T01:00:00Z",
+      "kickoffUkLocal": "2026-06-25 02:00 BST"
+    },
+    {
+      "group": "A",
+      "homeTeamId": "czechia",
+      "awayTeamId": "mexico",
+      "kickoffUtc": "2026-06-25T01:00:00Z",
+      "kickoffUkLocal": "2026-06-25 02:00 BST"
+    },
+    {
+      "group": "B",
+      "homeTeamId": "canada",
+      "awayTeamId": "bosnia-herzegovina",
+      "kickoffUtc": "2026-06-12T19:00:00Z",
+      "kickoffUkLocal": "2026-06-12 20:00 BST"
+    },
+    {
+      "group": "B",
+      "homeTeamId": "qatar",
+      "awayTeamId": "switzerland",
+      "kickoffUtc": "2026-06-13T19:00:00Z",
+      "kickoffUkLocal": "2026-06-13 20:00 BST"
+    },
+    {
+      "group": "B",
+      "homeTeamId": "switzerland",
+      "awayTeamId": "bosnia-herzegovina",
+      "kickoffUtc": "2026-06-18T19:00:00Z",
+      "kickoffUkLocal": "2026-06-18 20:00 BST"
+    },
+    {
+      "group": "B",
+      "homeTeamId": "canada",
+      "awayTeamId": "qatar",
+      "kickoffUtc": "2026-06-18T22:00:00Z",
+      "kickoffUkLocal": "2026-06-18 23:00 BST"
+    },
+    {
+      "group": "B",
+      "homeTeamId": "switzerland",
+      "awayTeamId": "canada",
+      "kickoffUtc": "2026-06-24T19:00:00Z",
+      "kickoffUkLocal": "2026-06-24 20:00 BST"
+    },
+    {
+      "group": "B",
+      "homeTeamId": "bosnia-herzegovina",
+      "awayTeamId": "qatar",
+      "kickoffUtc": "2026-06-24T19:00:00Z",
+      "kickoffUkLocal": "2026-06-24 20:00 BST"
+    },
+    {
+      "group": "C",
+      "homeTeamId": "brazil",
+      "awayTeamId": "morocco",
+      "kickoffUtc": "2026-06-13T22:00:00Z",
+      "kickoffUkLocal": "2026-06-13 23:00 BST"
+    },
+    {
+      "group": "C",
+      "homeTeamId": "haiti",
+      "awayTeamId": "scotland",
+      "kickoffUtc": "2026-06-14T01:00:00Z",
+      "kickoffUkLocal": "2026-06-14 02:00 BST"
+    },
+    {
+      "group": "C",
+      "homeTeamId": "scotland",
+      "awayTeamId": "morocco",
+      "kickoffUtc": "2026-06-19T22:00:00Z",
+      "kickoffUkLocal": "2026-06-19 23:00 BST"
+    },
+    {
+      "group": "C",
+      "homeTeamId": "brazil",
+      "awayTeamId": "haiti",
+      "kickoffUtc": "2026-06-20T00:30:00Z",
+      "kickoffUkLocal": "2026-06-20 01:30 BST"
+    },
+    {
+      "group": "C",
+      "homeTeamId": "morocco",
+      "awayTeamId": "haiti",
+      "kickoffUtc": "2026-06-24T22:00:00Z",
+      "kickoffUkLocal": "2026-06-24 23:00 BST"
+    },
+    {
+      "group": "C",
+      "homeTeamId": "scotland",
+      "awayTeamId": "brazil",
+      "kickoffUtc": "2026-06-24T22:00:00Z",
+      "kickoffUkLocal": "2026-06-24 23:00 BST"
+    },
+    {
+      "group": "D",
+      "homeTeamId": "usa",
+      "awayTeamId": "paraguay",
+      "kickoffUtc": "2026-06-13T01:00:00Z",
+      "kickoffUkLocal": "2026-06-13 02:00 BST"
+    },
+    {
+      "group": "D",
+      "homeTeamId": "australia",
+      "awayTeamId": "turkiye",
+      "kickoffUtc": "2026-06-14T04:00:00Z",
+      "kickoffUkLocal": "2026-06-14 05:00 BST"
+    },
+    {
+      "group": "D",
+      "homeTeamId": "usa",
+      "awayTeamId": "australia",
+      "kickoffUtc": "2026-06-19T19:00:00Z",
+      "kickoffUkLocal": "2026-06-19 20:00 BST"
+    },
+    {
+      "group": "D",
+      "homeTeamId": "turkiye",
+      "awayTeamId": "paraguay",
+      "kickoffUtc": "2026-06-20T03:00:00Z",
+      "kickoffUkLocal": "2026-06-20 04:00 BST"
+    },
+    {
+      "group": "D",
+      "homeTeamId": "turkiye",
+      "awayTeamId": "usa",
+      "kickoffUtc": "2026-06-26T02:00:00Z",
+      "kickoffUkLocal": "2026-06-26 03:00 BST"
+    },
+    {
+      "group": "D",
+      "homeTeamId": "paraguay",
+      "awayTeamId": "australia",
+      "kickoffUtc": "2026-06-26T02:00:00Z",
+      "kickoffUkLocal": "2026-06-26 03:00 BST"
+    },
+    {
+      "group": "E",
+      "homeTeamId": "germany",
+      "awayTeamId": "curacao",
+      "kickoffUtc": "2026-06-14T17:00:00Z",
+      "kickoffUkLocal": "2026-06-14 18:00 BST"
+    },
+    {
+      "group": "E",
+      "homeTeamId": "ivory-coast",
+      "awayTeamId": "ecuador",
+      "kickoffUtc": "2026-06-14T23:00:00Z",
+      "kickoffUkLocal": "2026-06-15 00:00 BST"
+    },
+    {
+      "group": "E",
+      "homeTeamId": "germany",
+      "awayTeamId": "ivory-coast",
+      "kickoffUtc": "2026-06-20T20:00:00Z",
+      "kickoffUkLocal": "2026-06-20 21:00 BST"
+    },
+    {
+      "group": "E",
+      "homeTeamId": "ecuador",
+      "awayTeamId": "curacao",
+      "kickoffUtc": "2026-06-21T00:00:00Z",
+      "kickoffUkLocal": "2026-06-21 01:00 BST"
+    },
+    {
+      "group": "E",
+      "homeTeamId": "curacao",
+      "awayTeamId": "ivory-coast",
+      "kickoffUtc": "2026-06-25T20:00:00Z",
+      "kickoffUkLocal": "2026-06-25 21:00 BST"
+    },
+    {
+      "group": "E",
+      "homeTeamId": "ecuador",
+      "awayTeamId": "germany",
+      "kickoffUtc": "2026-06-25T20:00:00Z",
+      "kickoffUkLocal": "2026-06-25 21:00 BST"
+    },
+    {
+      "group": "F",
+      "homeTeamId": "netherlands",
+      "awayTeamId": "japan",
+      "kickoffUtc": "2026-06-14T20:00:00Z",
+      "kickoffUkLocal": "2026-06-14 21:00 BST"
+    },
+    {
+      "group": "F",
+      "homeTeamId": "sweden",
+      "awayTeamId": "tunisia",
+      "kickoffUtc": "2026-06-15T02:00:00Z",
+      "kickoffUkLocal": "2026-06-15 03:00 BST"
+    },
+    {
+      "group": "F",
+      "homeTeamId": "netherlands",
+      "awayTeamId": "sweden",
+      "kickoffUtc": "2026-06-20T17:00:00Z",
+      "kickoffUkLocal": "2026-06-20 18:00 BST"
+    },
+    {
+      "group": "F",
+      "homeTeamId": "tunisia",
+      "awayTeamId": "japan",
+      "kickoffUtc": "2026-06-21T04:00:00Z",
+      "kickoffUkLocal": "2026-06-21 05:00 BST"
+    },
+    {
+      "group": "F",
+      "homeTeamId": "japan",
+      "awayTeamId": "sweden",
+      "kickoffUtc": "2026-06-25T23:00:00Z",
+      "kickoffUkLocal": "2026-06-26 00:00 BST"
+    },
+    {
+      "group": "F",
+      "homeTeamId": "tunisia",
+      "awayTeamId": "netherlands",
+      "kickoffUtc": "2026-06-25T23:00:00Z",
+      "kickoffUkLocal": "2026-06-26 00:00 BST"
+    },
+    {
+      "group": "G",
+      "homeTeamId": "belgium",
+      "awayTeamId": "egypt",
+      "kickoffUtc": "2026-06-15T19:00:00Z",
+      "kickoffUkLocal": "2026-06-15 20:00 BST"
+    },
+    {
+      "group": "G",
+      "homeTeamId": "iran",
+      "awayTeamId": "new-zealand",
+      "kickoffUtc": "2026-06-16T01:00:00Z",
+      "kickoffUkLocal": "2026-06-16 02:00 BST"
+    },
+    {
+      "group": "G",
+      "homeTeamId": "belgium",
+      "awayTeamId": "iran",
+      "kickoffUtc": "2026-06-21T19:00:00Z",
+      "kickoffUkLocal": "2026-06-21 20:00 BST"
+    },
+    {
+      "group": "G",
+      "homeTeamId": "new-zealand",
+      "awayTeamId": "egypt",
+      "kickoffUtc": "2026-06-22T01:00:00Z",
+      "kickoffUkLocal": "2026-06-22 02:00 BST"
+    },
+    {
+      "group": "G",
+      "homeTeamId": "egypt",
+      "awayTeamId": "iran",
+      "kickoffUtc": "2026-06-27T03:00:00Z",
+      "kickoffUkLocal": "2026-06-27 04:00 BST"
+    },
+    {
+      "group": "G",
+      "homeTeamId": "new-zealand",
+      "awayTeamId": "belgium",
+      "kickoffUtc": "2026-06-27T03:00:00Z",
+      "kickoffUkLocal": "2026-06-27 04:00 BST"
+    },
+    {
+      "group": "H",
+      "homeTeamId": "spain",
+      "awayTeamId": "cape-verde",
+      "kickoffUtc": "2026-06-15T16:00:00Z",
+      "kickoffUkLocal": "2026-06-15 17:00 BST"
+    },
+    {
+      "group": "H",
+      "homeTeamId": "saudi-arabia",
+      "awayTeamId": "uruguay",
+      "kickoffUtc": "2026-06-15T22:00:00Z",
+      "kickoffUkLocal": "2026-06-15 23:00 BST"
+    },
+    {
+      "group": "H",
+      "homeTeamId": "spain",
+      "awayTeamId": "saudi-arabia",
+      "kickoffUtc": "2026-06-21T16:00:00Z",
+      "kickoffUkLocal": "2026-06-21 17:00 BST"
+    },
+    {
+      "group": "H",
+      "homeTeamId": "uruguay",
+      "awayTeamId": "cape-verde",
+      "kickoffUtc": "2026-06-21T22:00:00Z",
+      "kickoffUkLocal": "2026-06-21 23:00 BST"
+    },
+    {
+      "group": "H",
+      "homeTeamId": "cape-verde",
+      "awayTeamId": "saudi-arabia",
+      "kickoffUtc": "2026-06-27T00:00:00Z",
+      "kickoffUkLocal": "2026-06-27 01:00 BST"
+    },
+    {
+      "group": "H",
+      "homeTeamId": "uruguay",
+      "awayTeamId": "spain",
+      "kickoffUtc": "2026-06-27T00:00:00Z",
+      "kickoffUkLocal": "2026-06-27 01:00 BST"
+    },
+    {
+      "group": "I",
+      "homeTeamId": "france",
+      "awayTeamId": "senegal",
+      "kickoffUtc": "2026-06-16T19:00:00Z",
+      "kickoffUkLocal": "2026-06-16 20:00 BST"
+    },
+    {
+      "group": "I",
+      "homeTeamId": "iraq",
+      "awayTeamId": "norway",
+      "kickoffUtc": "2026-06-16T22:00:00Z",
+      "kickoffUkLocal": "2026-06-16 23:00 BST"
+    },
+    {
+      "group": "I",
+      "homeTeamId": "france",
+      "awayTeamId": "iraq",
+      "kickoffUtc": "2026-06-22T21:00:00Z",
+      "kickoffUkLocal": "2026-06-22 22:00 BST"
+    },
+    {
+      "group": "I",
+      "homeTeamId": "norway",
+      "awayTeamId": "senegal",
+      "kickoffUtc": "2026-06-23T00:00:00Z",
+      "kickoffUkLocal": "2026-06-23 01:00 BST"
+    },
+    {
+      "group": "I",
+      "homeTeamId": "norway",
+      "awayTeamId": "france",
+      "kickoffUtc": "2026-06-26T19:00:00Z",
+      "kickoffUkLocal": "2026-06-26 20:00 BST"
+    },
+    {
+      "group": "I",
+      "homeTeamId": "senegal",
+      "awayTeamId": "iraq",
+      "kickoffUtc": "2026-06-26T19:00:00Z",
+      "kickoffUkLocal": "2026-06-26 20:00 BST"
+    },
+    {
+      "group": "J",
+      "homeTeamId": "argentina",
+      "awayTeamId": "algeria",
+      "kickoffUtc": "2026-06-17T01:00:00Z",
+      "kickoffUkLocal": "2026-06-17 02:00 BST"
+    },
+    {
+      "group": "J",
+      "homeTeamId": "austria",
+      "awayTeamId": "jordan",
+      "kickoffUtc": "2026-06-17T04:00:00Z",
+      "kickoffUkLocal": "2026-06-17 05:00 BST"
+    },
+    {
+      "group": "J",
+      "homeTeamId": "argentina",
+      "awayTeamId": "austria",
+      "kickoffUtc": "2026-06-22T17:00:00Z",
+      "kickoffUkLocal": "2026-06-22 18:00 BST"
+    },
+    {
+      "group": "J",
+      "homeTeamId": "jordan",
+      "awayTeamId": "algeria",
+      "kickoffUtc": "2026-06-23T03:00:00Z",
+      "kickoffUkLocal": "2026-06-23 04:00 BST"
+    },
+    {
+      "group": "J",
+      "homeTeamId": "algeria",
+      "awayTeamId": "austria",
+      "kickoffUtc": "2026-06-28T02:00:00Z",
+      "kickoffUkLocal": "2026-06-28 03:00 BST"
+    },
+    {
+      "group": "J",
+      "homeTeamId": "jordan",
+      "awayTeamId": "argentina",
+      "kickoffUtc": "2026-06-28T02:00:00Z",
+      "kickoffUkLocal": "2026-06-28 03:00 BST"
+    },
+    {
+      "group": "K",
+      "homeTeamId": "portugal",
+      "awayTeamId": "congo-dr",
+      "kickoffUtc": "2026-06-17T17:00:00Z",
+      "kickoffUkLocal": "2026-06-17 18:00 BST"
+    },
+    {
+      "group": "K",
+      "homeTeamId": "uzbekistan",
+      "awayTeamId": "colombia",
+      "kickoffUtc": "2026-06-18T02:00:00Z",
+      "kickoffUkLocal": "2026-06-18 03:00 BST"
+    },
+    {
+      "group": "K",
+      "homeTeamId": "portugal",
+      "awayTeamId": "uzbekistan",
+      "kickoffUtc": "2026-06-23T17:00:00Z",
+      "kickoffUkLocal": "2026-06-23 18:00 BST"
+    },
+    {
+      "group": "K",
+      "homeTeamId": "colombia",
+      "awayTeamId": "congo-dr",
+      "kickoffUtc": "2026-06-24T02:00:00Z",
+      "kickoffUkLocal": "2026-06-24 03:00 BST"
+    },
+    {
+      "group": "K",
+      "homeTeamId": "colombia",
+      "awayTeamId": "portugal",
+      "kickoffUtc": "2026-06-27T23:30:00Z",
+      "kickoffUkLocal": "2026-06-28 00:30 BST"
+    },
+    {
+      "group": "K",
+      "homeTeamId": "congo-dr",
+      "awayTeamId": "uzbekistan",
+      "kickoffUtc": "2026-06-27T23:30:00Z",
+      "kickoffUkLocal": "2026-06-28 00:30 BST"
+    },
+    {
+      "group": "L",
+      "homeTeamId": "england",
+      "awayTeamId": "croatia",
+      "kickoffUtc": "2026-06-17T20:00:00Z",
+      "kickoffUkLocal": "2026-06-17 21:00 BST"
+    },
+    {
+      "group": "L",
+      "homeTeamId": "ghana",
+      "awayTeamId": "panama",
+      "kickoffUtc": "2026-06-17T23:00:00Z",
+      "kickoffUkLocal": "2026-06-18 00:00 BST"
+    },
+    {
+      "group": "L",
+      "homeTeamId": "england",
+      "awayTeamId": "ghana",
+      "kickoffUtc": "2026-06-23T20:00:00Z",
+      "kickoffUkLocal": "2026-06-23 21:00 BST"
+    },
+    {
+      "group": "L",
+      "homeTeamId": "panama",
+      "awayTeamId": "croatia",
+      "kickoffUtc": "2026-06-23T23:00:00Z",
+      "kickoffUkLocal": "2026-06-24 00:00 BST"
+    },
+    {
+      "group": "L",
+      "homeTeamId": "panama",
+      "awayTeamId": "england",
+      "kickoffUtc": "2026-06-27T21:00:00Z",
+      "kickoffUkLocal": "2026-06-27 22:00 BST"
+    },
+    {
+      "group": "L",
+      "homeTeamId": "croatia",
+      "awayTeamId": "ghana",
+      "kickoffUtc": "2026-06-27T21:00:00Z",
+      "kickoffUkLocal": "2026-06-27 22:00 BST"
+    }
+  ]
+}

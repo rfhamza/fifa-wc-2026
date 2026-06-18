@@ -46,6 +46,39 @@ A roadmap from the foundation to a richer product. Each item lists the
 > `data/official/fixtures.ts` so `validateOfficialFixtures` passes, which flips
 > `fixtureSource` to `"official"`. Until then nothing claims an official order.
 
+## Done in phase 1.5 (candidate schedule & draw-order staging)
+
+- Staged an **isolated** candidate layer under `data/candidate/` from two
+  THIRD-PARTY sources (a newspaper wallchart + a fan-made interactive Excel
+  workbook), reconciled against each other and the Article 12.4 chart:
+  candidate group membership, intra-group draw order (positions 1-4), and a
+  72-fixture chronological schedule with kickoffs (UTC), venues, and match
+  numbers. See `docs/CANDIDATE_SCHEDULE_RECONCILIATION.md`.
+- `lib/data/validate-candidate.ts` validates coverage (48/12/72, 6 per group,
+  every team in 3 games, host slots preserved, Article 12.4 pairings) and
+  `reconcileSources` compares the two sources by (group, unordered pair). The
+  Excel value is kept as the candidate value; the Telegraph is the visual
+  cross-check; conflicts are reported, never auto-resolved. Two date conflicts
+  (M20 Austria v Jordan, M36 Tunisia v Japan) are flagged for manual review.
+- Provenance-bearing raw snapshots committed (`data/candidate/raw/*.json`) plus
+  a dev-only extractor (`scripts/extract-candidate-schedule.py`); the source
+  binaries are NOT committed. No runtime dependencies were added.
+
+> **Candidate layer is staging only - NOT official.** The production resolver
+> (`lib/data/source.ts`) never imports `data/candidate/`, so `fixtureSource`
+> stays `position-generated` and no non-host draw slot is written onto a `Team`.
+> A safety regression test locks this. There is no preview UI in this phase
+> (`CANDIDATE_SCHEDULE_PREVIEW = false`).
+>
+> **Go/no-go to promote candidate -> official/verified.** Agreement between the
+> two third-party sources RAISES CONFIDENCE but is NOT sufficient. Promotion
+> requires an **official FIFA source** OR **user-supplied authoritative JSON the
+> user explicitly approves as authoritative**. Only then (a separate, approved
+> change) populate `data/official/fixtures.ts` (position-keyed M1-M72) and the
+> 48 `Team.drawPosition`/`drawSlot`/`drawSlotStatus`, let
+> `validateOfficialFixtures`/`validateDrawPositions` pass, and the resolver
+> flips `fixtureSource` to `"official"`.
+
 ## Phase 2 - Verified data
 
 - Obtain official FIFA group/fixture/venue data (or authoritative JSON);
