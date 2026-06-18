@@ -145,34 +145,61 @@ describe("dry-run activation (Step B would pass existing validators)", () => {
   });
 });
 
-describe("Step A safety - production is unchanged (staging only)", () => {
-  it("official fixtures template is still empty (not activated)", () => {
-    expect(officialFixtures).toEqual([]);
-  });
-
-  it("resolver still position-generates fixtures", async () => {
-    const { resolveDataset } = await import("@/lib/data/source");
-    expect(resolveDataset().fixtureSource).toBe("position-generated");
-  });
-
-  it("only the three co-hosts carry verified draw slots; non-hosts undefined", () => {
-    for (const t of officialTeams) {
-      if (HOST_SLOTS[t.id]) {
-        expect(t.drawPosition).toBeDefined();
-        expect(t.drawSlotStatus).toBe("verified");
-      } else {
-        expect(t.drawPosition).toBeUndefined();
-        expect(t.drawSlot).toBeUndefined();
-      }
+describe("Step B activation - official schedule is live", () => {
+  it("official fixtures template is now populated (72 rows)", () => {
+    expect(officialFixtures).toHaveLength(72);
+    for (const f of officialFixtures) {
+      expect(f.subjectToChange).toBe(true);
+      expect(f.kickoffSourceTz).toBe("America/New_York");
+      expect(f.sourceRef).toContain("v17");
     }
   });
 
-  it("importing the staging layer does not change the resolved dataset", async () => {
+  it("resolver serves official fixtures (no fallback)", async () => {
     const { resolveDataset } = await import("@/lib/data/source");
-    const before = resolveDataset();
+    const ds = resolveDataset();
+    expect(ds.fixtureSource).toBe("official");
+    expect(ds.fixtureSource).not.toBe("position-generated");
+    expect(ds.fixtureSource).not.toBe("mock-generated");
+  });
+
+  it("materialises 72 official fixtures with match number, kickoff and venue", async () => {
+    const { resolveDataset } = await import("@/lib/data/source");
+    const fx = resolveDataset().fixtures;
+    expect(fx).toHaveLength(72);
+    const nums = new Set<number>();
+    const perGroup = new Map<string, number>();
+    const perTeam = new Map<string, number>();
+    for (const f of fx) {
+      expect(f.source).toBe("official");
+      expect(f.matchNumber).toBeGreaterThanOrEqual(1);
+      expect(f.matchNumber).toBeLessThanOrEqual(72);
+      expect(Number.isNaN(Date.parse(f.kickoff!))).toBe(false);
+      expect(f.venueId).toBeTruthy();
+      nums.add(f.matchNumber!);
+      perGroup.set(f.group, (perGroup.get(f.group) ?? 0) + 1);
+      perTeam.set(f.homeTeamId, (perTeam.get(f.homeTeamId) ?? 0) + 1);
+      perTeam.set(f.awayTeamId, (perTeam.get(f.awayTeamId) ?? 0) + 1);
+    }
+    expect(nums.size).toBe(72);
+    for (const g of GROUP_IDS) expect(perGroup.get(g)).toBe(6);
+    expect(perTeam.size).toBe(48);
+    for (const [, c] of perTeam) expect(c).toBe(3);
+  });
+
+  it("verifies all 48 draw slots; host slots A1/B1/D1 preserved", () => {
+    for (const t of officialTeams) {
+      expect(t.drawPosition).toBeDefined();
+      expect(t.drawSlotStatus).toBe("verified");
+    }
+    for (const [id, slot] of Object.entries(HOST_SLOTS)) {
+      expect(officialTeams.find((t) => t.id === id)!.drawSlot).toBe(slot);
+    }
+  });
+
+  it("carries subject-to-change provenance (v17 / 10 Apr 2026)", () => {
+    expect(OFFICIAL_SCHEDULE_SOURCE.subjectToChange).toBe(true);
+    expect(OFFICIAL_SCHEDULE_SOURCE.version).toBe("v17");
     expect(stagedOfficialSchedule).toHaveLength(72);
-    const after = resolveDataset();
-    expect(after.fixtureSource).toBe(before.fixtureSource);
-    expect(after.teams.length).toBe(before.teams.length);
   });
 });

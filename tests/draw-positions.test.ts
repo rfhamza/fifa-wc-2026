@@ -6,12 +6,18 @@ import type { Team } from "@/lib/types";
 const clone = (): Team[] => officialTeams.map((t) => ({ ...t }));
 
 describe("draw positions", () => {
-  it("assigns only the three co-hosts a source-backed draw slot", () => {
+  it("assigns all 48 teams a verified draw slot (Phase 1.6 Step B)", () => {
     const positioned = officialTeams.filter((t) => t.drawSlot);
-    expect(positioned.map((t) => t.id).sort()).toEqual(["canada", "mexico", "usa"]);
+    expect(positioned).toHaveLength(48);
     for (const t of positioned) {
-      expect(t.drawPosition).toBe(1);
+      expect(t.drawPosition).toBeGreaterThanOrEqual(1);
+      expect(t.drawPosition).toBeLessThanOrEqual(4);
+      expect(t.drawSlot).toBe(`${t.group}${t.drawPosition}`);
       expect(t.drawSlotStatus).toBe("verified");
+    }
+    // Three co-hosts keep their regulation position 1.
+    for (const id of ["canada", "mexico", "usa"]) {
+      expect(officialTeams.find((t) => t.id === id)!.drawPosition).toBe(1);
     }
   });
 
@@ -22,14 +28,16 @@ describe("draw positions", () => {
     expect(slot("usa")).toBe("D1");
   });
 
-  it("leaves all non-host draw positions undefined (no placeholders stored)", () => {
-    const hosts = new Set(["mexico", "canada", "usa"]);
+  it("has positions {1,2,3,4} unique within every group", () => {
+    const byGroup = new Map<string, number[]>();
     for (const t of officialTeams) {
-      if (!hosts.has(t.id)) {
-        expect(t.drawPosition).toBeUndefined();
-        expect(t.drawSlot).toBeUndefined();
-        expect(t.drawSlotStatus).toBeUndefined();
-      }
+      const list = byGroup.get(t.group) ?? [];
+      list.push(t.drawPosition!);
+      byGroup.set(t.group, list);
+    }
+    expect(byGroup.size).toBe(12);
+    for (const [, positions] of byGroup) {
+      expect([...positions].sort()).toEqual([1, 2, 3, 4]);
     }
   });
 

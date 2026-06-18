@@ -9,8 +9,10 @@ const STATUS_COPY: Record<SourceStatus, { label: string; variant: "default" | "a
   mock: { label: "Mock - placeholder data", variant: "muted" },
 };
 
+// Provenance label source of truth: OFFICIAL_SCHEDULE_SOURCE in
+// data/official/staging/schedule.ts (v17, 10 Apr 2026, subject to change).
 const FIXTURE_COPY: Record<FixtureSource, string> = {
-  official: "official fixture schedule",
+  official: "Official FIFA schedule, v17, 10 Apr 2026, subject to change",
   "position-generated": "position-generated (FIFA Art. 12.4) - schedule pending",
   "mock-generated": "mock-generated - placeholder schedule",
 };

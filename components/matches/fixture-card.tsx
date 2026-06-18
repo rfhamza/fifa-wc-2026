@@ -43,14 +43,17 @@ export function FixtureCard({
     <Card className="transition-colors hover:border-primary/40">
       <CardContent className="space-y-4 p-5">
         <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <Badge variant="outline">Group {fixture.group} · MD{fixture.matchday}</Badge>
+          <Badge variant="outline">
+            {isOfficial && fixture.matchNumber ? `Match ${fixture.matchNumber} · ` : ""}
+            Group {fixture.group} · MD{fixture.matchday}
+          </Badge>
           {sourceChip && (
             <Badge variant={isOfficial ? "default" : "muted"}>{sourceChip}</Badge>
           )}
         </div>
         {isOfficial && (
           <div className="text-right text-[11px] text-muted-foreground">
-            {dateFormatter.format(new Date(fixture.date))}
+            {dateFormatter.format(new Date(fixture.date))} · subject to change
           </div>
         )}
 

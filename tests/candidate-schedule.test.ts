@@ -201,21 +201,21 @@ describe("candidate layer isolation (safety regression)", () => {
     expect(CANDIDATE_SCHEDULE_PREVIEW).toBe(false);
   });
 
-  it("production resolver still position-generates fixtures", async () => {
+  it("the resolver serves the official schedule (candidate layer is not the source)", async () => {
     const { resolveDataset } = await import("@/lib/data/source");
     const ds = resolveDataset();
-    expect(ds.fixtureSource).toBe("position-generated");
+    // The official FIFA schedule is now active (Phase 1.6 Step B); the candidate
+    // layer remains a cross-check only and is never imported by the resolver.
+    expect(ds.fixtureSource).toBe("official");
   });
 
-  it("only the three co-hosts carry verified draw slots", async () => {
+  it("all 48 teams carry verified draw slots, hosts preserved", async () => {
     for (const t of officialTeams) {
-      if (HOST_SLOTS[t.id]) {
-        expect(t.drawPosition).toBeDefined();
-        expect(t.drawSlotStatus).toBe("verified");
-      } else {
-        expect(t.drawPosition).toBeUndefined();
-        expect(t.drawSlot).toBeUndefined();
-      }
+      expect(t.drawPosition).toBeDefined();
+      expect(t.drawSlotStatus).toBe("verified");
+    }
+    for (const [id, slot] of Object.entries(HOST_SLOTS)) {
+      expect(officialTeams.find((t) => t.id === id)!.drawSlot).toBe(slot);
     }
   });
 

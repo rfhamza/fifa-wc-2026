@@ -1,14 +1,20 @@
-# Official Schedule Transcription Audit (Phase 1.6, Step A)
+# Official Schedule Transcription Audit (Phase 1.6, Steps A + B)
 
-> WARNING: **STAGING / VERIFICATION ONLY - NOT YET ACTIVATED.**
+> **STEP B ACTIVATION COMPLETE.**
 >
-> This records the transcription of the OFFICIAL FIFA 2026 group-stage schedule
-> (M1-M72) into the isolated staging layer (`data/official/staging/`) and the
-> verification that a future activation (Step B) would pass every existing
-> resolver validator. **Production is unchanged:** `data/official/fixtures.ts` is
-> still empty, no non-host draw slot is written onto a `Team`, and
-> `resolveDataset().fixtureSource` stays `position-generated`. Activation is a
-> separate, explicitly-approved step.
+> The transcription below (Step A) has been **activated** (Step B):
+> `data/official/fixtures.ts` is now populated from the staged schedule (72 rows),
+> all 48 draw positions are written to `data/official/teams.ts` with
+> `drawSlotStatus: "verified"` (host slots A1/B1/D1 preserved), and
+> `resolveDataset().fixtureSource === "official"` with no fallback. The schedule
+> remains officially **"subject to change"** (v17, 10 Apr 2026), surfaced in the
+> UI ("Official FIFA schedule, v17, 10 Apr 2026, subject to change"). The
+> Telegraph/Excel candidate layer remains a **cross-check only**. Team identities
+> and model features are unchanged (still candidate/mock).
+
+> Step A record (retained): transcription of the OFFICIAL FIFA 2026 group-stage
+> schedule (M1-M72) into the staging layer (`data/official/staging/`) and the
+> dry-run proving activation would pass every existing resolver validator.
 
 ## 1. Source & provenance
 
