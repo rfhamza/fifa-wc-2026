@@ -48,6 +48,11 @@ export default function TeamPage({ params }: { params: { teamId: string } }) {
             <Badge variant="secondary">Group {team.group}</Badge>
             <Badge variant="outline">{team.confederation}</Badge>
             <Badge variant="muted">FIFA #{team.fifaRanking}</Badge>
+            {team.drawSlot ? (
+              <Badge variant="default">Draw slot {team.drawSlot} (official)</Badge>
+            ) : (
+              <Badge variant="muted">Draw position TBD</Badge>
+            )}
           </div>
         </div>
       </header>
@@ -156,7 +161,11 @@ export default function TeamPage({ params }: { params: { teamId: string } }) {
             const opponent = getTeam(
               teamIsHome ? fixture.awayTeamId : fixture.homeTeamId,
             );
-            const venue = getVenue(fixture.venueId);
+            // Venue only shown for an official schedule; otherwise it is pending.
+            const venueLabel =
+              fixture.source === "official"
+                ? getVenue(fixture.venueId).city
+                : "Venue pending official schedule";
             // Re-orient probabilities so "win" is always this team's win.
             const teamWin = teamIsHome ? prediction.homeWin : prediction.awayWin;
             const oppWin = teamIsHome ? prediction.awayWin : prediction.homeWin;
@@ -190,7 +199,7 @@ export default function TeamPage({ params }: { params: { teamId: string } }) {
                     favours {teamIsHome ? team.name : opponent.name}.
                   </p>
                 )}
-                <p className="text-[11px] text-muted-foreground">{venue.city}</p>
+                <p className="text-[11px] text-muted-foreground">{venueLabel}</p>
               </div>
             );
           })}

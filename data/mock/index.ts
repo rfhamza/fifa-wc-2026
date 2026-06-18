@@ -7,8 +7,12 @@ export interface SourceDataset {
   sourceStatus: SourceStatus;
   teams: Team[];
   venues: Venue[];
-  /** Present only when an official published schedule is available. */
-  officialFixtures?: import("@/lib/types").Fixture[];
+  /**
+   * Official chronological schedule (position-keyed) - present only when a
+   * published FIFA schedule is available. Resolves to dated fixtures via draw
+   * positions; otherwise the resolver position-generates fixtures (A3).
+   */
+  officialFixtures?: import("@/lib/types").OfficialFixture[];
   bracket: BracketDefinition;
 }
 

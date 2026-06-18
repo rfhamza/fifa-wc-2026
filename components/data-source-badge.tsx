@@ -11,7 +11,8 @@ const STATUS_COPY: Record<SourceStatus, { label: string; variant: "default" | "a
 
 const FIXTURE_COPY: Record<FixtureSource, string> = {
   official: "official fixture schedule",
-  generated: "fixture order simulated - pending official schedule",
+  "position-generated": "position-generated (FIFA Art. 12.4) - schedule pending",
+  "mock-generated": "mock-generated - placeholder schedule",
 };
 
 /**

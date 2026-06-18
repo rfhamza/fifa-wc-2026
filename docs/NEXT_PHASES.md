@@ -24,6 +24,28 @@ A roadmap from the foundation to a richer product. Each item lists the
 - Synthetic fixture proves the engine; real graph + Annexe C stay empty
   templates (`sourceStatus: "mock"`) until transcribed and confirmed verified.
 
+## Done in phase 1.4 (fixtures & draw positions)
+
+- Draw positions on `Team` (`drawPosition`/`drawSlot`/`drawSlotStatus`): only the
+  3 co-hosts are source-backed (Mexico A1, Canada B1, USA D1); all other slots
+  stay undefined - no placeholder slot is ever stored on a team.
+- Group fixtures generated strictly from the FIFA Article 12.4 pairing chart
+  (MD1 1v2/3v4, MD2 1v3/4v2, MD3 4v1/2v3) via `buildGroupStageFixtures`.
+- Tri-state fixture provenance: `official` / `position-generated` /
+  `mock-generated`, surfaced per fixture (chips) and in the data badge.
+- Empty position-keyed schedule template (`data/official/fixtures.ts`) +
+  `validateDrawPositions` / `validatePositionPairings` / `validateOfficialFixtures`.
+
+> **Fixtures note (draw positions & schedule).**
+>
+> Generated fixtures carry the regulation Art. 12.4 pairing but NO kickoff dates
+> or official chronological order, and the real schedule may differ from the
+> pairing chart. Go/no-go to `verified`: (1) draw positions - supply all 48 Final
+> Draw positions so `validateDrawPositions` passes, then flip non-host
+> `drawSlotStatus`; (2) schedule - populate all 72 rows of
+> `data/official/fixtures.ts` so `validateOfficialFixtures` passes, which flips
+> `fixtureSource` to `"official"`. Until then nothing claims an official order.
+
 ## Phase 2 - Verified data
 
 - Obtain official FIFA group/fixture/venue data (or authoritative JSON);
@@ -33,8 +55,9 @@ A roadmap from the foundation to a richer product. Each item lists the
 - Build `lib/data/sources/` adapters for Elo, FIFA ranking, market value, and
   World Bank; compute `recentForm` / `climateFamiliarity` / `conductScore`
   from data.
-- Replace generated fixtures with the official schedule
-  (`fixtureSource: "official"`).
+- Replace position-generated fixtures with the official schedule: populate
+  `data/official/fixtures.ts` (position-keyed M1-M72) + the 48 Final Draw
+  positions, flipping `fixtureSource` to `"official"`.
 
 > **Bracket note (R32 / Annexe C).**
 >

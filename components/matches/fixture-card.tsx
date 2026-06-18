@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ProbabilityBar } from "@/components/charts/probability-bar";
-import type { Fixture, MatchPrediction, Team, Venue } from "@/lib/types";
+import type { Fixture, FixtureSource, MatchPrediction, Team, Venue } from "@/lib/types";
 import { pct } from "@/lib/utils";
 import { MapPin } from "lucide-react";
 
@@ -19,6 +19,13 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
   timeZone: "UTC",
 });
 
+/** Short per-fixture provenance chip so generated order is never implied official. */
+const SOURCE_CHIP: Record<FixtureSource, string | null> = {
+  official: "Official",
+  "position-generated": "Position-generated",
+  "mock-generated": "Mock",
+};
+
 /** Rich match prediction card: teams, venue, W/D/L, xG, scorelines, drivers. */
 export function FixtureCard({
   fixture,
@@ -29,14 +36,23 @@ export function FixtureCard({
 }: FixtureCardProps) {
   const topDriver = prediction.explanation.positiveDrivers[0];
   const topAgainst = prediction.explanation.negativeDrivers[0];
+  const sourceChip = SOURCE_CHIP[fixture.source ?? "position-generated"];
+  const isOfficial = fixture.source === "official";
 
   return (
     <Card className="transition-colors hover:border-primary/40">
       <CardContent className="space-y-4 p-5">
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <Badge variant="outline">Group {fixture.group} · MD{fixture.matchday}</Badge>
-          <span>{dateFormatter.format(new Date(fixture.date))}</span>
+          {sourceChip && (
+            <Badge variant={isOfficial ? "default" : "muted"}>{sourceChip}</Badge>
+          )}
         </div>
+        {isOfficial && (
+          <div className="text-right text-[11px] text-muted-foreground">
+            {dateFormatter.format(new Date(fixture.date))}
+          </div>
+        )}
 
         {/* Teams + expected goals */}
         <div className="flex items-center justify-between gap-2">
@@ -92,7 +108,7 @@ export function FixtureCard({
 
         <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
           <MapPin className="h-3 w-3" />
-          {venue.name}, {venue.city}
+          {isOfficial ? `${venue.name}, ${venue.city}` : "Venue pending official schedule"}
         </div>
       </CardContent>
     </Card>

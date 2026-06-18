@@ -49,12 +49,18 @@ snapshot for the process. This keeps pages fast and the data contract narrow.
   `mock`) **that passes `validateDataset()`** (48 teams, 12 groups × 4, unique
   ids, referential integrity). Fallback is keyed on **validity/completeness**, not
   on any boolean flag.
-- Fixtures: an official schedule is used only if present **and** referentially
-  valid (`fixtureSource: "official"`); otherwise they are deterministically
-  generated (`"generated"`).
+- Fixtures (tri-state): an official chronological schedule is used only if
+  present, position-resolvable, **and** referentially valid
+  (`fixtureSource: "official"`); otherwise pairings are generated from the FIFA
+  Article 12.4 draw-position chart - `"position-generated"` on the
+  official/candidate field, `"mock-generated"` on the mock field. Generated
+  fixtures carry the regulation pairing but no kickoff dates/official order.
+- Draw positions: only source-backed slots live on `Team` (the 3 co-hosts today);
+  the generator fills remaining positions with an internal placeholder ordering
+  that is never persisted onto a team.
 - `sourceStatus`, `fixtureSource`, and `bracket` are re-exported and surfaced in
-  the UI (`components/data-source-badge.tsx`, footer) so candidate/generated data
-  is never implied to be official.
+  the UI (`components/data-source-badge.tsx`, per-fixture chips, footer) so
+  candidate/generated data is never implied to be official.
 
 Swapping in fully official data later means only editing `data/official/*` and
 flipping its status — consumers and the simulator are untouched.

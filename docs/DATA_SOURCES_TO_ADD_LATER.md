@@ -8,7 +8,8 @@ touching the model or UI.
 | --- | --- | --- |
 | Group composition + 48-team identities | **candidate** | Final Draw (5 Dec 2025), cross-verified across NBC Sports, ESPN, Yahoo Sports (fifa.com/Wikipedia returned **403** to our fetch agent, so not `verified`). |
 | Host venues (16 stadiums) | **candidate** | Publicly stable; per-match venue assignment NOT official. |
-| 72-match fixture schedule | **TODO → generated** | Official schedule not fetchable (403). `fixtureSource: "generated"`, labelled in UI. |
+| Draw positions (slots A1-L4) | **verified (hosts only) -> TODO** | Only the 3 co-hosts are source-backed (Mexico A1, Canada B1, USA D1, Art. 12.3); all other `drawPosition`/`drawSlot` stay undefined until the Final Draw positions are supplied. |
+| 72-match fixture schedule | **TODO -> position-generated** | Official chronological schedule not fetchable (403). Pairings position-generated per FIFA Art. 12.4 (`fixtureSource: "position-generated"`); empty template at `data/official/fixtures.ts`. No kickoff dates shown. |
 | Round-of-32 skeleton (M73–M88) + Annexe C | **TODO** | FIFA regulations PDF returned 403: `https://digitalhub.fifa.com/m/636f5c9c6f29771f/original/FWC2026_regulations_EN.pdf`. Typed template in `data/official/bracket.ts`; placeholder seeding active. |
 | Model features (Elo, GDP, population, squad, form, climate, FIFA ranking values) | **mock** | Hand-authored placeholders — must not be read as real. |
 
@@ -35,7 +36,7 @@ source is a localized change.
 | `climateFamiliarity` | hand-set 0–100 | Derive: home climate vs venue climate | Use venue `climate`/`avgTempC`. |
 | `gdpPerCapita`, `population` | hand-set | World Bank / IMF | Open APIs, annual. |
 | `managerNationality`, `sameNationalityManager` | hand-set | Federation / Wikipedia | Manual or scraped. |
-| Fixtures / venues | generated | Official FIFA 2026 schedule | Replace generator + venue map. |
+| Fixtures / venues | position-generated (Art. 12.4) | Official FIFA 2026 schedule | Populate `data/official/fixtures.ts` (position-keyed, M1-M72) + draw positions. |
 | Knockout bracket | placeholder seeding | Official 2026 bracket chart | See MODEL_METHOD §5. |
 
 ## Recommended integration shape
