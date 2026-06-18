@@ -9,6 +9,12 @@
 > **not** use it (the resolver never imports the candidate layer, so
 > `fixtureSource` stays `position-generated`).
 
+> **Update (Phase 1.6).** The OFFICIAL FIFA schedule PDF (v17, 10 Apr 2026) has
+> since been transcribed and now **supersedes this candidate layer as the
+> schedule source** — Telegraph/Excel are demoted to a cross-check. The official
+> transcription agrees with this candidate layer on all 72 fixtures and confirms
+> the M20/M36 resolutions. See `docs/OFFICIAL_SCHEDULE_TRANSCRIPTION_AUDIT.md`.
+
 ## 1. Sources & provenance
 
 | Source | Type | Role | Carries | Timezone |
