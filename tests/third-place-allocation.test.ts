@@ -8,7 +8,7 @@ import {
 } from "@/lib/simulation/bracket-validate";
 import type { GroupId } from "@/lib/types";
 
-describe("official Annexe C allocation (candidate transcription)", () => {
+describe("official Annexe C allocation (verified transcription)", () => {
   it(`covers all ${EXPECTED_COMBINATIONS} combinations and validates`, () => {
     const r = validateAllocation(officialThirdPlaceAllocation);
     expect(r.errors).toEqual([]);

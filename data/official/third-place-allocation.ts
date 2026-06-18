@@ -1,7 +1,7 @@
 import type { ThirdPlaceAllocationMap } from "@/lib/types";
 
 /**
- * OFFICIAL ANNEXE C THIRD-PLACE ALLOCATION - CANDIDATE TRANSCRIPTION.
+ * OFFICIAL ANNEXE C THIRD-PLACE ALLOCATION - VERIFIED TRANSCRIPTION.
  *
  * Transcribed verbatim from the official FIFA World Cup 26 regulations PDF
  * (FWC26_regulations_EN.pdf), Annexe C "Combinations for eight best third-placed
@@ -15,8 +15,8 @@ import type { ThirdPlaceAllocationMap } from "@/lib/types";
  *
  * Key = the eight selected third-placed groups, normalized (sorted, uppercase).
  * Value = { T1..T8 -> group letter }. All 495 = C(12,8) combinations are present;
- * every column value lies within the eligible-group set printed in Art. 12.6
- * (verified during transcription). sourceStatus is "candidate" until confirmed.
+ * every column value lies within the eligible-group set printed in Art. 12.6.
+ * User-confirmed 2026-06-17 (spot-checks: Options 1, 60, 150, 248, 372, 460).
  */
 export const officialThirdPlaceAllocation: ThirdPlaceAllocationMap = {
   ABCDEFGH: { T1: "C", T2: "F", T3: "H", T4: "E", T5: "B", T6: "A", T7: "G", T8: "D" },

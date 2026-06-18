@@ -1,7 +1,7 @@
 import type { KnockoutGraph } from "@/lib/types";
 
 /**
- * OFFICIAL KNOCKOUT GRAPH (M73-M104) - CANDIDATE TRANSCRIPTION.
+ * OFFICIAL KNOCKOUT GRAPH (M73-M104) - VERIFIED TRANSCRIPTION.
  *
  * Transcribed verbatim from the official FIFA World Cup 26 regulations PDF
  * (FWC26_regulations_EN.pdf) supplied by the user:
@@ -19,7 +19,9 @@ import type { KnockoutGraph } from "@/lib/types";
  *   T4 = M80 opp (col 1L)  T5 = M81 opp (col 1D)  T6 = M82 opp (col 1G)
  *   T7 = M85 opp (col 1B)  T8 = M87 opp (col 1K)
  *
- * sourceStatus is "candidate" until the user confirms the transcription.
+ * VERIFIED: the user manually reviewed the R32 mapping (p.23), the
+ * R16/QF/SF/M103/M104 propagation (p.24-25), the column-to-slot mapping, and
+ * Annexe C spot-checks (Options 1, 60, 150, 248, 372, 460) on 2026-06-17.
  */
 export const officialKnockoutGraph: KnockoutGraph = {
   matches: [
@@ -29,7 +31,7 @@ export const officialKnockoutGraph: KnockoutGraph = {
       home: { kind: "groupPosition", group: "A", position: 2 },
       away: { kind: "groupPosition", group: "B", position: 2 },
       source: "FWC26_regulations_EN.pdf, p.23, Art. 12.6",
-      validationStatus: "candidate",
+      validationStatus: "verified",
     },
     {
       matchNumber: 74,
@@ -41,7 +43,7 @@ export const officialKnockoutGraph: KnockoutGraph = {
         eligibleGroups: ["A", "B", "C", "D", "F"],
       },
       source: "FWC26_regulations_EN.pdf, p.23, Art. 12.6",
-      validationStatus: "candidate",
+      validationStatus: "verified",
     },
     {
       matchNumber: 75,
@@ -49,7 +51,7 @@ export const officialKnockoutGraph: KnockoutGraph = {
       home: { kind: "groupPosition", group: "F", position: 1 },
       away: { kind: "groupPosition", group: "C", position: 2 },
       source: "FWC26_regulations_EN.pdf, p.23, Art. 12.6",
-      validationStatus: "candidate",
+      validationStatus: "verified",
     },
     {
       matchNumber: 76,
@@ -57,7 +59,7 @@ export const officialKnockoutGraph: KnockoutGraph = {
       home: { kind: "groupPosition", group: "C", position: 1 },
       away: { kind: "groupPosition", group: "F", position: 2 },
       source: "FWC26_regulations_EN.pdf, p.23, Art. 12.6",
-      validationStatus: "candidate",
+      validationStatus: "verified",
     },
     {
       matchNumber: 77,
@@ -69,7 +71,7 @@ export const officialKnockoutGraph: KnockoutGraph = {
         eligibleGroups: ["C", "D", "F", "G", "H"],
       },
       source: "FWC26_regulations_EN.pdf, p.23, Art. 12.6",
-      validationStatus: "candidate",
+      validationStatus: "verified",
     },
     {
       matchNumber: 78,
@@ -77,7 +79,7 @@ export const officialKnockoutGraph: KnockoutGraph = {
       home: { kind: "groupPosition", group: "E", position: 2 },
       away: { kind: "groupPosition", group: "I", position: 2 },
       source: "FWC26_regulations_EN.pdf, p.23, Art. 12.6",
-      validationStatus: "candidate",
+      validationStatus: "verified",
     },
     {
       matchNumber: 79,
@@ -89,7 +91,7 @@ export const officialKnockoutGraph: KnockoutGraph = {
         eligibleGroups: ["C", "E", "F", "H", "I"],
       },
       source: "FWC26_regulations_EN.pdf, p.23, Art. 12.6",
-      validationStatus: "candidate",
+      validationStatus: "verified",
     },
     {
       matchNumber: 80,
@@ -101,7 +103,7 @@ export const officialKnockoutGraph: KnockoutGraph = {
         eligibleGroups: ["E", "H", "I", "J", "K"],
       },
       source: "FWC26_regulations_EN.pdf, p.23, Art. 12.6",
-      validationStatus: "candidate",
+      validationStatus: "verified",
     },
     {
       matchNumber: 81,
@@ -113,7 +115,7 @@ export const officialKnockoutGraph: KnockoutGraph = {
         eligibleGroups: ["B", "E", "F", "I", "J"],
       },
       source: "FWC26_regulations_EN.pdf, p.23, Art. 12.6",
-      validationStatus: "candidate",
+      validationStatus: "verified",
     },
     {
       matchNumber: 82,
@@ -125,7 +127,7 @@ export const officialKnockoutGraph: KnockoutGraph = {
         eligibleGroups: ["A", "E", "H", "I", "J"],
       },
       source: "FWC26_regulations_EN.pdf, p.23, Art. 12.6",
-      validationStatus: "candidate",
+      validationStatus: "verified",
     },
     {
       matchNumber: 83,
@@ -133,7 +135,7 @@ export const officialKnockoutGraph: KnockoutGraph = {
       home: { kind: "groupPosition", group: "K", position: 2 },
       away: { kind: "groupPosition", group: "L", position: 2 },
       source: "FWC26_regulations_EN.pdf, p.23, Art. 12.6",
-      validationStatus: "candidate",
+      validationStatus: "verified",
     },
     {
       matchNumber: 84,
@@ -141,7 +143,7 @@ export const officialKnockoutGraph: KnockoutGraph = {
       home: { kind: "groupPosition", group: "H", position: 1 },
       away: { kind: "groupPosition", group: "J", position: 2 },
       source: "FWC26_regulations_EN.pdf, p.23, Art. 12.6",
-      validationStatus: "candidate",
+      validationStatus: "verified",
     },
     {
       matchNumber: 85,
@@ -153,7 +155,7 @@ export const officialKnockoutGraph: KnockoutGraph = {
         eligibleGroups: ["E", "F", "G", "I", "J"],
       },
       source: "FWC26_regulations_EN.pdf, p.23, Art. 12.6",
-      validationStatus: "candidate",
+      validationStatus: "verified",
     },
     {
       matchNumber: 86,
@@ -161,7 +163,7 @@ export const officialKnockoutGraph: KnockoutGraph = {
       home: { kind: "groupPosition", group: "J", position: 1 },
       away: { kind: "groupPosition", group: "H", position: 2 },
       source: "FWC26_regulations_EN.pdf, p.23, Art. 12.6",
-      validationStatus: "candidate",
+      validationStatus: "verified",
     },
     {
       matchNumber: 87,
@@ -173,7 +175,7 @@ export const officialKnockoutGraph: KnockoutGraph = {
         eligibleGroups: ["D", "E", "I", "J", "L"],
       },
       source: "FWC26_regulations_EN.pdf, p.23, Art. 12.6",
-      validationStatus: "candidate",
+      validationStatus: "verified",
     },
     {
       matchNumber: 88,
@@ -181,7 +183,7 @@ export const officialKnockoutGraph: KnockoutGraph = {
       home: { kind: "groupPosition", group: "D", position: 2 },
       away: { kind: "groupPosition", group: "G", position: 2 },
       source: "FWC26_regulations_EN.pdf, p.23, Art. 12.6",
-      validationStatus: "candidate",
+      validationStatus: "verified",
     },
     {
       matchNumber: 89,
@@ -189,7 +191,7 @@ export const officialKnockoutGraph: KnockoutGraph = {
       home: { kind: "matchWinner", matchNumber: 74 },
       away: { kind: "matchWinner", matchNumber: 77 },
       source: "FWC26_regulations_EN.pdf, p.24, Art. 12.7",
-      validationStatus: "candidate",
+      validationStatus: "verified",
     },
     {
       matchNumber: 90,
@@ -197,7 +199,7 @@ export const officialKnockoutGraph: KnockoutGraph = {
       home: { kind: "matchWinner", matchNumber: 73 },
       away: { kind: "matchWinner", matchNumber: 75 },
       source: "FWC26_regulations_EN.pdf, p.24, Art. 12.7",
-      validationStatus: "candidate",
+      validationStatus: "verified",
     },
     {
       matchNumber: 91,
@@ -205,7 +207,7 @@ export const officialKnockoutGraph: KnockoutGraph = {
       home: { kind: "matchWinner", matchNumber: 76 },
       away: { kind: "matchWinner", matchNumber: 78 },
       source: "FWC26_regulations_EN.pdf, p.24, Art. 12.7",
-      validationStatus: "candidate",
+      validationStatus: "verified",
     },
     {
       matchNumber: 92,
@@ -213,7 +215,7 @@ export const officialKnockoutGraph: KnockoutGraph = {
       home: { kind: "matchWinner", matchNumber: 79 },
       away: { kind: "matchWinner", matchNumber: 80 },
       source: "FWC26_regulations_EN.pdf, p.24, Art. 12.7",
-      validationStatus: "candidate",
+      validationStatus: "verified",
     },
     {
       matchNumber: 93,
@@ -221,7 +223,7 @@ export const officialKnockoutGraph: KnockoutGraph = {
       home: { kind: "matchWinner", matchNumber: 83 },
       away: { kind: "matchWinner", matchNumber: 84 },
       source: "FWC26_regulations_EN.pdf, p.24, Art. 12.7",
-      validationStatus: "candidate",
+      validationStatus: "verified",
     },
     {
       matchNumber: 94,
@@ -229,7 +231,7 @@ export const officialKnockoutGraph: KnockoutGraph = {
       home: { kind: "matchWinner", matchNumber: 81 },
       away: { kind: "matchWinner", matchNumber: 82 },
       source: "FWC26_regulations_EN.pdf, p.24, Art. 12.7",
-      validationStatus: "candidate",
+      validationStatus: "verified",
     },
     {
       matchNumber: 95,
@@ -237,7 +239,7 @@ export const officialKnockoutGraph: KnockoutGraph = {
       home: { kind: "matchWinner", matchNumber: 86 },
       away: { kind: "matchWinner", matchNumber: 88 },
       source: "FWC26_regulations_EN.pdf, p.24, Art. 12.7",
-      validationStatus: "candidate",
+      validationStatus: "verified",
     },
     {
       matchNumber: 96,
@@ -245,7 +247,7 @@ export const officialKnockoutGraph: KnockoutGraph = {
       home: { kind: "matchWinner", matchNumber: 85 },
       away: { kind: "matchWinner", matchNumber: 87 },
       source: "FWC26_regulations_EN.pdf, p.24, Art. 12.7",
-      validationStatus: "candidate",
+      validationStatus: "verified",
     },
     {
       matchNumber: 97,
@@ -253,7 +255,7 @@ export const officialKnockoutGraph: KnockoutGraph = {
       home: { kind: "matchWinner", matchNumber: 89 },
       away: { kind: "matchWinner", matchNumber: 90 },
       source: "FWC26_regulations_EN.pdf, p.25, Art. 12.8",
-      validationStatus: "candidate",
+      validationStatus: "verified",
     },
     {
       matchNumber: 98,
@@ -261,7 +263,7 @@ export const officialKnockoutGraph: KnockoutGraph = {
       home: { kind: "matchWinner", matchNumber: 93 },
       away: { kind: "matchWinner", matchNumber: 94 },
       source: "FWC26_regulations_EN.pdf, p.25, Art. 12.8",
-      validationStatus: "candidate",
+      validationStatus: "verified",
     },
     {
       matchNumber: 99,
@@ -269,7 +271,7 @@ export const officialKnockoutGraph: KnockoutGraph = {
       home: { kind: "matchWinner", matchNumber: 91 },
       away: { kind: "matchWinner", matchNumber: 92 },
       source: "FWC26_regulations_EN.pdf, p.25, Art. 12.8",
-      validationStatus: "candidate",
+      validationStatus: "verified",
     },
     {
       matchNumber: 100,
@@ -277,7 +279,7 @@ export const officialKnockoutGraph: KnockoutGraph = {
       home: { kind: "matchWinner", matchNumber: 95 },
       away: { kind: "matchWinner", matchNumber: 96 },
       source: "FWC26_regulations_EN.pdf, p.25, Art. 12.8",
-      validationStatus: "candidate",
+      validationStatus: "verified",
     },
     {
       matchNumber: 101,
@@ -285,7 +287,7 @@ export const officialKnockoutGraph: KnockoutGraph = {
       home: { kind: "matchWinner", matchNumber: 97 },
       away: { kind: "matchWinner", matchNumber: 98 },
       source: "FWC26_regulations_EN.pdf, p.25, Art. 12.9",
-      validationStatus: "candidate",
+      validationStatus: "verified",
     },
     {
       matchNumber: 102,
@@ -293,7 +295,7 @@ export const officialKnockoutGraph: KnockoutGraph = {
       home: { kind: "matchWinner", matchNumber: 99 },
       away: { kind: "matchWinner", matchNumber: 100 },
       source: "FWC26_regulations_EN.pdf, p.25, Art. 12.9",
-      validationStatus: "candidate",
+      validationStatus: "verified",
     },
     {
       matchNumber: 103,
@@ -301,7 +303,7 @@ export const officialKnockoutGraph: KnockoutGraph = {
       home: { kind: "matchLoser", matchNumber: 101 },
       away: { kind: "matchLoser", matchNumber: 102 },
       source: "FWC26_regulations_EN.pdf, p.25, Art. 12.10",
-      validationStatus: "candidate",
+      validationStatus: "verified",
     },
     {
       matchNumber: 104,
@@ -309,7 +311,7 @@ export const officialKnockoutGraph: KnockoutGraph = {
       home: { kind: "matchWinner", matchNumber: 101 },
       away: { kind: "matchWinner", matchNumber: 102 },
       source: "FWC26_regulations_EN.pdf, p.25, Art. 12.11",
-      validationStatus: "candidate",
+      validationStatus: "verified",
     },
   ],
 };

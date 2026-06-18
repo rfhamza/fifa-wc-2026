@@ -11,9 +11,9 @@ import {
   GROUP_LETTERS,
 } from "@/lib/simulation/bracket-validate";
 import { runTournamentSimulation } from "@/lib/simulation/tournament";
-import type { BracketDefinition, GroupId } from "@/lib/types";
+import type { GroupId } from "@/lib/types";
 
-describe("official knockout graph (candidate)", () => {
+describe("official knockout graph (verified)", () => {
   it("passes validateGraph", () => {
     expect(validateGraph(officialKnockoutGraph)).toEqual([]);
   });
@@ -37,9 +37,15 @@ describe("official knockout graph (candidate)", () => {
     expect(elig(85)).toBe("EFGIJ");
     expect(elig(87)).toBe("DEIJL");
   });
+
+  it("marks every match validationStatus verified", () => {
+    for (const m of officialKnockoutGraph.matches) {
+      expect(m.validationStatus).toBe("verified");
+    }
+  });
 });
 
-describe("realiser on the real candidate bracket", () => {
+describe("realiser on the real official bracket", () => {
   const groupResults = new Map<GroupId, GroupResult>(
     GROUP_LETTERS.map((g) => [
       g,
@@ -77,25 +83,15 @@ describe("realiser on the real candidate bracket", () => {
   });
 });
 
-describe("tournament under the official bracket (verified-for-test preview)", () => {
-  // Production stays gated (candidate); tests may preview the official path by
-  // marking a COPY verified. This does not change the shipped data.
-  const verified: BracketDefinition = {
-    ...officialBracket,
-    sourceStatus: "verified",
-  };
-
-  it("activates only the verified copy, never the shipped candidate", () => {
-    expect(isBracketActive(officialBracket)).toBe(false);
-    expect(isBracketActive(verified)).toBe(true);
+describe("production now uses the official bracket path", () => {
+  it("the shipped official bracket is verified + active", () => {
+    expect(officialBracket.sourceStatus).toBe("verified");
+    expect(isBracketActive(officialBracket)).toBe(true);
   });
 
-  it("holds the stage invariants (32, 16, 8, 4, 2, 1)", () => {
-    const snap = runTournamentSimulation({
-      iterations: 300,
-      seed: 7,
-      bracket: verified,
-    });
+  it("default production simulation holds the invariants (32, 16, 8, 4, 2, 1)", () => {
+    // No bracket override -> uses the resolved dataset bracket (now official).
+    const snap = runTournamentSimulation({ iterations: 300, seed: 7 });
     const sum = (
       k:
         | "roundOf32"

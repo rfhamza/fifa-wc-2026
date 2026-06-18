@@ -1,6 +1,7 @@
 # Official Bracket Transcription Audit (Phase 1.3)
 
-Status: **CANDIDATE** - awaiting user confirmation before flipping to `verified`.
+Status: **VERIFIED** - user confirmed the transcription on 2026-06-17; the
+official bracket path is now active in production.
 
 ## Source
 
@@ -81,10 +82,11 @@ Run via `npm run test` (see `tests/bracket.test.ts`,
 
 ## Activation status
 
-- `data/official/bracket.ts` -> `sourceStatus: "candidate"`.
-- Production gate `isBracketActive` requires `"verified"`, so the **production
-  simulator still uses placeholder seeding**. The official path is exercised in
-  tests only, via a verified-marked COPY (preview), never the shipped data.
+- `data/official/bracket.ts` -> `sourceStatus: "verified"` (user-confirmed 2026-06-17).
+- Production gate `isBracketActive(officialBracket)` is now **true**, so the
+  **production simulator uses the official bracket path** (M73-M104 + Annexe C),
+  no longer placeholder seeding. The placeholder `seedBracket` remains in code as
+  the fallback for any future non-verified bracket.
 
 ## Manual spot-checks for reviewer
 
@@ -121,15 +123,16 @@ Annexe C spans **pages 80-97** (Options 1-495), about 29 options per page
 p.80 = 1-18, then p.81+ in blocks of 29 (p.81 = 19-47, p.82 = 48-76, ...,
 p.96 = 454-482, p.97 = 483-495).
 
-## Reviewer checklist before flipping to `verified`
+## Reviewer checklist - COMPLETE (user-confirmed 2026-06-17)
 
-- [ ] Spot-check 5-10 Annexe C options against the PDF (e.g. Option 1 ->
-      `EFGHIJKL` -> T1=F, T2=G, T3=E, T4=K, T5=I, T6=H, T7=J, T8=L).
-- [ ] Confirm the R32 third-place eligible sets match Art. 12.6 (table above).
-- [ ] Confirm the column->slot mapping (1A->T3, 1B->T7, 1D->T5, 1E->T1,
+- [x] Spot-checked Annexe C options against the PDF: Options 1, 60, 150, 248,
+      372, 460 (e.g. Option 1 -> `EFGHIJKL` -> T1=F, T2=G, T3=E, T4=K, T5=I,
+      T6=H, T7=J, T8=L).
+- [x] Confirmed the R32 third-place eligible sets match Art. 12.6 (table above).
+- [x] Confirmed the column->slot mapping (1A->T3, 1B->T7, 1D->T5, 1E->T1,
       1G->T6, 1I->T2, 1K->T8, 1L->T4).
-- [ ] Confirm R16/QF/SF/3rd/final propagation matches Art. 12.7-12.11.
-- [ ] Confirm you want production to use the official bracket (this flips
+- [x] Confirmed R16/QF/SF/3rd/final propagation matches Art. 12.7-12.11 (p.24-25).
+- [x] Confirmed production should use the official bracket (this flips
       `isBracketActive` to true and changes public forecasts).
-- [ ] On approval: set `sourceStatus: "verified"` and update validationStatus
-      notes; CI must stay green.
+- [x] Applied: `sourceStatus: "verified"`, all match `validationStatus: "verified"`,
+      notes updated; CI green.
