@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Phase 1.6 — dev-only extractor for the OFFICIAL FIFA 2026 match-schedule PDF.
+Phase 1.6 - dev-only extractor for the OFFICIAL FIFA 2026 match-schedule PDF.
 
 Parses the PDF *text layer* (stdlib only: zlib for FlateDecode streams) and pulls
 the group-stage match tuples (match number, group, home code, away code, ET

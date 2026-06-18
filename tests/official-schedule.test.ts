@@ -20,7 +20,7 @@ import { officialFixtures } from "@/data/official/fixtures";
 
 const GROUP_IDS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
 
-describe("staged official schedule — shape & provenance", () => {
+describe("staged official schedule - shape & provenance", () => {
   it("has 72 rows with required fields", () => {
     expect(stagedOfficialSchedule).toHaveLength(72);
     for (const f of stagedOfficialSchedule) {
@@ -47,7 +47,7 @@ describe("staged official schedule — shape & provenance", () => {
   });
 });
 
-describe("staged official schedule — coverage & validity", () => {
+describe("staged official schedule - coverage & validity", () => {
   it("passes full structural validation", () => {
     expect(validateStagedSchedule(stagedOfficialSchedule)).toEqual([]);
   });
@@ -79,7 +79,7 @@ describe("staged official schedule — coverage & validity", () => {
   });
 });
 
-describe("ET → UTC conversion", () => {
+describe("ET -> UTC conversion", () => {
   it("converts ET (UTC-4) including midnight crossers", () => {
     expect(etLocalToUtcIso("2026-06-11 15:00 ET")).toBe("2026-06-11T19:00:00Z");
     expect(etLocalToUtcIso("2026-06-11 22:00 ET")).toBe("2026-06-12T02:00:00Z"); // crosses midnight
@@ -145,7 +145,7 @@ describe("dry-run activation (Step B would pass existing validators)", () => {
   });
 });
 
-describe("Step A safety — production is unchanged (staging only)", () => {
+describe("Step A safety - production is unchanged (staging only)", () => {
   it("official fixtures template is still empty (not activated)", () => {
     expect(officialFixtures).toEqual([]);
   });

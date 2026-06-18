@@ -218,7 +218,7 @@ export interface OfficialScheduleProvenance {
 
 /**
  * A TEAM-keyed staged row transcribed from the official schedule (Phase 1.6).
- * Lives only in `data/official/staging/` — never read by the resolver. It carries
+ * Lives only in `data/official/staging/` - never read by the resolver. It carries
  * both the solved draw positions and the resolved team ids so it can be
  * cross-checked and (in a later, approved step) converted into position-keyed
  * `OfficialFixture`s + verified draw positions.

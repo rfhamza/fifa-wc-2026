@@ -5,9 +5,9 @@ import type {
 } from "@/lib/types";
 
 /**
- * Phase 1.6 — STAGED OFFICIAL group-stage schedule (M1–M72).
+ * Phase 1.6 - STAGED OFFICIAL group-stage schedule (M1-M72).
  *
- * ⚠️  STAGING ONLY — TRANSCRIBED FOR VERIFICATION, NOT YET ACTIVATED.
+ * WARNING: STAGING ONLY - TRANSCRIBED FOR VERIFICATION, NOT YET ACTIVATED.
  *
  * Transcribed from the OFFICIAL FIFA match schedule PDF (see provenance below).
  * This module is intentionally NOT imported by the resolver (`lib/data/source.ts`)
@@ -22,7 +22,7 @@ import type {
  * an independent cross-check (lib/data/validate-official-schedule.ts).
  *
  * All kickoff times are Eastern Time (ET). The 2026 tournament window
- * (11 Jun – 19 Jul) is entirely in EDT (UTC−4), so `kickoffUtc = ET + 4h`.
+ * (11 Jun - 19 Jul) is entirely in EDT (UTC-4), so `kickoffUtc = ET + 4h`.
  */
 export const OFFICIAL_SCHEDULE_SOURCE: OfficialScheduleProvenance = {
   sourceName: "FIFA World Cup 2026 Match Schedule",
@@ -35,13 +35,13 @@ export const OFFICIAL_SCHEDULE_SOURCE: OfficialScheduleProvenance = {
     "scripts/extract-official-schedule.py (PDF text layer) + reviewer transcription of date/venue from the wallchart grid; cross-checked against the candidate layer",
   extractedAt: "2026-06-18T00:00:00Z",
   notes:
-    "OFFICIAL FIFA source. Still labelled 'Subject to change'. All times Eastern Time (ET); kickoffUtc = ET + 4h (EDT). Staged for verification only — not used in production until activation is approved.",
+    "OFFICIAL FIFA source. Still labelled 'Subject to change'. All times Eastern Time (ET); kickoffUtc = ET + 4h (EDT). Staged for verification only - not used in production until activation is approved.",
 };
 
 const SRC = "FWC26 Match Schedule v17 (10 Apr 2026), subject to change";
 
 /**
- * Draw positions (A1–L4) SOLVED from the official schedule's directed pairings
+ * Draw positions (A1-L4) SOLVED from the official schedule's directed pairings
  * under FIFA Art. 12.4, anchored by the verified host slots (Mexico A1, Canada
  * B1, USA D1). Unique solution per group (asserted in the validator). Committed
  * for audit/diff; NOT written onto `Team` until activation is approved.

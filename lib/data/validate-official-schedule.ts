@@ -1,10 +1,10 @@
 /**
- * Phase 1.6 — OFFICIAL schedule staging: validation, draw-position solving, and
+ * Phase 1.6 - OFFICIAL schedule staging: validation, draw-position solving, and
  * cross-check against the candidate (Telegraph/Excel) layer.
  *
  * This is verification-only. It reads the staged transcription
  * (`data/official/staging/schedule.ts`) and proves that a future activation
- * (Step B) would pass the EXISTING resolver validators — without mutating
+ * (Step B) would pass the EXISTING resolver validators - without mutating
  * production. Nothing here is imported by `lib/data/source.ts`, so
  * `fixtureSource` stays `position-generated` until activation is approved.
  */
@@ -51,7 +51,7 @@ const unorderedKey = (group: GroupId, a: string, b: string) =>
 
 /**
  * Convert a printed ET local time ("2026-06-11 15:00 ET") to a UTC ISO string.
- * The 2026 tournament window is entirely in EDT (UTC−4), so UTC = ET + 4h.
+ * The 2026 tournament window is entirely in EDT (UTC-4), so UTC = ET + 4h.
  */
 export function etLocalToUtcIso(local: string): string | null {
   const m = local.match(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}) ET$/);
@@ -66,7 +66,7 @@ export function etLocalToUtcIso(local: string): string | null {
 
 /**
  * Validate the staged official schedule: 72 rows, unique match numbers 1..72,
- * 12 groups × 6, each team in exactly 3 games, no duplicate pairings, Article
+ * 12 groups x 6, each team in exactly 3 games, no duplicate pairings, Article
  * 12.4 pairings, matchday consistent with the pairing, venues resolve, and
  * kickoffUtc equals the printed ET local time + 4h.
  */
@@ -346,7 +346,7 @@ export interface DryRunResult {
 /**
  * Prove that activating the staged schedule (Step B) would pass the EXISTING
  * resolver validators (`validateDrawPositions`, `validateOfficialFixtures`,
- * `validateFixtures`) and materialise to 72 official fixtures — WITHOUT mutating
+ * `validateFixtures`) and materialise to 72 official fixtures - WITHOUT mutating
  * production. Pure: operates on copies only.
  */
 export function dryRunActivation(
@@ -432,7 +432,7 @@ export function crossCheckScheduleAgainstCandidate(
     } else {
       const detail = reasons.join("; ");
       rows.push({ matchNumber: f.matchNumber, status: "discrepancy", detail });
-      discrepancies.push(`M${f.matchNumber}: ${detail} — official kept.`);
+      discrepancies.push(`M${f.matchNumber}: ${detail} - official kept.`);
     }
   }
 
@@ -446,7 +446,7 @@ export function crossCheckScheduleAgainstCandidate(
   for (const p of positions) {
     const cand = candPos.get(p.slot);
     if (cand && cand !== p.teamId) {
-      drawOrderDiscrepancies.push(`${p.slot}: official ${p.teamId}, candidate ${cand} — official kept.`);
+      drawOrderDiscrepancies.push(`${p.slot}: official ${p.teamId}, candidate ${cand} - official kept.`);
     }
   }
 
