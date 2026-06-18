@@ -26,7 +26,7 @@ describe("dataset resolution & provenance", () => {
   });
 
   it("position-generates fixtures when the official schedule template is empty", () => {
-    // The candidate dataset ships an empty schedule template → position-generated.
+    // The candidate dataset ships an empty schedule template -> position-generated.
     expect(officialDataset.officialFixtures).toEqual([]);
     expect(fixtureSource).toBe("position-generated");
   });

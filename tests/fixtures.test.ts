@@ -21,7 +21,7 @@ describe("Article 12.4 fixture generation", () => {
     "position-generated",
   );
 
-  it("produces 72 fixtures (12 groups × 6)", () => {
+  it("produces 72 fixtures (12 groups x 6)", () => {
     expect(fixtures).toHaveLength(72);
   });
 

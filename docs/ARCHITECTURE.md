@@ -52,7 +52,7 @@ snapshot for the process. This keeps pages fast and the data contract narrow.
 - Fixtures (tri-state): an official chronological schedule is used only if
   present, position-resolvable, **and** referentially valid
   (`fixtureSource: "official"`); otherwise pairings are generated from the FIFA
-  Article 12.4 draw-position chart — `"position-generated"` on the
+  Article 12.4 draw-position chart - `"position-generated"` on the
   official/candidate field, `"mock-generated"` on the mock field. Generated
   fixtures carry the regulation pairing but no kickoff dates/official order.
 - Draw positions: only source-backed slots live on `Team` (the 3 co-hosts today);

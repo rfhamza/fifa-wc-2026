@@ -15,7 +15,7 @@ export const officialDataset: SourceDataset = {
   sourceStatus: "candidate",
   teams: officialTeams,
   venues: officialVenues,
-  // Empty template → resolver position-generates fixtures (Article 12.4).
+  // Empty template -> resolver position-generates fixtures (Article 12.4).
   officialFixtures,
   bracket: officialBracket,
 };

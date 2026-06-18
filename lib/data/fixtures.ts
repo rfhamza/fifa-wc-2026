@@ -1,7 +1,7 @@
 /**
  * Deterministic group-stage fixture generator (FIFA Article 12.4).
  *
- * Produces the 72 group matches (12 groups × 6) from groups + venues + teams.
+ * Produces the 72 group matches (12 groups x 6) from groups + venues + teams.
  * Pairings follow the regulation position chart EXACTLY; the resulting schedule
  * is labelled `fixtureSource: "position-generated"` (official/candidate field) or
  * `"mock-generated"` (mock field) - dates, venues and ordering are illustrative

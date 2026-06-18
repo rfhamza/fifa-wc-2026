@@ -108,7 +108,7 @@ export function FixtureCard({
 
         <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
           <MapPin className="h-3 w-3" />
-          {venue.name}, {venue.city}
+          {isOfficial ? `${venue.name}, ${venue.city}` : "Venue pending official schedule"}
         </div>
       </CardContent>
     </Card>
