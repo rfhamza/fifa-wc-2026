@@ -25,10 +25,10 @@ describe("dataset resolution & provenance", () => {
     expect(sourceStatus).toBe("candidate");
   });
 
-  it("labels fixtures as generated when no official schedule is supplied", () => {
-    // No officialFixtures on the candidate dataset → generated.
-    expect(officialDataset.officialFixtures).toBeUndefined();
-    expect(fixtureSource).toBe("generated");
+  it("position-generates fixtures when the official schedule template is empty", () => {
+    // The candidate dataset ships an empty schedule template → position-generated.
+    expect(officialDataset.officialFixtures).toEqual([]);
+    expect(fixtureSource).toBe("position-generated");
   });
 
   it("validates the mock and official datasets as complete", () => {

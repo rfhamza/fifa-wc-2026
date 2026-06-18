@@ -95,6 +95,26 @@ export default function MethodologyPage() {
         </p>
       </Section>
 
+      <Section title="Group-stage fixtures">
+        <p>
+          Group composition is source-verified (candidate), and the six matches
+          in each group are generated strictly from the FIFA{" "}
+          <strong>Article 12.4</strong> draw-position chart - the regulation
+          pairings (MD1: 1v2, 3v4; MD2: 1v3, 4v2; MD3: 4v1, 2v3). Only the three
+          co-hosts have a source-backed draw slot (Mexico A1, Canada B1, USA D1);
+          the remaining positions use an internal placeholder ordering purely to
+          form pairings.
+        </p>
+        <p>
+          Because the official chronological schedule (match dates, kickoff times
+          and venue assignments) is not yet source-verified, these fixtures are
+          labelled <strong>position-generated</strong> and shown without kickoff
+          dates. The real schedule may list matches in a different order than the
+          regulation pairing chart - we never present the generated order as
+          official until the FIFA schedule is supplied and validated.
+        </p>
+      </Section>
+
       <Section title="What is placeholder data">
         <p>
           Everything numeric in the team data is a realistic but{" "}

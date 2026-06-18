@@ -19,16 +19,24 @@ import type { Team } from "@/lib/types";
  *   sourced from official FIFA data or user-supplied authoritative JSON.
  *
  * Seed (Pot 1 / co-host) is listed first in each group as position 1.
+ *
+ * DRAW POSITIONS (A3): only the three co-hosts have SOURCE-BACKED draw slots,
+ * fixed by FIFA regulation (Art. 12.3): Mexico A1, Canada B1, USA D1 (each opens
+ * the tournament in its named slot). Every other team's `drawPosition`/`drawSlot`
+ * is intentionally OMITTED until the official Final Draw positions are supplied -
+ * the listing order below is NOT a draw position. The fixture generator uses an
+ * internal placeholder ordering for non-host pairings (see lib/data/fixtures.ts);
+ * it never writes a placeholder slot back onto a Team.
  */
 export const officialTeams: Team[] = [
   // ---------------- Group A ----------------
-  { id: "mexico", name: "Mexico", countryCode: "MEX", confederation: "CONCACAF", group: "A", flag: "🇲🇽", fifaRanking: 15, elo: 1875, gdpPerCapita: 11500, population: 128900000, managerNationality: "Mexico", sameNationalityManager: true, squadQuality: 74, recentForm: 66, climateFamiliarity: 90 },
+  { id: "mexico", name: "Mexico", countryCode: "MEX", confederation: "CONCACAF", group: "A", drawPosition: 1, drawSlot: "A1", drawSlotStatus: "verified", flag: "🇲🇽", fifaRanking: 15, elo: 1875, gdpPerCapita: 11500, population: 128900000, managerNationality: "Mexico", sameNationalityManager: true, squadQuality: 74, recentForm: 66, climateFamiliarity: 90 },
   { id: "south-korea", name: "South Korea", countryCode: "KOR", confederation: "AFC", group: "A", flag: "🇰🇷", fifaRanking: 22, elo: 1845, gdpPerCapita: 32400, population: 51700000, managerNationality: "South Korea", sameNationalityManager: true, squadQuality: 73, recentForm: 68, climateFamiliarity: 76 },
   { id: "south-africa", name: "South Africa", countryCode: "RSA", confederation: "CAF", group: "A", flag: "🇿🇦", fifaRanking: 60, elo: 1700, gdpPerCapita: 6800, population: 60400000, managerNationality: "South Africa", sameNationalityManager: true, squadQuality: 63, recentForm: 60, climateFamiliarity: 84 },
   { id: "czechia", name: "Czechia", countryCode: "CZE", confederation: "UEFA", group: "A", flag: "🇨🇿", fifaRanking: 42, elo: 1790, gdpPerCapita: 30500, population: 10500000, managerNationality: "Czechia", sameNationalityManager: true, squadQuality: 70, recentForm: 61, climateFamiliarity: 56 },
 
   // ---------------- Group B ----------------
-  { id: "canada", name: "Canada", countryCode: "CAN", confederation: "CONCACAF", group: "B", flag: "🇨🇦", fifaRanking: 43, elo: 1790, gdpPerCapita: 53500, population: 39000000, managerNationality: "USA", sameNationalityManager: false, squadQuality: 68, recentForm: 60, climateFamiliarity: 85 },
+  { id: "canada", name: "Canada", countryCode: "CAN", confederation: "CONCACAF", group: "B", drawPosition: 1, drawSlot: "B1", drawSlotStatus: "verified", flag: "🇨🇦", fifaRanking: 43, elo: 1790, gdpPerCapita: 53500, population: 39000000, managerNationality: "USA", sameNationalityManager: false, squadQuality: 68, recentForm: 60, climateFamiliarity: 85 },
   { id: "switzerland", name: "Switzerland", countryCode: "SUI", confederation: "UEFA", group: "B", flag: "🇨🇭", fifaRanking: 19, elo: 1855, gdpPerCapita: 92400, population: 8800000, managerNationality: "Italy", sameNationalityManager: false, squadQuality: 74, recentForm: 63, climateFamiliarity: 58 },
   { id: "qatar", name: "Qatar", countryCode: "QAT", confederation: "AFC", group: "B", flag: "🇶🇦", fifaRanking: 37, elo: 1770, gdpPerCapita: 83900, population: 2700000, managerNationality: "Spain", sameNationalityManager: false, squadQuality: 64, recentForm: 58, climateFamiliarity: 84 },
   { id: "bosnia-herzegovina", name: "Bosnia & Herzegovina", countryCode: "BIH", confederation: "UEFA", group: "B", flag: "🇧🇦", fifaRanking: 62, elo: 1720, gdpPerCapita: 7600, population: 3200000, managerNationality: "Bosnia & Herzegovina", sameNationalityManager: true, squadQuality: 66, recentForm: 62, climateFamiliarity: 57 },
@@ -40,7 +48,7 @@ export const officialTeams: Team[] = [
   { id: "haiti", name: "Haiti", countryCode: "HAI", confederation: "CONCACAF", group: "C", flag: "🇭🇹", fifaRanking: 83, elo: 1640, gdpPerCapita: 1700, population: 11700000, managerNationality: "France", sameNationalityManager: false, squadQuality: 57, recentForm: 55, climateFamiliarity: 86 },
 
   // ---------------- Group D ----------------
-  { id: "usa", name: "United States", countryCode: "USA", confederation: "CONCACAF", group: "D", flag: "🇺🇸", fifaRanking: 16, elo: 1860, gdpPerCapita: 76300, population: 333300000, managerNationality: "USA", sameNationalityManager: true, squadQuality: 75, recentForm: 67, climateFamiliarity: 92 },
+  { id: "usa", name: "United States", countryCode: "USA", confederation: "CONCACAF", group: "D", drawPosition: 1, drawSlot: "D1", drawSlotStatus: "verified", flag: "🇺🇸", fifaRanking: 16, elo: 1860, gdpPerCapita: 76300, population: 333300000, managerNationality: "USA", sameNationalityManager: true, squadQuality: 75, recentForm: 67, climateFamiliarity: 92 },
   { id: "australia", name: "Australia", countryCode: "AUS", confederation: "AFC", group: "D", flag: "🇦🇺", fifaRanking: 25, elo: 1825, gdpPerCapita: 64500, population: 26400000, managerNationality: "Australia", sameNationalityManager: true, squadQuality: 69, recentForm: 62, climateFamiliarity: 83 },
   { id: "paraguay", name: "Paraguay", countryCode: "PAR", confederation: "CONMEBOL", group: "D", flag: "🇵🇾", fifaRanking: 50, elo: 1730, gdpPerCapita: 6200, population: 6800000, managerNationality: "Argentina", sameNationalityManager: false, squadQuality: 64, recentForm: 57, climateFamiliarity: 79 },
   { id: "turkiye", name: "Türkiye", countryCode: "TUR", confederation: "UEFA", group: "D", flag: "🇹🇷", fifaRanking: 26, elo: 1820, gdpPerCapita: 13100, population: 85300000, managerNationality: "Italy", sameNationalityManager: false, squadQuality: 74, recentForm: 66, climateFamiliarity: 70 },

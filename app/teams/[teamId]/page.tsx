@@ -48,6 +48,11 @@ export default function TeamPage({ params }: { params: { teamId: string } }) {
             <Badge variant="secondary">Group {team.group}</Badge>
             <Badge variant="outline">{team.confederation}</Badge>
             <Badge variant="muted">FIFA #{team.fifaRanking}</Badge>
+            {team.drawSlot ? (
+              <Badge variant="default">Draw slot {team.drawSlot} (official)</Badge>
+            ) : (
+              <Badge variant="muted">Draw position TBD</Badge>
+            )}
           </div>
         </div>
       </header>

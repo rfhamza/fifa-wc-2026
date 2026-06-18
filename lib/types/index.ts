@@ -16,11 +16,25 @@ export type SourceStatus = "mock" | "candidate" | "verified";
 
 /**
  * Provenance of the fixture list (A3):
- *  - "official":  the published FIFA match schedule.
- *  - "generated": deterministically generated round-robin - simulation only,
- *                 pending official verification.
+ *  - "official":           the published FIFA chronological match schedule
+ *                          (dates, kickoffs, venues, match numbers) - verified.
+ *  - "position-generated": built from draw positions per FIFA Article 12.4
+ *                          pairings on the official/candidate field. Pairings are
+ *                          regulation-correct, but dates/venues/order are
+ *                          illustrative, pending the official schedule.
+ *  - "mock-generated":     generated from the hand-authored mock field; entirely
+ *                          placeholder.
  */
-export type FixtureSource = "official" | "generated";
+export type FixtureSource = "official" | "position-generated" | "mock-generated";
+
+/** A team's draw position within its group (1..4), assigned at the Final Draw. */
+export type DrawPosition = 1 | 2 | 3 | 4;
+
+/** A draw slot, e.g. "A1".."L4" - the group letter plus the draw position. */
+export type DrawSlot = `${GroupId}${DrawPosition}`;
+
+/** Lifecycle of a single fixture. "unknown" for position-generated (no date). */
+export type FixtureStatus = "scheduled" | "in-progress" | "complete" | "unknown";
 
 /** Six FIFA confederations. */
 export type Confederation =
@@ -58,6 +72,17 @@ export interface Team {
   confederation: Confederation;
   /** Group id this team belongs to, e.g. "A". */
   group: GroupId;
+  /**
+   * Draw position within the group (1..4) from the Final Draw. Present ONLY for
+   * teams whose slot is source-backed (currently the three co-hosts). Undefined
+   * for every other team until official draw-position data is supplied - a
+   * placeholder ordering is NEVER written here (see lib/data/fixtures.ts).
+   */
+  drawPosition?: DrawPosition;
+  /** Draw slot ("A1".."L4"), present iff `drawPosition` is. Source-backed only. */
+  drawSlot?: DrawSlot;
+  /** Provenance of the draw slot (only set when `drawSlot` is set). */
+  drawSlotStatus?: SourceStatus;
   /** Unicode flag emoji for lightweight rendering without image assets. */
   flag: string;
   /** FIFA ranking position (1 = best). Placeholder. */
@@ -115,8 +140,42 @@ export interface Fixture {
   homeTeamId: string;
   awayTeamId: string;
   venueId: string;
-  /** ISO date string (kickoff). */
+  /** ISO date string. Illustrative for generated fixtures (not the FIFA date). */
   date: string;
+  /** Per-fixture provenance (defaults to the dataset's `fixtureSource`). */
+  source?: FixtureSource;
+  /** Article 12.4 draw positions this fixture pairs (home vs away). */
+  homePosition?: DrawPosition;
+  awayPosition?: DrawPosition;
+  /** Official FIFA match number (M1..M72). Set only for official schedules. */
+  matchNumber?: number;
+  /** ISO datetime of kickoff. Set only for official schedules. */
+  kickoff?: string;
+  /** Fixture lifecycle. "unknown" for position-generated fixtures. */
+  status?: FixtureStatus;
+  /** Source reference for an official row (transcription provenance). */
+  sourceRef?: string;
+}
+
+/**
+ * One row of an OFFICIAL chronological schedule template (FIFA Art. 16). Keyed by
+ * draw position so it can be authored before the Final Draw resolves teams; the
+ * resolver maps positions -> teams. Shipped empty until an authoritative source
+ * is supplied (see data/official/fixtures.ts).
+ */
+export interface OfficialFixture {
+  /** Official match number (M1..M72). */
+  matchNumber: number;
+  group: GroupId;
+  /** Round-robin matchday within the group (1..3). */
+  matchday: number;
+  homePosition: DrawPosition;
+  awayPosition: DrawPosition;
+  venueId: string;
+  /** ISO datetime of kickoff. */
+  kickoff: string;
+  status?: FixtureStatus;
+  sourceRef?: string;
 }
 
 /**
