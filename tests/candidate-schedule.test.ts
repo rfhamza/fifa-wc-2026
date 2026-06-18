@@ -5,6 +5,8 @@ import {
   candidateDrawOrder,
   candidateGroups,
   telegraphFixtures,
+  excelCrossCheckFixtures,
+  MANUAL_CONFLICT_RESOLUTIONS,
   CANDIDATE_SCHEDULE_PREVIEW,
 } from "@/data/candidate";
 import { resolveTeamId, resolveVenueId } from "@/data/candidate/name-map";
@@ -14,6 +16,7 @@ import {
   validateCandidateFixtures,
   crossCheckArticle124,
   reconcileSources,
+  buildResolvedKeySet,
   validateCandidateSchedule,
 } from "@/lib/data/validate-candidate";
 import { officialTeams } from "@/data/official/teams";
@@ -31,8 +34,24 @@ describe("candidate extraction shape", () => {
       expect(f.homeTeamId).toBeTruthy();
       expect(f.awayTeamId).toBeTruthy();
       expect(Number.isNaN(Date.parse(f.kickoffUtc))).toBe(false);
-      expect(f.kickoffSourceTz).toBe("America/New_York");
+      // Excel-derived fixtures are New York time; manually resolved fixtures
+      // take the Telegraph (UK) value.
+      expect(["America/New_York", "Europe/London"]).toContain(f.kickoffSourceTz);
       expect(f.provenance.length).toBeGreaterThanOrEqual(1);
+    }
+  });
+
+  it("the two manually resolved fixtures use the Telegraph date + 'resolved' status", () => {
+    const resolved = candidateGroupFixtures.filter((f) => f.agreement === "resolved");
+    expect(resolved.map((f) => f.matchNumber).sort((a, b) => a - b)).toEqual([20, 36]);
+    for (const f of resolved) {
+      const r = MANUAL_CONFLICT_RESOLUTIONS.find((x) => x.matchNumber === f.matchNumber)!;
+      expect(r).toBeTruthy();
+      expect(r.selectedSource).toBe("telegraph");
+      // Candidate value now equals the Telegraph value, not the Excel value.
+      expect(f.kickoffUtc).toBe(r.telegraphValue);
+      expect(f.kickoffUtc).not.toBe(r.excelValue);
+      expect(f.kickoffSourceTz).toBe("Europe/London");
     }
   });
 
@@ -115,21 +134,29 @@ describe("candidate draw order", () => {
 });
 
 describe("cross-source reconciliation", () => {
-  const excel: CandidateSourceFixture[] = candidateGroupFixtures.map((f) => ({
-    group: f.group,
-    homeTeamId: f.homeTeamId,
-    awayTeamId: f.awayTeamId,
-    kickoffUtc: f.kickoffUtc,
-    matchNumber: f.matchNumber,
-    venueId: f.venueId,
-  }));
+  // The genuine Excel source (the manually resolved fixtures keep their original
+  // Excel value so the conflict is still detectable in the reconciliation).
+  const excel: CandidateSourceFixture[] = excelCrossCheckFixtures;
+  const resolvedKeys = buildResolvedKeySet(MANUAL_CONFLICT_RESOLUTIONS);
 
-  it("agrees on the overwhelming majority and surfaces the known date conflicts", () => {
-    const result = reconcileSources(excel, telegraphFixtures);
+  it("the two known date conflicts are now manually resolved (zero unresolved)", () => {
+    const result = reconcileSources(excel, telegraphFixtures, resolvedKeys);
     expect(result.agreement.matches).toBe(70);
-    expect(result.agreement.conflict).toBe(2);
+    expect(result.agreement.resolved).toBe(2);
+    expect(result.agreement.conflict).toBe(0);
     expect(result.agreement["missing-in-one-source"]).toBe(0);
-    // The two flagged conflicts are date disagreements -> manual review.
+    // Zero UNRESOLVED high-impact conflicts; two manually resolved ones.
+    expect(result.manualReview).toHaveLength(0);
+    expect(result.manuallyResolved).toHaveLength(2);
+    expect(result.manuallyResolved.join(" ")).toContain("austria");
+    expect(result.manuallyResolved.join(" ")).toContain("japan");
+    expect(result.manuallyResolved.join(" ")).toContain("Telegraph value selected");
+  });
+
+  it("without a resolution record the same two conflicts surface as unresolved", () => {
+    const result = reconcileSources(excel, telegraphFixtures);
+    expect(result.agreement.conflict).toBe(2);
+    expect(result.agreement.resolved).toBe(0);
     expect(result.manualReview).toHaveLength(2);
     expect(result.manualReview.join(" ")).toContain("austria");
     expect(result.manualReview.join(" ")).toContain("japan");
@@ -139,13 +166,13 @@ describe("cross-source reconciliation", () => {
     const flipped = telegraphFixtures.map((t, i) =>
       i === 0 ? { ...t, homeTeamId: t.awayTeamId, awayTeamId: t.homeTeamId } : t,
     );
-    const result = reconcileSources(excel, flipped);
-    expect(result.agreement.conflict).toBeGreaterThanOrEqual(3);
+    const result = reconcileSources(excel, flipped, resolvedKeys);
+    expect(result.agreement.conflict).toBeGreaterThanOrEqual(1);
     expect(result.manualReview.join(" ")).toContain("orientation");
   });
 
   it("flags pairs missing in one source", () => {
-    const result = reconcileSources(excel, telegraphFixtures.slice(0, 71));
+    const result = reconcileSources(excel, telegraphFixtures.slice(0, 71), resolvedKeys);
     expect(result.agreement["missing-in-one-source"]).toBeGreaterThanOrEqual(1);
   });
 
@@ -157,13 +184,15 @@ describe("cross-source reconciliation", () => {
 });
 
 describe("validateCandidateSchedule orchestrator", () => {
-  it("is valid with the expected agreement tally and 2 manual-review items", () => {
+  it("is valid; 70 matches, 2 manually resolved, 0 unresolved conflicts", () => {
     const result = validateCandidateSchedule(candidateSchedule, telegraphFixtures);
     expect(result.valid).toBe(true);
     expect(result.errors).toEqual([]);
     expect(result.agreement.matches).toBe(70);
-    expect(result.agreement.conflict).toBe(2);
-    expect(result.manualReview).toHaveLength(2);
+    expect(result.agreement.resolved).toBe(2);
+    expect(result.agreement.conflict).toBe(0);
+    expect(result.manualReview).toHaveLength(0);
+    expect(result.manuallyResolved).toHaveLength(2);
   });
 });
 

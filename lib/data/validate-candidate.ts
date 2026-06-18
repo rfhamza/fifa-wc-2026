@@ -21,6 +21,8 @@ import type {
 } from "@/lib/types/candidate";
 import { officialTeams } from "@/data/official/teams";
 import { officialVenues } from "@/data/official/venues";
+import { MANUAL_CONFLICT_RESOLUTIONS } from "@/data/candidate/manual-resolutions";
+import type { ManualConflictResolution } from "@/data/candidate/manual-resolutions";
 import { ARTICLE_12_4_PAIRINGS } from "./fixtures";
 
 const EXPECTED_GROUPS = 12;
@@ -306,22 +308,34 @@ export interface ReconciliationRow {
 export interface ReconciliationResult {
   rows: ReconciliationRow[];
   agreement: Record<SourceAgreementStatus, number>;
-  /** High-impact conflicts (home/away, date/time) for human review. */
+  /** UNRESOLVED high-impact conflicts (home/away, date/time) for human review. */
   manualReview: string[];
+  /** Conflicts that were inspected and deliberately settled (chosen value kept). */
+  manuallyResolved: string[];
+}
+
+/** Build the set of (group, unordered pair) keys that were manually resolved. */
+export function buildResolvedKeySet(
+  resolutions: Pick<ManualConflictResolution, "group" | "homeTeamId" | "awayTeamId">[],
+): Set<string> {
+  return new Set(resolutions.map((r) => unorderedKey(r.group, r.homeTeamId, r.awayTeamId)));
 }
 
 /**
  * Reconcile the two third-party sources by (group, unordered team pair).
  *
- * The Excel source is structured (match#, venue, time) and is the candidate
- * VALUE; the Telegraph is the visual cross-check. Conflicts are reported, never
- * auto-resolved as official. High-impact conflicts (home/away orientation,
- * date/time) are collected into `manualReview`. Pairs present in only one source
- * are tagged `missing-in-one-source`.
+ * The Excel source is structured (match#, venue, time); the Telegraph is the
+ * visual cross-check. Conflicts are reported, never auto-resolved as official.
+ * A conflict whose key is in `resolvedKeys` was inspected by a human and settled
+ * (recorded in data/candidate/manual-resolutions.ts): it is tagged `resolved`
+ * and listed in `manuallyResolved`. Any remaining conflict is tagged `conflict`
+ * and collected into `manualReview`. Pairs present in only one source are tagged
+ * `missing-in-one-source`. Nothing here makes the data official.
  */
 export function reconcileSources(
   excel: CandidateSourceFixture[],
   telegraph: CandidateSourceFixture[],
+  resolvedKeys: Set<string> = new Set(),
 ): ReconciliationResult {
   const telByKey = new Map<string, CandidateSourceFixture>();
   for (const t of telegraph) {
@@ -333,9 +347,11 @@ export function reconcileSources(
 
   const rows: ReconciliationRow[] = [];
   const manualReview: string[] = [];
+  const manuallyResolved: string[] = [];
   const agreement: Record<SourceAgreementStatus, number> = {
     matches: 0,
     conflict: 0,
+    resolved: 0,
     "missing-in-one-source": 0,
     "not-checked": 0,
   };
@@ -351,6 +367,7 @@ export function reconcileSources(
     }
     const orientationOk = e.homeTeamId === t.homeTeamId && e.awayTeamId === t.awayTeamId;
     const timeOk = Date.parse(e.kickoffUtc) === Date.parse(t.kickoffUtc);
+    const label = e.matchNumber ? `M${e.matchNumber}` : `${e.group}`;
     if (orientationOk && timeOk) {
       rows.push({ group: e.group, teamPair, status: "matches" });
       agreement.matches += 1;
@@ -359,10 +376,15 @@ export function reconcileSources(
       if (!orientationOk) reasons.push(`home/away orientation (Excel ${e.homeTeamId} v ${e.awayTeamId}, Telegraph ${t.homeTeamId} v ${t.awayTeamId})`);
       if (!timeOk) reasons.push(`kickoff (Excel ${e.kickoffUtc}, Telegraph ${t.kickoffUtc})`);
       const detail = reasons.join("; ");
-      rows.push({ group: e.group, teamPair, status: "conflict", detail });
-      agreement.conflict += 1;
-      const label = e.matchNumber ? `M${e.matchNumber}` : `${e.group}`;
-      manualReview.push(`${label} ${e.homeTeamId} v ${e.awayTeamId}: ${detail} — Excel value kept as candidate.`);
+      if (resolvedKeys.has(key)) {
+        rows.push({ group: e.group, teamPair, status: "resolved", detail });
+        agreement.resolved += 1;
+        manuallyResolved.push(`${label} ${e.homeTeamId} v ${e.awayTeamId}: ${detail} — Telegraph value selected as candidate after manual review.`);
+      } else {
+        rows.push({ group: e.group, teamPair, status: "conflict", detail });
+        agreement.conflict += 1;
+        manualReview.push(`${label} ${e.homeTeamId} v ${e.awayTeamId}: ${detail} — Excel value kept as candidate.`);
+      }
     }
   }
 
@@ -380,20 +402,31 @@ export function reconcileSources(
     }
   }
 
-  return { rows, agreement, manualReview };
+  return { rows, agreement, manualReview, manuallyResolved };
 }
 
 /* -------------------------------------------------------------------------- */
 /* Orchestrator                                                               */
 /* -------------------------------------------------------------------------- */
 
-/** Map candidate fixtures into the Excel cross-check shape (Excel = the value). */
-function toSourceFixtures(fixtures: CandidateFixture[]): CandidateSourceFixture[] {
+/**
+ * Map candidate fixtures into the Excel cross-check shape. For a manually
+ * resolved fixture the candidate value now holds the Telegraph kickoff, so the
+ * ORIGINAL Excel value is restored here (from manual-resolutions.ts) — that way
+ * reconciliation still detects the conflict and records it as resolved.
+ */
+function toExcelSourceFixtures(
+  fixtures: CandidateFixture[],
+  resolutions: ManualConflictResolution[],
+): CandidateSourceFixture[] {
+  const excelKickoffByMatch = new Map(
+    resolutions.filter((r) => r.field === "kickoff").map((r) => [r.matchNumber, r.excelValue] as const),
+  );
   return fixtures.map((f) => ({
     group: f.group,
     homeTeamId: f.homeTeamId,
     awayTeamId: f.awayTeamId,
-    kickoffUtc: f.kickoffUtc,
+    kickoffUtc: excelKickoffByMatch.get(f.matchNumber) ?? f.kickoffUtc,
     matchNumber: f.matchNumber,
     venueId: f.venueId,
   }));
@@ -402,7 +435,8 @@ function toSourceFixtures(fixtures: CandidateFixture[]): CandidateSourceFixture[
 /**
  * Validate the full candidate dataset and reconcile it against the Telegraph
  * cross-check. Returns errors (block promotion), warnings (venue variants etc.),
- * an agreement tally, and a manual-review list of high-impact conflicts.
+ * an agreement tally, a manual-review list of UNRESOLVED high-impact conflicts,
+ * and a manually-resolved list of conflicts that were inspected and settled.
  */
 export function validateCandidateSchedule(
   dataset: CandidateScheduleDataset,
@@ -420,7 +454,9 @@ export function validateCandidateSchedule(
   warnings.push(...fx.warnings);
   errors.push(...crossCheckArticle124(dataset.drawOrder, dataset.fixtures));
 
-  const reconciliation = reconcileSources(toSourceFixtures(dataset.fixtures), telegraph);
+  const excel = toExcelSourceFixtures(dataset.fixtures, MANUAL_CONFLICT_RESOLUTIONS);
+  const resolvedKeys = buildResolvedKeySet(MANUAL_CONFLICT_RESOLUTIONS);
+  const reconciliation = reconcileSources(excel, telegraph, resolvedKeys);
 
   return {
     valid: errors.length === 0,
@@ -428,5 +464,6 @@ export function validateCandidateSchedule(
     warnings,
     agreement: reconciliation.agreement,
     manualReview: reconciliation.manualReview,
+    manuallyResolved: reconciliation.manuallyResolved,
   };
 }

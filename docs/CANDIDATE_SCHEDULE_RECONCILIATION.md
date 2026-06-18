@@ -81,23 +81,36 @@ and kickoff (in UTC).
 | Status | Count | Meaning |
 | --- | --- | --- |
 | `matches` | **70** / 72 | identical pairing, orientation, and kickoff |
-| `conflict` | **2** / 72 | see manual-review list below |
+| `resolved` | **2** / 72 | conflict inspected and settled (see below) |
+| `conflict` | **0** / 72 | no unresolved high-impact conflicts remain |
 | `missing-in-one-source` | 0 | every pairing appears in both sources |
 
 Home/away orientation agrees on **all 72** fixtures. All 72 pairings follow the
 Article 12.4 chart, and the Excel `crossCheckArticle124` check reproduces the
 candidate fixtures from the solved draw order.
 
-### Manual review (high-impact conflicts)
+### Manually resolved candidate conflicts
 
-Both conflicts are **date** disagreements (the Telegraph prints a date one day
-later than the Excel). The **Excel value is kept** as the candidate value; the
-Telegraph stays the visual cross-check. Neither is treated as authoritative.
+Both were **date** disagreements (the Telegraph printed a date one day later than
+the Excel; the time-of-day was identical). They were **inspected by hand and the
+Telegraph value was confirmed correct**, so the candidate value for these two
+fixtures now uses the **Telegraph** kickoff (recorded in
+`data/candidate/manual-resolutions.ts`, tagged `agreement: "resolved"`). The
+original Excel value is retained so this record still shows that Excel conflicted
+and the Telegraph was selected after manual review.
 
-| Match | Fixture | Excel (kept) | Telegraph | Note |
+| Match | Fixture | Excel (original) | Telegraph (selected) | Resolution |
 | --- | --- | --- | --- | --- |
-| M20 | Austria v Jordan (Group J) | 2026-06-16T04:00Z | 2026-06-17T04:00Z | date differs by 24h |
-| M36 | Tunisia v Japan (Group F) | 2026-06-20T04:00Z | 2026-06-21T04:00Z | date differs by 24h |
+| M20 | Austria v Jordan (Group J) | 2026-06-16T04:00Z | **2026-06-17T04:00Z** | Telegraph confirmed by manual review |
+| M36 | Tunisia v Japan (Group F) | 2026-06-20T04:00Z | **2026-06-21T04:00Z** | Telegraph confirmed by manual review |
+
+There are **no unresolved high-impact conflicts** remaining (`manualReview` is
+empty; `reconcileSources` reports these two under `manuallyResolved`).
+
+> **Still candidate.** Selecting the Telegraph value here is a manual
+> reconciliation decision that raises confidence; it does **not** make the data
+> official. These values remain candidate until an official FIFA schedule, or
+> user-approved authoritative JSON, is supplied (see §8).
 
 ### Venue-string variants (warnings, not errors)
 

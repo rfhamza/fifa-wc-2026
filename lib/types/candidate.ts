@@ -16,10 +16,18 @@
  */
 import type { DrawPosition, FixtureStatus, GroupId } from "@/lib/types";
 
-/** How a candidate value compares across the two third-party sources. */
+/**
+ * How a candidate value compares across the two third-party sources.
+ *
+ * `resolved` marks a conflict that was inspected by a human and deliberately
+ * settled by selecting one source's value (recorded in
+ * `data/candidate/manual-resolutions.ts`). It is still a CANDIDATE value — a
+ * manual resolution raises confidence but does not make the data official.
+ */
 export type SourceAgreementStatus =
   | "matches"
   | "conflict"
+  | "resolved"
   | "missing-in-one-source"
   | "not-checked";
 
@@ -70,7 +78,12 @@ export interface CandidateGroupMembership {
   provenance: CandidateProvenance[];
 }
 
-/** A single candidate group-stage fixture (Excel value preferred on conflict). */
+/**
+ * A single candidate group-stage fixture. The Excel value is preferred on
+ * conflict, EXCEPT where a conflict was manually resolved in favour of the
+ * Telegraph (see `data/candidate/manual-resolutions.ts`); such fixtures carry
+ * `agreement: "resolved"`.
+ */
 export interface CandidateFixture {
   /** Candidate match number (1..72) from the Excel workbook. */
   matchNumber: number;
@@ -82,9 +95,12 @@ export interface CandidateFixture {
   /** Article 12.4 draw positions this fixture pairs (home vs away). */
   homePosition: DrawPosition;
   awayPosition: DrawPosition;
-  /** Kickoff in UTC (ISO). Excel value, converted from New York time. */
+  /**
+   * Kickoff in UTC (ISO). Normally the Excel value (converted from New York
+   * time); for a manually resolved conflict it is the selected Telegraph value.
+   */
   kickoffUtc: string;
-  /** Source timezone the kickoff was printed in (before UTC conversion). */
+  /** Source timezone the chosen kickoff was printed in (before UTC conversion). */
   kickoffSourceTz: "America/New_York" | "Europe/London";
   /** Resolved venue id, when the candidate venue string maps to a known venue. */
   venueId?: string;
@@ -103,8 +119,16 @@ export interface CandidateScheduleValidationResult {
   warnings: string[];
   /** Tally of fixtures by cross-source agreement status. */
   agreement: Record<SourceAgreementStatus, number>;
-  /** High-impact conflicts (date/time, home/away, venue, team) for human review. */
+  /**
+   * UNRESOLVED high-impact conflicts (date/time, home/away, venue, team) still
+   * awaiting human review. Empty once every such conflict has been resolved.
+   */
   manualReview: string[];
+  /**
+   * Conflicts that WERE inspected and deliberately settled (see
+   * `data/candidate/manual-resolutions.ts`). The chosen value remains candidate.
+   */
+  manuallyResolved: string[];
 }
 
 /** A minimal cross-check record from a single source (used by reconcileSources). */

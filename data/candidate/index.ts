@@ -39,3 +39,6 @@ export { candidateDrawOrder } from "./draw-order";
 export { candidateGroupFixtures } from "./group-fixtures";
 export { candidateSources, EXCEL_SOURCE, TELEGRAPH_SOURCE } from "./schedule-sources";
 export { telegraphFixtures } from "./telegraph-cross-check";
+export { excelCrossCheckFixtures } from "./excel-cross-check";
+export { MANUAL_CONFLICT_RESOLUTIONS } from "./manual-resolutions";
+export type { ManualConflictResolution } from "./manual-resolutions";
