@@ -142,7 +142,13 @@ describe("tournament simulation under the official (fixture) bracket", () => {
   });
 
   it("differs from the placeholder path (official routing changes outcomes)", () => {
-    const placeholder = runTournamentSimulation({ iterations: 400, seed: 123 });
+    // Force placeholder seeding via a mock-status bracket (the default dataset
+    // bracket is now the active official one, so we override explicitly).
+    const placeholder = runTournamentSimulation({
+      iterations: 400,
+      seed: 123,
+      bracket: { ...sampleBracket, sourceStatus: "mock" },
+    });
     expect(snapshot.stageProbabilities).not.toEqual(placeholder.stageProbabilities);
   });
 });
