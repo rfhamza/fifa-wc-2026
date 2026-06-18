@@ -35,6 +35,20 @@ export const MODEL_WEIGHTS = {
   structural: 10,
 } as const;
 
+/**
+ * Phase 1.7 - placeholder-weight caps (Elo-equivalent points).
+ *
+ * Feature families whose model-input status is `placeholder` (see
+ * data/model-inputs/sources.ts) must not silently drive probabilities. Each such
+ * driver is clamped to +/- PLACEHOLDER_CONTRIBUTION_CAP, and ALL placeholder
+ * drivers combined are clamped to +/- TOTAL_PLACEHOLDER_CONTRIBUTION_CAP so they
+ * cannot collectively dominate. Caps are modest + documented; they shift
+ * probabilities slightly in exchange for honesty. Manual/source-backed/verified
+ * families are never capped here.
+ */
+export const PLACEHOLDER_CONTRIBUTION_CAP = 25;
+export const TOTAL_PLACEHOLDER_CONTRIBUTION_CAP = 40;
+
 export const SCORELINE_CONFIG = {
   /** League-average total goals per match (Poisson baseline). */
   baseTotalGoals: 2.6,

@@ -108,6 +108,26 @@ A roadmap from the foundation to a richer product. Each item lists the
   Telegraph/Excel candidate layer remains a cross-check only.
 - No bracket/model/simulation/nav changes; bracket + tournament suites stay green.
 
+## Done in phase 1.7 (model-input layer + honest provenance + placeholder caps)
+
+- Added a versioned model-input layer (`data/model-inputs/`): a per-family source
+  registry (`sources.ts`) with honest statuses (verified / source-backed /
+  candidate / manual / placeholder) + a derived per-team snapshot
+  (`team-inputs.ts`) the model now reads strength values from (via
+  `lib/model/features.ts`), so a future source-backed snapshot drops in without
+  changing model logic.
+- Nothing is claimed source-backed: Elo/FIFA ranking/structural are `manual`;
+  squad quality/recent form/climate are `placeholder`; host/regional/manager are
+  identity-derived. Promotion to source-backed requires a supplied snapshot +
+  `lib/data/validate-model-inputs.ts`.
+- Placeholder families are **weight-capped** so they cannot silently drive
+  probabilities: per-driver +/-`PLACEHOLDER_CONTRIBUTION_CAP` and combined
+  +/-`TOTAL_PLACEHOLDER_CONTRIBUTION_CAP` (`lib/model/config.ts`), applied +
+  disclosed (family/status/capped) in `lib/model/predict.ts` explanations. Finite
+  guards remove any NaN risk.
+- Methodology page + team-detail tiles show each input's status; schedule,
+  bracket, Annexe C, draw slots and `fixtureSource: "official"` are unchanged.
+
 ## Phase 2 - Verified data
 
 - Obtain official FIFA group/fixture/venue data (or authoritative JSON);

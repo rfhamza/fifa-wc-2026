@@ -7,6 +7,12 @@
  */
 import type { Team, TeamFeatureSet, Confederation } from "@/lib/types";
 import { clamp } from "@/lib/utils";
+import { getModelInputsForTeam } from "@/data/model-inputs";
+
+/** Return `value` if it is a finite number, else the `fallback`. */
+function finite(value: number | undefined, fallback: number): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
 
 /** Co-host nations receive the host advantage signal. */
 const HOST_TEAM_IDS = new Set(["usa", "canada", "mexico"]);
@@ -44,18 +50,35 @@ export function structuralDepthScore(
   return clamp(0.6 * gdpScore + 0.4 * popScore, 0, 1);
 }
 
+/**
+ * Build the model's feature set. Strength VALUES come from the versioned
+ * model-input layer (`data/model-inputs/`, Phase 1.7) - not directly off `Team` -
+ * so a future source-backed snapshot can replace them without touching model
+ * logic. `Team` is used only for identity/context (id, confederation, host,
+ * manager). Each numeric input falls back to the `Team` value if the snapshot is
+ * missing it (e.g. the mock fallback dataset), and to a finite guard to avoid NaN.
+ */
 export function buildFeatureSet(team: Team): TeamFeatureSet {
+  const mi = getModelInputsForTeam(team.id);
+  const elo = finite(mi?.eloRating, team.elo);
+  const fifaRanking = finite(mi?.fifaRanking, team.fifaRanking);
+  const squadQuality = finite(mi?.squadQuality, team.squadQuality);
+  const recentForm = finite(mi?.recentForm, team.recentForm);
+  const climateFamiliarity = finite(mi?.climateFamiliarity, team.climateFamiliarity);
+  const gdpPerCapita = finite(mi?.gdpPerCapita, team.gdpPerCapita);
+  const population = finite(mi?.population, team.population);
+
   return {
     teamId: team.id,
-    elo: team.elo,
-    fifaRanking: team.fifaRanking,
-    squadQuality: team.squadQuality,
-    recentForm: team.recentForm,
-    climateFamiliarity: team.climateFamiliarity,
+    elo,
+    fifaRanking,
+    squadQuality,
+    recentForm,
+    climateFamiliarity,
     sameNationalityManager: team.sameNationalityManager,
-    gdpPerCapita: team.gdpPerCapita,
-    population: team.population,
-    structuralDepth: structuralDepthScore(team.gdpPerCapita, team.population),
+    gdpPerCapita,
+    population,
+    structuralDepth: structuralDepthScore(gdpPerCapita, population),
     isHost: HOST_TEAM_IDS.has(team.id),
     isRegional:
       REGIONAL_CONFEDERATIONS.has(team.confederation) &&
