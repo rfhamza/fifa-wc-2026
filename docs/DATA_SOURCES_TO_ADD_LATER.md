@@ -12,9 +12,14 @@ touching the model or UI.
 | 72-match fixture schedule | **TODO -> position-generated** | Official chronological schedule not fetchable (403). Pairings position-generated per FIFA Art. 12.4 (`fixtureSource: "position-generated"`); empty template at `data/official/fixtures.ts`. No kickoff dates shown. |
 | Round-of-32 skeleton (M73–M88) + Annexe C | **TODO** | FIFA regulations PDF returned 403: `https://digitalhub.fifa.com/m/636f5c9c6f29771f/original/FWC2026_regulations_EN.pdf`. Typed template in `data/official/bracket.ts`; placeholder seeding active. |
 | Model features (Elo, GDP, population, squad, form, climate, FIFA ranking values) | **mock** | Hand-authored placeholders — must not be read as real. |
+| Candidate schedule + draw order (Phase 1.5) | **candidate (staged, isolated)** | Cross-checked from 2 third-party sources (Telegraph wallchart + fan-made Excel workbook) into `data/candidate/`: 72 fixtures w/ kickoffs (UTC), venues, match numbers + intra-group draw order. NOT official; the resolver never imports it (`fixtureSource` stays `position-generated`). See `docs/CANDIDATE_SCHEDULE_RECONCILIATION.md`. |
 
 To reach `verified`: supply official FIFA data (or authoritative JSON), populate
-`data/official/*`, and flip the relevant `sourceStatus` to `"verified"`.
+`data/official/*`, and flip the relevant `sourceStatus` to `"verified"`. The
+Phase 1.5 candidate schedule does **not** shortcut this: agreement between two
+third-party sources raises confidence but is not sufficient to promote to
+official — an official FIFA source or user-approved authoritative JSON is
+required.
 
 ## Where seed data lives
 - `data/official/teams.ts` — candidate identities + placeholder features.
@@ -22,6 +27,9 @@ To reach `verified`: supply official FIFA data (or authoritative JSON), populate
 - `data/mock/teams.ts`, `data/mock/venues.ts` — placeholder fallback dataset.
 - `lib/data/source.ts` — resolves dataset by priority/validity; generates fixtures.
 - `lib/data/validate.ts` — invariants the resolver keys fallback on.
+- `data/candidate/*` — staged candidate schedule/draw order (Phase 1.5),
+  ISOLATED: never imported by `lib/data/source.ts`. Validated by
+  `lib/data/validate-candidate.ts`; raw snapshots in `data/candidate/raw/`.
 
 Because all consumers import from `lib/data/index.ts`, swapping the underlying
 source is a localized change.
