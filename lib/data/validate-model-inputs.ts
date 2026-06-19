@@ -8,6 +8,7 @@
  * used elsewhere (lib/data/validate.ts).
  */
 import type {
+  EloRatingRow,
   FifaRankingRow,
   ModelFeatureFamily,
   ModelInputSource,
@@ -22,6 +23,9 @@ import {
   fifaRankingSnapshot,
   FIFA_RANKING_SOURCE,
   FIFA_NAME_TO_ID,
+  eloRatingSnapshot,
+  ELO_RATING_SOURCE,
+  ELO_NAME_TO_ID,
 } from "@/data/model-inputs";
 import {
   PLACEHOLDER_CONTRIBUTION_CAP,
@@ -43,7 +47,10 @@ const ALL_FAMILIES: ModelFeatureFamily[] = [
 ];
 
 /** Sane numeric bounds per REQUIRED input (range checks, not exactness). */
-const RANGES: Record<keyof Omit<TeamModelInputs, "teamId" | "fifaRankingPoints">, [number, number]> = {
+const RANGES: Record<
+  keyof Omit<TeamModelInputs, "teamId" | "fifaRankingPoints" | "eloRank">,
+  [number, number]
+> = {
   eloRating: [1000, 2200],
   fifaRanking: [1, 211],
   gdpPerCapita: [1, 500_000],
@@ -192,7 +199,90 @@ export function validateFifaRankingSnapshot(
 
   // Honesty guard: no OTHER family silently changed status.
   const EXPECTED_STATUS: Partial<Record<ModelFeatureFamily, string>> = {
-    eloRating: "manual",
+    eloRating: "source-backed",
+    structural: "manual",
+    squadQuality: "placeholder",
+    recentForm: "placeholder",
+    climateFamiliarity: "placeholder",
+  };
+  for (const [family, status] of Object.entries(EXPECTED_STATUS)) {
+    const actual = MODEL_INPUT_SOURCES[family as ModelFeatureFamily].status;
+    if (actual !== status) errors.push(`family ${family} status changed unexpectedly: ${actual} (expected ${status})`);
+  }
+
+  return { valid: errors.length === 0, errors, warnings };
+}
+
+/**
+ * Phase 1.10 - validate the source-backed World Football Elo snapshot: exactly the
+ * 48 teams, one row each, integer ranks in a sane range, finite + sane ratings, no
+ * duplicate team ids, names mapped, source metadata present + source-backed, and
+ * that NO other family status changed. Unlike FIFA ranks, Elo ranks MAY TIE (equal
+ * ratings share a rank), so rank uniqueness is NOT asserted.
+ */
+export function validateEloSnapshot(
+  snapshot: EloRatingRow[] = eloRatingSnapshot,
+  teams: Team[] = officialTeams,
+  source: ModelInputSource = ELO_RATING_SOURCE,
+  nameMap: Record<string, string> = ELO_NAME_TO_ID,
+): ModelInputValidationResult {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+  const teamIds = new Set(teams.map((t) => t.id));
+
+  if (snapshot.length !== EXPECTED_TEAMS) {
+    errors.push(`expected ${EXPECTED_TEAMS} Elo rating rows, got ${snapshot.length}`);
+  }
+
+  const seenTeams = new Set<string>();
+  for (const row of snapshot) {
+    if (seenTeams.has(row.teamId)) errors.push(`duplicate Elo row for ${row.teamId}`);
+    seenTeams.add(row.teamId);
+    if (!teamIds.has(row.teamId)) errors.push(`Elo row team id not in official teams: ${row.teamId}`);
+
+    if (!Number.isInteger(row.eloRank) || row.eloRank < 1 || row.eloRank > 250) {
+      errors.push(`${row.teamId}: eloRank ${row.eloRank} not an integer in 1..250`);
+    }
+    if (!Number.isFinite(row.eloRating) || row.eloRating < 1000 || row.eloRating > 2500) {
+      errors.push(`${row.teamId}: eloRating ${row.eloRating} not finite in 1000..2500`);
+    }
+    if (!row.eloNameRaw || nameMap[row.eloNameRaw] !== row.teamId) {
+      errors.push(`${row.teamId}: eloNameRaw "${row.eloNameRaw}" does not map to this id`);
+    }
+  }
+
+  // Every app team must have exactly one Elo row.
+  for (const t of teams) {
+    if (!seenTeams.has(t.id)) errors.push(`missing Elo rating row for team ${t.id}`);
+  }
+
+  // Elo ties are allowed: duplicate ranks are valid, but rating order should be
+  // broadly consistent with rank (lower rank -> not-lower rating). Warn only.
+  const byRank = [...snapshot].sort((a, b) => a.eloRank - b.eloRank);
+  for (let i = 1; i < byRank.length; i++) {
+    const cur = byRank[i];
+    const prev = byRank[i - 1];
+    if (cur && prev && cur.eloRating > prev.eloRating) {
+      warnings.push(
+        `Elo rating out of rank order: ${cur.teamId} (#${cur.eloRank}, ${cur.eloRating}) > ${prev.teamId} (#${prev.eloRank}, ${prev.eloRating})`,
+      );
+    }
+  }
+
+  // Source metadata present + honestly source-backed.
+  if (source.status !== "source-backed") {
+    errors.push(`Elo rating source status must be "source-backed", got "${source.status}"`);
+  }
+  for (const field of ["sourceName", "sourceFile", "sourceDate"] as const) {
+    if (!source[field]) errors.push(`Elo rating source missing ${field}`);
+  }
+  if (MODEL_INPUT_SOURCES.eloRating.status !== "source-backed") {
+    errors.push("eloRating family status must be source-backed");
+  }
+
+  // Honesty guard: no OTHER family silently changed status.
+  const EXPECTED_STATUS: Partial<Record<ModelFeatureFamily, string>> = {
+    fifaRanking: "source-backed",
     structural: "manual",
     squadQuality: "placeholder",
     recentForm: "placeholder",

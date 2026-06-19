@@ -157,6 +157,28 @@ A roadmap from the foundation to a richer product. Each item lists the
   No model weights/data/schedule/bracket changed; baseline-only (not conditioned on
   matches played after 11 Jun, not compared to actual outcomes).
 
+## Done in phase 1.10 (Elo rating promoted to source-backed)
+
+- Promoted ONLY the `eloRating` family from `manual` to `source-backed` from the
+  user-supplied **World Football Elo Ratings** snapshot (`Elo ratings table_11June.pdf`,
+  eloratings.net, as on 11 Jun 2026), reviewer-transcribed + visually verified
+  (`data/model-inputs/snapshots/elo-rating-2026-06-11.ts`, 48 teams). Added optional
+  `eloRank` (carried for explainability; not a new driver). Published Elo values are
+  used as-is and **not recalculated** (Elo update method:
+  `new_rating = old_rating + K * G * (W - W_e)`).
+- `validateEloSnapshot` asserts 48 rows, one per team, sane integer ranks (**ties
+  allowed** — equal ratings share a rank) and ratings, name mapping, source metadata,
+  and that no other family status changed. FIFA ranking stays `source-backed`;
+  structural stays `manual`; squad/form/climate stay `placeholder` (capped). The
+  Kaggle CSV (`elo_ratings_wc2026.csv`, live snapshot 2026-05-27) is **not** the
+  source — it is historical/backtesting context only (CC BY-SA 4.0). No model weights
+  changed; `fixtureSource` stays `"official"`. See `docs/ELO_RATING_SNAPSHOT_AUDIT.md`.
+- Re-ran the frozen forecast behaviour audit (`docs/FORECAST_BEHAVIOR_AUDIT.md`):
+  with Elo now source-backed, the forecast is anchored by **source-backed** inputs
+  (Elo + FIFA ~81% abs-magnitude) and **manual** shrinks to the weak structural prior
+  (~0.5%). Status-mix / provenance win; relative Elo-vs-FIFA influence is unchanged
+  (a calibration consideration for a later phase, not a defect).
+
 ## Phase 2 - Verified data
 
 - Obtain official FIFA group/fixture/venue data (or authoritative JSON);

@@ -1,4 +1,4 @@
-# Forecast Behaviour Audit (Phase 1.9)
+# Forecast Behaviour Audit (Phase 1.9, extended in Phase 1.10)
 
 > **Frozen pre-tournament baseline forecast, using information available at tournament start.**
 >
@@ -9,10 +9,10 @@
 ## 1. Scope - baseline vs live model
 
 - **Baseline model (this audit):** uses information available at tournament start -
-  the **11 Jun 2026** source-backed FIFA ranking snapshot, manual Elo, manual
+  the **11 Jun 2026** source-backed FIFA ranking + Elo rating snapshots, manual
   structural priors, capped placeholders, and the official schedule.
 - **Live model (future phase):** will ingest completed match results and update
-  standings / conditional probabilities. **Not** part of Phase 1.9.
+  standings / conditional probabilities. **Not** part of this baseline audit.
 
 Deterministic seed `20260611`, 2000 iterations (Monte Carlo). Re-running
 with the same seed yields identical probabilities (asserted in
@@ -23,8 +23,8 @@ omitted (audit must not depend on the current date).
 
 | Family | Status | In model |
 |---|---|---|
+| Elo rating | **source-backed** (11 Jun 2026 snapshot) | anchor (weight 1.0) |
 | FIFA ranking | **source-backed** (11 Jun 2026 snapshot) | rank driver (cap +/-90) |
-| Elo rating | manual | anchor (weight 1.0) |
 | Structural (GDP+pop) | manual | weak prior (<=10) |
 | Squad quality / Recent form / Climate | placeholder | **weight-capped** |
 | Host / Regional / Manager | verified / candidate | structural flags |
@@ -38,58 +38,58 @@ Placeholder caps: per-driver +/-25, aggregate
 
 | # | Team | Title |
 |--:|---|--:|
-| 1 | Argentina | 19.3% |
-| 2 | France | 16.2% |
-| 3 | Spain | 14.2% |
-| 4 | England | 9.5% |
-| 5 | Brazil | 8.3% |
-| 6 | Portugal | 7.5% |
-| 7 | Netherlands | 5.3% |
-| 8 | Germany | 4.6% |
-| 9 | Belgium | 2.1% |
-| 10 | Mexico | 2.0% |
+| 1 | Spain | 26.6% |
+| 2 | Argentina | 22.7% |
+| 3 | France | 13.2% |
+| 4 | England | 7.0% |
+| 5 | Brazil | 5.1% |
+| 6 | Portugal | 4.5% |
+| 7 | Colombia | 3.9% |
+| 8 | Netherlands | 3.3% |
+| 9 | Mexico | 2.8% |
+| 10 | Germany | 1.8% |
 
 **Top 10 reach round-of-16**
 
 | # | Team | Reach R16 |
 |--:|---|--:|
-| 1 | France | 80.0% |
-| 2 | England | 74.7% |
-| 3 | Argentina | 73.4% |
-| 4 | Spain | 72.5% |
-| 5 | Germany | 71.3% |
-| 6 | Portugal | 71.0% |
-| 7 | Brazil | 70.6% |
-| 8 | Belgium | 64.7% |
-| 9 | Mexico | 64.6% |
-| 10 | United States | 58.9% |
+| 1 | Spain | 83.5% |
+| 2 | France | 80.2% |
+| 3 | Argentina | 76.8% |
+| 4 | England | 72.7% |
+| 5 | Mexico | 71.8% |
+| 6 | Brazil | 66.3% |
+| 7 | Portugal | 66.0% |
+| 8 | Belgium | 65.3% |
+| 9 | Colombia | 63.0% |
+| 10 | Germany | 61.0% |
 
 **Group-winner probability** (audit-only sim: P(finish 1st), seed `20260611`, 4000
 iters per group; ranks via the production Article-13 standings - this is NOT
 qualifyTop2):
 
-- **Group A:** Mexico 52% · South Korea 28% · Czechia 14% · South Africa 5%
-- **Group B:** Switzerland 41% · Canada 35% · Qatar 15% · Bosnia & Herzegovina 9%
-- **Group C:** Brazil 64% · Morocco 28% · Scotland 7% · Haiti 1%
-- **Group D:** United States 50% · Türkiye 22% · Australia 21% · Paraguay 7%
-- **Group E:** Germany 67% · Ivory Coast 16% · Ecuador 15% · Curaçao 2%
-- **Group F:** Netherlands 60% · Japan 23% · Sweden 12% · Tunisia 5%
-- **Group G:** Belgium 53% · Iran 26% · Egypt 20% · New Zealand 1%
-- **Group H:** Spain 73% · Uruguay 24% · Saudi Arabia 2% · Cape Verde 1%
-- **Group I:** France 72% · Senegal 18% · Norway 8% · Iraq 2%
-- **Group J:** Argentina 81% · Austria 10% · Algeria 8% · Jordan 1%
-- **Group K:** Portugal 66% · Colombia 28% · Uzbekistan 4% · DR Congo 3%
-- **Group L:** England 63% · Croatia 30% · Panama 6% · Ghana 2%
+- **Group A:** Mexico 65% · South Korea 24% · Czechia 10% · South Africa 1%
+- **Group B:** Switzerland 56% · Canada 40% · Bosnia & Herzegovina 4% · Qatar 1%
+- **Group C:** Brazil 65% · Morocco 24% · Scotland 10% · Haiti 1%
+- **Group D:** Türkiye 39% · United States 27% · Australia 17% · Paraguay 17%
+- **Group E:** Germany 52% · Ecuador 39% · Ivory Coast 9% · Curaçao 0%
+- **Group F:** Netherlands 55% · Japan 36% · Sweden 6% · Tunisia 3%
+- **Group G:** Belgium 58% · Iran 25% · Egypt 15% · New Zealand 1%
+- **Group H:** Spain 82% · Uruguay 17% · Cape Verde 1% · Saudi Arabia 0%
+- **Group I:** France 67% · Senegal 17% · Norway 16% · Iraq 0%
+- **Group J:** Argentina 82% · Austria 9% · Algeria 7% · Jordan 2%
+- **Group K:** Portugal 53% · Colombia 42% · Uzbekistan 3% · DR Congo 1%
+- **Group L:** England 62% · Croatia 30% · Panama 7% · Ghana 0%
 
 **Sample scheduled matches** (W / D / L for the home side; not played)
 
 | Match | Fixture | Home win / Draw / Away win |
 |---|---|---|
-| M1 | Mexico v South Africa | 70% / 20% / 11% |
-| M5 | Haiti v Scotland | 19% / 24% / 58% |
-| M11 | Netherlands v Japan | 55% / 24% / 21% |
-| M19 | Argentina v Algeria | 74% / 18% / 8% |
-| M21 | Ghana v Panama | 27% / 26% / 48% |
+| M1 | Mexico v South Africa | 85% / 12% / 2% |
+| M5 | Haiti v Scotland | 13% / 21% / 66% |
+| M11 | Netherlands v Japan | 45% / 26% / 29% |
+| M19 | Argentina v Algeria | 77% / 17% / 7% |
+| M21 | Ghana v Panama | 14% / 22% / 64% |
 
 ## 4. Contribution-by-status (two explicitly separate methods)
 
@@ -98,8 +98,8 @@ Mexico v South Africa; Elo-equivalent pts, + favours home):
 
 | Status | Signed net |
 |---|--:|
-| source-backed | 64.4 |
-| manual | 175.9 |
+| source-backed | 434.4 |
+| manual | 0.9 |
 | verified | 60 |
 | candidate | 0 |
 | placeholder | 40 |
@@ -109,11 +109,11 @@ fixtures** (overall influence; sum of |contribution| by status):
 
 | Status | Abs magnitude | Share |
 |---|--:|--:|
-| source-backed | 3090 | 15.6% |
-| manual | 12182 | 61.4% |
-| verified | 540 | 2.7% |
-| candidate | 627 | 3.2% |
-| placeholder | 3392 | 17.1% |
+| source-backed | 19683 | 80.8% |
+| manual | 132 | 0.5% |
+| verified | 540 | 2.2% |
+| candidate | 627 | 2.6% |
+| placeholder | 3392 | 13.9% |
 
 ## 5. Sanity-check results (invariants - all PASS)
 
@@ -123,23 +123,28 @@ fixtures** (overall influence; sum of |contribution| by status):
 - Match W/D/L sums to ~1; group-winner P(win) per group sums to ~1.
 - Placeholder caps bind: max placeholder net magnitude over all fixtures =
   40 pts (<= 40).
-- FIFA-ranking driver is `source-backed`; Elo driver is `manual`; `fixtureSource === "official"`.
+- Elo and FIFA-ranking drivers are both `source-backed`; `fixtureSource === "official"`.
 
-## 6. Finding - manual Elo dominates source-backed FIFA ranking
+## 6. Finding - the forecast is now anchored by a source-backed input
 
-Method B shows **manual** contribution magnitude greatly exceeds **source-backed**
-(FIFA ranking is capped at +/-90 while Elo spans hundreds of Elo-equivalent pts).
-The forecast is therefore anchored by a **manual** input, not the source-backed
-one. This is expected given current weights and is **not a defect**, but it means
-source-backed FIFA ranking has limited influence today.
+Method B shows **source-backed** contribution magnitude now dominates: with Elo
+promoted to source-backed (Phase 1.10), both the high-influence Elo anchor and the
+capped FIFA-ranking driver come from cited 11 Jun 2026 snapshots, while **manual**
+shrinks to the weak structural prior only. The forecast is therefore anchored by a
+**source-backed** input - a provenance/credibility improvement over the Phase 1.9
+baseline, where manual Elo dominated. This is a status-mix shift only: **no model
+weights were changed**, so the relative magnitude of Elo vs FIFA ranking is
+unchanged (Elo still spans hundreds of Elo-equivalent pts while FIFA ranking is
+capped at +/-90). That Elo still out-influences FIFA ranking is a **modelling /
+calibration consideration, not a defect**.
 
 ## 7. Recommendation
 
 Probabilities are sane, finite, deterministic, explainable, and not silently
-distorted (placeholders are capped and disclosed). **Before ingesting Elo**, run a
-**separate calibration phase** to decide how the manual Elo anchor and the
-source-backed FIFA ranking should be balanced (and how a future source-backed Elo
-snapshot should be weighted) - rather than letting a manual input dominate. No
+distorted (placeholders are capped and disclosed). The main inputs are now
+source-backed. The remaining open item is **calibration**: run a separate phase to
+decide how the (now source-backed) Elo anchor and the source-backed FIFA ranking
+should be balanced, rather than letting one input dominate by construction. No
 model weights were changed in this phase.
 
 ---

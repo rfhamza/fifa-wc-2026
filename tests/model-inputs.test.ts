@@ -55,8 +55,8 @@ describe("model-input layer - shape & provenance", () => {
     expect(getFeatureStatus("squadQuality")).toBe("placeholder");
     expect(getFeatureStatus("recentForm")).toBe("placeholder");
     expect(getFeatureStatus("climateFamiliarity")).toBe("placeholder");
-    // Elo anchor stays manual; FIFA ranking is now source-backed (Phase 1.8).
-    expect(getFeatureStatus("eloRating")).toBe("manual");
+    // Elo anchor + FIFA ranking are both source-backed (Phase 1.10 / 1.8).
+    expect(getFeatureStatus("eloRating")).toBe("source-backed");
     expect(getFeatureStatus("fifaRanking")).toBe("source-backed");
   });
 });
@@ -132,9 +132,9 @@ describe("placeholder-weight caps", () => {
     expect(byFamily.get("recentForm")!.capped).toBe(true);
   });
 
-  it("does not cap the manual Elo anchor", () => {
+  it("does not cap the source-backed Elo anchor", () => {
     const elo = byFamily.get("eloRating")!;
-    expect(elo.status).toBe("manual");
+    expect(elo.status).toBe("source-backed");
     expect(elo.capped).toBeFalsy();
     // Elo gap is hundreds of points, far above the placeholder cap.
     expect(Math.abs(elo.contribution)).toBeGreaterThan(PLACEHOLDER_CONTRIBUTION_CAP);
