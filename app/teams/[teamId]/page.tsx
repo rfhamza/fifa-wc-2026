@@ -45,7 +45,9 @@ export default function TeamPage({ params }: { params: { teamId: string } }) {
   const structuralHint =
     struct?.mappingStatus === "source-backed"
       ? `source-backed - World Bank ${struct.populationYear}`
-      : "manual - no separate World Bank economy";
+      : struct?.mappingStatus === "official-derived"
+        ? `official-derived - ONS/Scottish Gov ${struct.populationYear}`
+        : "manual";
 
   return (
     <div className="space-y-8 animate-fade-in">

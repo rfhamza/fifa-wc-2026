@@ -24,7 +24,7 @@ const STRUCTURAL_BY_TEAM = new Map(structuralEconomicSnapshot.map((r) => [r.team
  * per-family provenance + status, and lib/model/config.ts for the placeholder
  * weight caps that keep low-confidence families from dominating probabilities.
  */
-export const MODEL_INPUTS_VERSION = "2026-06-19-structural-worldbank-v4";
+export const MODEL_INPUTS_VERSION = "2026-06-19-structural-worldbank-uk-derived-v5";
 
 export const modelInputSnapshot: TeamModelInputs[] = officialTeams.map((t) => {
   // FIFA ranking (Phase 1.8), Elo rating (Phase 1.10) and structural/economic

@@ -1,8 +1,11 @@
-# Structural / Economic Snapshot Audit (Phase 1.12)
+# Structural / Economic Snapshot Audit (Phase 1.12 / 1.12.1)
 
-Source-backed promotion of the **structural/economic** model-input family using the
-**World Bank World Development Indicators (WDI)**. This is the first direct
-implementation of the Klement/Joachim-inspired structural layer:
+Source promotion of the **structural/economic** model-input family using the
+**World Bank World Development Indicators (WDI)** for the 46 sovereign economies and,
+for the two UK constituent FAs (England + Scotland), a user-supplied **model-ready
+workbook** built on ONS / Scottish-Government official statistics (Phase 1.12.1).
+This is the first direct implementation of the Klement/Joachim-inspired structural
+layer:
 
 - **Population** -> talent-pool proxy
 - **GDP / GDP per capita** -> wealth & football-development-infrastructure proxy
@@ -12,17 +15,20 @@ phase.
 
 ## Status: `candidate` (MIXED), not `source-backed`
 
-The family is deliberately marked **`candidate`** because it is mixed:
+The family is deliberately marked **`candidate`** because it mixes two methods at the
+row level (per-row `mappingStatus`):
 
-- **46 of 48 teams are `source-backed`** from the World Bank WDI (2024).
-- **England & Scotland are `manual`** (per-row `mappingStatus`). They are UK
-  constituent FAs with **no separate World Bank economy**, and are **NOT**
-  parent-mapped to the United Kingdom (that would distort the population/
-  talent-pool proxy and duplicate UK figures). Their rows keep the existing
-  hand-authored values and are honestly flagged. Promote later from official
-  constituent-nation statistics (e.g. ONS / Scottish Government).
+- **46 of 48 teams are `source-backed`** = direct World Bank WDI rows (2024).
+- **England & Scotland are `official-derived`** (Phase 1.12.1) = workbook values from
+  ONS / Scottish-Government official statistics + documented FX (annual average
+  GBP/USD) and a 2024 bridge estimate. They are UK constituent FAs with **no separate
+  World Bank economy**, are **NOT** direct World Bank observations, and are **NOT**
+  parent-mapped to the United Kingdom (that would distort the population/talent-pool
+  proxy and duplicate UK figures).
+- **0 rows are plain `manual`** after Phase 1.12.1.
 
-The whole family is **never** claimed `source-backed`.
+The whole family is **never** claimed `source-backed`, because the source mix and the
+2024 bridge estimates are not identical to the World Bank national-economy method.
 
 ## Source & indicators
 
@@ -66,9 +72,9 @@ All 46 source-backed economies have complete **2024** data for all three
 indicators, so every source-backed row carries
 `gdpYear = gdpPerCapitaYear = populationYear = 2024`. Years are nonetheless stored
 **per indicator** (not collapsed into one field) so a row never implies a shared
-data year if a future refresh mixes years. Manual rows (England/Scotland) store
-`null` for all three years. The validator warns (does not error) on any
-source-backed year that drifts off the 2024 baseline.
+data year if a future refresh mixes years. The two `official-derived` rows
+(England/Scotland) also carry per-indicator years = **2024**. The validator warns
+(does not error) on any sourced year that drifts off the 2024 baseline.
 
 ## Modelling note (weak contextual prior)
 
@@ -91,9 +97,10 @@ a **contextual prior, not a football-strength anchor**. Guardrails (tests):
 
 `validateStructuralSnapshot()` (in `lib/data/validate-model-inputs.ts`) asserts: 48
 rows, one per team; finite + positive GDP / GDP-per-capita / population within the
-model-input ranges; per-indicator years are integers in 2000..2025 on source-backed
-rows and `null` on manual rows; a 3-letter WB code + a mapped display name on every
-source-backed row; the ONLY manual rows are England + Scotland; source metadata
+model-input ranges; per-indicator years are integers in 2000..2025 on every sourced
+row; a 3-letter WB code + a mapped display name on every `source-backed` (World Bank)
+row; England + Scotland are the ONLY `official-derived` rows (no WB code, not
+parent-mapped to the UK); **zero plain `manual` rows remain**; source metadata
 present + family status `candidate`; and no other family silently changed status
 (Elo/FIFA still source-backed, squad/form/climate still placeholder). Result:
 **0 errors, 0 warnings**. Covered by `tests/structural-economic-snapshot.test.ts`.
@@ -149,12 +156,39 @@ present + family status `candidate`; and no other family silently changed status
 | usa | United States | USA | 28,750,956,130,731 | 84,534.04 | 340,110,988 | 2024 |
 | uzbekistan | Uzbekistan | UZB | 114,965,293,467 | 3,161.7 | 36,361,859 | 2024 |
 
-## Manual rows (2) - UK constituent FAs (no separate World Bank economy)
+## Official-derived rows (2) - UK constituent FAs (Phase 1.12.1)
 
-| Team | GDP per capita (US$) | Population | Mapping | Note |
-| --- | ---: | ---: | --- | --- |
-| england | 46,100 | 56,500,000 | manual | Hand-authored; not parent-mapped to UK. Promote via ONS later. |
-| scotland | 38,000 | 5,500,000 | manual | Hand-authored; not parent-mapped to UK. Promote via Scottish Government / ONS later. |
+England + Scotland have no separate World Bank economy, so their 2024 rows are
+`official-derived` from a user-supplied model-ready workbook (sheet `Model Ready
+USD`, 2024 row only; binary not committed). They are **not** World Bank rows and are
+**not** parent-mapped to the United Kingdom.
 
-> `gdpCurrentUsd` on the manual rows is derived from the hand-authored
-> `gdpPerCapita x population` (clearly manual, carried for display only).
+| Team | GDP (US$) | GDP per capita (US$) | Population | Year | Mapping |
+| --- | ---: | ---: | ---: | ---: | --- |
+| england | 3,127,885,000,000 | 53,359 | 58,620,100 | 2024 | official-derived |
+| scotland | 267,379,000,000 | 48,203 | 5,546,900 | 2024 | official-derived |
+
+**Unit rule:** the workbook GDP column is **US$m**; stored here as full USD
+(`gdpCurrentUsd = GDP US$m x 1,000,000`). So England 3,127,885 US$m ->
+3,127,885,000,000 USD; Scotland 267,379 US$m -> 267,379,000,000 USD.
+`gdpPerCapitaCurrentUsd` and `population` are taken directly from the workbook.
+
+### Workbook sources & assumptions (sheet `Sources & Assumptions`)
+
+- **GDP / GDP-per-head (2001-2023):** ONS regional GDP dataset (Regional gross
+  domestic product, all ITL regions). **Population:** ONS country population series
+  (England `enpop`, Scotland `scpop`). **FX:** USD = GBP x annual average GBP/USD
+  (USD per GBP1; ONS `auss` series); the 2024 row uses 1.2783.
+- **England 2024 GDP = bridge estimate**: England 2023 ONS regional GDP scaled by the
+  UK nominal GDP growth factor (per ONS `ybha`); per-capita derived against ONS
+  England 2024 population. **Not** a fully official ONS regional observation.
+- **Scotland 2024**: Scottish Government QNA 2025 Q4 **onshore nominal GDP** (the
+  model-ready value). The wider-economy / extra-regio alternative estimate is
+  **explicitly not used**.
+- **Caveat:** 2024 GDP is not yet in the ONS regional all-ITL comparable dataset, so
+  2024 is a working estimate / bridge year. This - plus the FX conversion and the
+  mixed source method - is why the family stays `candidate`, not `source-backed`.
+
+> Source names, notes and URLs are taken from the supplied workbook's `Sources &
+> Assumptions` sheet (ONS: ons.gov.uk; Scottish Government: gov.scot). No source URLs
+> were invented. The workbook itself is not committed.

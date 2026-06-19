@@ -42,7 +42,7 @@ export const STRUCTURAL_ECONOMIC_SOURCE: ModelInputSource = {
   retrievedAt: "2026-06-19",
   status: "candidate",
   notes:
-    "MIXED family: 46 sovereign economies are source-backed from the World Bank WDI 2024 (indicators NY.GDP.MKTP.CD, NY.GDP.PCAP.CD, SP.POP.TOTL; published values, not recalculated). England + Scotland have no separate WB economy, so their rows stay hand-authored (manual) and are NOT parent-mapped to the United Kingdom. Frozen 2024 pre-tournament baseline (2025 not used). Weak economic prior (weight 10, log-scaled) - never a determinative match-level predictor.",
+    "MIXED family (stays candidate): 46 sovereign economies are source-backed from the World Bank WDI 2024 (indicators NY.GDP.MKTP.CD, NY.GDP.PCAP.CD, SP.POP.TOTL; published values, not recalculated). England + Scotland have no separate WB economy, so their 2024 rows are official-derived (Phase 1.12.1) from a user-supplied model-ready workbook built on ONS / Scottish-Government official statistics + documented FX (annual average GBP/USD) and a 2024 bridge estimate - NOT direct WB observations and NOT parent-mapped to the United Kingdom. Frozen 2024 pre-tournament baseline (2025 not used). Weak economic prior (weight 10, log-scaled) - never a determinative match-level predictor.",
 };
 
 /** World Bank economy display name -> app team id (source-backed rows). */
@@ -97,9 +97,10 @@ export const STRUCTURAL_NAME_TO_ID: Record<string, string> = {
 
 /**
  * The 48 World Cup teams' structural rows. 46 are source-backed from the World
- * Bank WDI 2024; England + Scotland are hand-authored (manual) - WB has no separate
- * constituent-nation economy. gdpCurrentUsd on the manual rows is derived from the
- * hand-authored gdpPerCapita x population (clearly manual, carried for display only).
+ * Bank WDI 2024; England + Scotland are official-derived (Phase 1.12.1) from a
+ * user-supplied model-ready workbook (ONS / Scottish-Government + documented FX /
+ * 2024 bridge estimate) - WB has no separate constituent-nation economy, and they
+ * are NOT parent-mapped to the United Kingdom.
  */
 export const structuralEconomicSnapshot: StructuralEconomicRow[] = [
   { teamId: "algeria", countryNameRaw: "Algeria", worldBankCountryCode: "DZA", gdpCurrentUsd: 269322281665, gdpPerCapitaCurrentUsd: 5752.99, population: 46814308, gdpYear: 2024, gdpPerCapitaYear: 2024, populationYear: 2024, mappingStatus: "source-backed" },
@@ -148,7 +149,11 @@ export const structuralEconomicSnapshot: StructuralEconomicRow[] = [
   { teamId: "uruguay", countryNameRaw: "Uruguay", worldBankCountryCode: "URY", gdpCurrentUsd: 80961511074, gdpPerCapitaCurrentUsd: 23906.51, population: 3386588, gdpYear: 2024, gdpPerCapitaYear: 2024, populationYear: 2024, mappingStatus: "source-backed" },
   { teamId: "usa", countryNameRaw: "United States", worldBankCountryCode: "USA", gdpCurrentUsd: 28750956130731, gdpPerCapitaCurrentUsd: 84534.04, population: 340110988, gdpYear: 2024, gdpPerCapitaYear: 2024, populationYear: 2024, mappingStatus: "source-backed" },
   { teamId: "uzbekistan", countryNameRaw: "Uzbekistan", worldBankCountryCode: "UZB", gdpCurrentUsd: 114965293467, gdpPerCapitaCurrentUsd: 3161.7, population: 36361859, gdpYear: 2024, gdpPerCapitaYear: 2024, populationYear: 2024, mappingStatus: "source-backed" },
-  // --- manual: UK constituent FAs (no separate World Bank economy; not parent-mapped to UK) ---
-  { teamId: "england", countryNameRaw: "England", worldBankCountryCode: "", gdpCurrentUsd: 2604650000000, gdpPerCapitaCurrentUsd: 46100, population: 56500000, gdpYear: null, gdpPerCapitaYear: null, populationYear: null, mappingStatus: "manual" },
-  { teamId: "scotland", countryNameRaw: "Scotland", worldBankCountryCode: "", gdpCurrentUsd: 209000000000, gdpPerCapitaCurrentUsd: 38000, population: 5500000, gdpYear: null, gdpPerCapitaYear: null, populationYear: null, mappingStatus: "manual" },
+  // --- official-derived: UK constituent FAs (no separate World Bank economy; not parent-mapped to UK) ---
+  // Phase 1.12.1: from a user-supplied model-ready workbook (sheet "Model Ready USD", 2024 row) built on ONS /
+  // Scottish-Government official statistics + documented FX (annual avg GBP/USD) and a 2024 bridge estimate.
+  // Workbook GDP is in US$m -> stored here as full USD (US$m x 1,000,000). England 2024 GDP is a bridge
+  // estimate; Scotland uses the model-ready onshore nominal GDP. NOT World Bank, NOT mapped to the UK.
+  { teamId: "england", countryNameRaw: "England", worldBankCountryCode: "", gdpCurrentUsd: 3127885000000, gdpPerCapitaCurrentUsd: 53359, population: 58620100, gdpYear: 2024, gdpPerCapitaYear: 2024, populationYear: 2024, mappingStatus: "official-derived" },
+  { teamId: "scotland", countryNameRaw: "Scotland", worldBankCountryCode: "", gdpCurrentUsd: 267379000000, gdpPerCapitaCurrentUsd: 48203, population: 5546900, gdpYear: 2024, gdpPerCapitaYear: 2024, populationYear: 2024, mappingStatus: "official-derived" },
 ];

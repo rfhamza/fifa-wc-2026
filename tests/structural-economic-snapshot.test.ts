@@ -15,7 +15,14 @@ import { getTeam } from "@/lib/data";
 import { officialTeams } from "@/data/official/teams";
 import type { StructuralEconomicRow } from "@/lib/types";
 
-const MANUAL_TEAMS = ["england", "scotland"];
+const DERIVED_TEAMS = ["england", "scotland"];
+
+// Exact workbook values (sheet "Model Ready USD", 2024 row). GDP columns are US$m;
+// gdpCurrentUsd is stored as full USD (US$m x 1,000,000).
+const WORKBOOK_2024 = {
+  england: { gdpCurrentUsd: 3_127_885_000_000, gdpPerCapitaCurrentUsd: 53_359, population: 58_620_100, gdpUsdMillions: 3_127_885 },
+  scotland: { gdpCurrentUsd: 267_379_000_000, gdpPerCapitaCurrentUsd: 48_203, population: 5_546_900, gdpUsdMillions: 267_379 },
+} as const;
 
 describe("structural/economic snapshot - coverage & validity", () => {
   it("has exactly one row per official team (48)", () => {
@@ -25,11 +32,16 @@ describe("structural/economic snapshot - coverage & validity", () => {
     for (const t of officialTeams) expect(ids.has(t.id)).toBe(true);
   });
 
-  it("has 46 World Bank source-backed rows and exactly England/Scotland manual", () => {
+  it("has 46 World Bank source-backed rows, exactly England/Scotland official-derived, zero manual", () => {
     const sourceBacked = structuralEconomicSnapshot.filter((r) => r.mappingStatus === "source-backed");
+    const derived = structuralEconomicSnapshot.filter((r) => r.mappingStatus === "official-derived");
     const manual = structuralEconomicSnapshot.filter((r) => r.mappingStatus === "manual");
     expect(sourceBacked).toHaveLength(46);
-    expect(manual.map((r) => r.teamId).sort()).toEqual([...MANUAL_TEAMS].sort());
+    expect(derived.map((r) => r.teamId).sort()).toEqual([...DERIVED_TEAMS].sort());
+    expect(manual).toHaveLength(0);
+    // The 46 World Bank rows are the only rows carrying a WB country code.
+    expect(sourceBacked.every((r) => /^[A-Z]{3}$/.test(r.worldBankCountryCode))).toBe(true);
+    expect(derived.every((r) => r.worldBankCountryCode === "")).toBe(true);
   });
 
   it("source-backed rows carry positive GDP / GDP-per-capita / population in 2024", () => {
@@ -45,14 +57,29 @@ describe("structural/economic snapshot - coverage & validity", () => {
     }
   });
 
-  it("manual rows (England/Scotland) carry no WB code and null per-indicator years", () => {
-    for (const r of structuralEconomicSnapshot.filter((x) => x.mappingStatus === "manual")) {
+  it("England/Scotland official-derived rows use the EXACT workbook 2024 USD values", () => {
+    for (const id of DERIVED_TEAMS) {
+      const r = structuralEconomicSnapshot.find((x) => x.teamId === id)!;
+      const w = WORKBOOK_2024[id as keyof typeof WORKBOOK_2024];
+      expect(r.mappingStatus).toBe("official-derived");
       expect(r.worldBankCountryCode).toBe("");
-      expect(r.gdpYear).toBeNull();
-      expect(r.gdpPerCapitaYear).toBeNull();
-      expect(r.populationYear).toBeNull();
-      expect(r.gdpPerCapitaCurrentUsd).toBeGreaterThan(0);
-      expect(r.population).toBeGreaterThan(0);
+      expect(r.gdpCurrentUsd).toBe(w.gdpCurrentUsd);
+      expect(r.gdpPerCapitaCurrentUsd).toBe(w.gdpPerCapitaCurrentUsd);
+      expect(r.population).toBe(w.population);
+      // Per-indicator years stored as 2024 (not null).
+      expect(r.gdpYear).toBe(2024);
+      expect(r.gdpPerCapitaYear).toBe(2024);
+      expect(r.populationYear).toBe(2024);
+    }
+  });
+
+  it("GDP unit conversion is correct: stored gdpCurrentUsd === workbook US$m x 1,000,000", () => {
+    for (const id of DERIVED_TEAMS) {
+      const r = structuralEconomicSnapshot.find((x) => x.teamId === id)!;
+      const w = WORKBOOK_2024[id as keyof typeof WORKBOOK_2024];
+      expect(r.gdpCurrentUsd).toBe(w.gdpUsdMillions * 1_000_000);
+      // Sanity: full-dollar magnitude, not US$m (England > 1e12, not ~3.1e6).
+      expect(r.gdpCurrentUsd).toBeGreaterThan(1e11);
     }
   });
 
@@ -77,15 +104,26 @@ describe("structural/economic snapshot - coverage & validity", () => {
     expect(r.warnings).toEqual([]);
   });
 
-  it("flags an unexpected manual row (only England/Scotland may be manual)", () => {
+  it("flags an unexpected official-derived row (only England/Scotland may be)", () => {
     const bad: StructuralEconomicRow[] = structuralEconomicSnapshot.map((r) =>
       r.teamId === "brazil"
-        ? { ...r, mappingStatus: "manual", worldBankCountryCode: "", gdpYear: null, gdpPerCapitaYear: null, populationYear: null }
+        ? { ...r, mappingStatus: "official-derived", worldBankCountryCode: "" }
         : r,
     );
     const res = validateStructuralSnapshot(bad);
     expect(res.valid).toBe(false);
-    expect(res.errors.join(" ")).toMatch(/unexpected manual structural row: brazil/);
+    expect(res.errors.join(" ")).toMatch(/unexpected official-derived structural row: brazil/);
+  });
+
+  it("flags any remaining plain-manual row (none should remain after 1.12.1)", () => {
+    const bad: StructuralEconomicRow[] = structuralEconomicSnapshot.map((r) =>
+      r.teamId === "england"
+        ? { ...r, mappingStatus: "manual", gdpYear: null, gdpPerCapitaYear: null, populationYear: null }
+        : r,
+    );
+    const res = validateStructuralSnapshot(bad);
+    expect(res.valid).toBe(false);
+    expect(res.errors.join(" ")).toMatch(/unexpected manual structural row: england/);
   });
 
   it("flags an out-of-range population", () => {
@@ -122,12 +160,14 @@ describe("structural/economic - model integration", () => {
     expect(getModelInputsForTeam("germany")?.gdpCurrentUsd).toBe(ger.gdpCurrentUsd);
   });
 
-  it("England/Scotland model values come from their manual snapshot rows", () => {
-    for (const id of MANUAL_TEAMS) {
+  it("England/Scotland model values come from their official-derived workbook rows", () => {
+    for (const id of DERIVED_TEAMS) {
       const row = getStructuralEconomic(id)!;
-      expect(row.mappingStatus).toBe("manual");
-      expect(buildFeatureSet(getTeam(id)).gdpPerCapita).toBe(row.gdpPerCapitaCurrentUsd);
-      expect(buildFeatureSet(getTeam(id)).population).toBe(row.population);
+      const w = WORKBOOK_2024[id as keyof typeof WORKBOOK_2024];
+      expect(row.mappingStatus).toBe("official-derived");
+      expect(buildFeatureSet(getTeam(id)).gdpPerCapita).toBe(w.gdpPerCapitaCurrentUsd);
+      expect(buildFeatureSet(getTeam(id)).population).toBe(w.population);
+      expect(getModelInputsForTeam(id)?.gdpCurrentUsd).toBe(w.gdpCurrentUsd);
     }
   });
 
