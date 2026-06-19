@@ -36,6 +36,14 @@ export const MODEL_WEIGHTS = {
 } as const;
 
 /**
+ * Shape of the tunable model weights. Used to type AUDIT-ONLY weight overrides
+ * (Phase 1.11 sensitivity audit) without ever mutating the production
+ * `MODEL_WEIGHTS` values. An override is always a fresh object built from
+ * `{ ...MODEL_WEIGHTS, ...partial }`.
+ */
+export type ModelWeights = { -readonly [K in keyof typeof MODEL_WEIGHTS]: number };
+
+/**
  * Phase 1.7 - placeholder-weight caps (Elo-equivalent points).
  *
  * Feature families whose model-input status is `placeholder` (see

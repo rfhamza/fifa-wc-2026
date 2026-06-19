@@ -26,7 +26,7 @@ import type {
   TournamentStageProbability,
 } from "@/lib/types";
 import { round } from "@/lib/utils";
-import { SIMULATION_CONFIG } from "@/lib/model/config";
+import { SIMULATION_CONFIG, MODEL_WEIGHTS, type ModelWeights } from "@/lib/model/config";
 import { buildFeatureSet } from "@/lib/model/features";
 import { computeDrivers, expectedGoalsFromAdvantage } from "@/lib/model/predict";
 import { createRng, samplePoisson, type Rng } from "./rng";
@@ -57,12 +57,12 @@ interface PreparedFixture {
 }
 
 /** Net Elo advantage of A over B from the model drivers (no allocation-heavy explanation). */
-function netAdvantage(a: TeamFeatureSet, b: TeamFeatureSet): number {
-  return computeDrivers(a, b).reduce((s, d) => s + d.contribution, 0);
+function netAdvantage(a: TeamFeatureSet, b: TeamFeatureSet, weights: ModelWeights): number {
+  return computeDrivers(a, b, weights).reduce((s, d) => s + d.contribution, 0);
 }
 
-function matchupLambdas(a: TeamFeatureSet, b: TeamFeatureSet): MatchupLambdas {
-  return expectedGoalsFromAdvantage(netAdvantage(a, b));
+function matchupLambdas(a: TeamFeatureSet, b: TeamFeatureSet, weights: ModelWeights): MatchupLambdas {
+  return expectedGoalsFromAdvantage(netAdvantage(a, b, weights));
 }
 
 /** Standard single-elimination bracket seed order (1-indexed) for power-of-two n. */
@@ -124,6 +124,13 @@ export interface SimulationOptions {
    * production is the placeholder-seeded `mock` template.
    */
   bracket?: BracketDefinition;
+  /**
+   * AUDIT-ONLY model-weight override (Phase 1.11 sensitivity audit). Defaults to
+   * the production `MODEL_WEIGHTS`; passing an override never mutates production
+   * config and leaves the placeholder caps in force. Used to probe how the frozen
+   * forecast responds to alternative weightings - NOT a production setting.
+   */
+  weights?: ModelWeights;
 }
 
 /**
@@ -135,6 +142,7 @@ export function runTournamentSimulation(
 ): SimulationSnapshot {
   const iterations = options.iterations ?? SIMULATION_CONFIG.defaultIterations;
   const seed = options.seed ?? SIMULATION_CONFIG.defaultSeed;
+  const weights = options.weights ?? MODEL_WEIGHTS;
   const rng = createRng(seed);
 
   // ---- Precompute (done once, reused every iteration) ----
@@ -147,7 +155,7 @@ export function runTournamentSimulation(
     group: f.group,
     homeTeamId: f.homeTeamId,
     awayTeamId: f.awayTeamId,
-    lambdas: matchupLambdas(feat(f.homeTeamId), feat(f.awayTeamId)),
+    lambdas: matchupLambdas(feat(f.homeTeamId), feat(f.awayTeamId), weights),
   }));
 
   const counts = new Map<string, StageCounts>(
@@ -182,7 +190,7 @@ export function runTournamentSimulation(
   const activeBracket = isBracketActive(bracketDef) ? bracketDef : null;
 
   for (let i = 0; i < iterations; i++) {
-    simulateOneTournament(prepared, feat, rng, counts, standingSums, teamMeta, activeBracket);
+    simulateOneTournament(prepared, feat, rng, counts, standingSums, teamMeta, activeBracket, weights);
   }
 
   return {
@@ -202,6 +210,7 @@ function simulateOneTournament(
   standingSums: Map<string, StandingAccumulator>,
   teamMeta: TeamMeta[],
   activeBracket: BracketDefinition | null,
+  weights: ModelWeights,
 ): void {
   // 1. Simulate group matches.
   const resultsByGroup = new Map<GroupId, MatchResult[]>();
@@ -265,9 +274,9 @@ function simulateOneTournament(
 
   // 4. Knockout stage: official bracket when active, else placeholder seeding.
   if (activeBracket) {
-    runOfficialKnockout(activeBracket, groupResults, qualifyingThirds, feat, rng, counts);
+    runOfficialKnockout(activeBracket, groupResults, qualifyingThirds, feat, rng, counts, weights);
   } else {
-    runPlaceholderKnockout(winnersAndRunners, qualifyingThirds, feat, rng, counts);
+    runPlaceholderKnockout(winnersAndRunners, qualifyingThirds, feat, rng, counts, weights);
   }
 }
 
@@ -287,6 +296,7 @@ function runPlaceholderKnockout(
   feat: (id: string) => TeamFeatureSet,
   rng: Rng,
   counts: Map<string, StageCounts>,
+  weights: ModelWeights,
 ): void {
   const qualifiers = [...winnersAndRunners, ...qualifyingThirds].sort(byStrength);
   const order = seedBracket(32); // bracket positions (1-indexed seeds)
@@ -298,7 +308,7 @@ function runPlaceholderKnockout(
   while (alive.length > 1) {
     const next: string[] = [];
     for (let m = 0; m < alive.length; m += 2) {
-      next.push(knockoutWinner(alive[m]!, alive[m + 1]!, feat, rng));
+      next.push(knockoutWinner(alive[m]!, alive[m + 1]!, feat, rng, weights));
     }
     const stageKey = STAGE_KEYS[stageIdx]!;
     for (const id of next) counts.get(id)![stageKey] += 1;
@@ -315,13 +325,14 @@ function runOfficialKnockout(
   feat: (id: string) => TeamFeatureSet,
   rng: Rng,
   counts: Map<string, StageCounts>,
+  weights: ModelWeights,
 ): void {
   const realised = realiseOfficialBracket({
     graph: bracketDef.graph,
     allocation: bracketDef.thirdPlaceAllocation,
     groupResults,
     thirdGroups: qualifyingThirds.map((s) => s.group),
-    decideWinner: (a, b) => knockoutWinner(a, b, feat, rng),
+    decideWinner: (a, b) => knockoutWinner(a, b, feat, rng, weights),
   });
   for (const id of realised.r32Entrants) counts.get(id)!.roundOf32 += 1;
   for (const id of realised.roundOf16) counts.get(id)!.roundOf16 += 1;
@@ -337,8 +348,9 @@ function knockoutWinner(
   bId: string,
   feat: (id: string) => TeamFeatureSet,
   rng: Rng,
+  weights: ModelWeights,
 ): string {
-  const lambdas = matchupLambdas(feat(aId), feat(bId));
+  const lambdas = matchupLambdas(feat(aId), feat(bId), weights);
   const aGoals = samplePoisson(rng, lambdas.home);
   const bGoals = samplePoisson(rng, lambdas.away);
   if (aGoals > bGoals) return aId;
