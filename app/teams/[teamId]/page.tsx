@@ -9,7 +9,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { StatTile } from "@/components/teams/stat-tile";
-import { MODEL_INPUT_SOURCES, getFifaRanking, getEloRating } from "@/data/model-inputs";
+import {
+  MODEL_INPUT_SOURCES,
+  getFifaRanking,
+  getEloRating,
+  getStructuralEconomic,
+} from "@/data/model-inputs";
 import { StageFunnelChart } from "@/components/charts/stage-funnel-chart";
 import { ProbabilityBar } from "@/components/charts/probability-bar";
 import { teams, teamById, getTeam, getVenue, getFixturesForTeam } from "@/lib/data";
@@ -32,6 +37,15 @@ export default function TeamPage({ params }: { params: { teamId: string } }) {
   const fixtures = getFixturesForTeam(team.id);
   const fifa = getFifaRanking(team.id);
   const elo = getEloRating(team.id);
+  const struct = getStructuralEconomic(team.id);
+  // Row-level structural provenance: World Bank source-backed rows show the data
+  // year; England/Scotland are honestly flagged manual (no separate WB economy).
+  const gdpPerCapita = struct?.gdpPerCapitaCurrentUsd ?? team.gdpPerCapita;
+  const population = struct?.population ?? team.population;
+  const structuralHint =
+    struct?.mappingStatus === "source-backed"
+      ? `source-backed - World Bank ${struct.populationYear}`
+      : "manual - no separate World Bank economy";
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -83,13 +97,13 @@ export default function TeamPage({ params }: { params: { teamId: string } }) {
         <StatTile label="Climate familiarity" value={`${team.climateFamiliarity}/100`} hint={`${MODEL_INPUT_SOURCES.climateFamiliarity.status} - capped`} />
         <StatTile
           label="GDP per capita"
-          value={`$${(team.gdpPerCapita / 1000).toFixed(1)}k`}
-          hint={`structural: ${MODEL_INPUT_SOURCES.structural.status}`}
+          value={`$${(gdpPerCapita / 1000).toFixed(1)}k`}
+          hint={structuralHint}
         />
         <StatTile
           label="Population"
-          value={`${(team.population / 1_000_000).toFixed(1)}M`}
-          hint={`structural: ${MODEL_INPUT_SOURCES.structural.status}`}
+          value={`${(population / 1_000_000).toFixed(1)}M`}
+          hint={structuralHint}
         />
         <StatTile label="Win title" value={pct(prob?.winner ?? 0, 1)} />
         <StatTile label="Reach last 16" value={pct(prob?.roundOf16 ?? 0, 0)} />

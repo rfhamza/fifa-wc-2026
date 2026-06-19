@@ -9,8 +9,9 @@
 ## 1. Scope - baseline vs live model
 
 - **Baseline model (this audit):** uses information available at tournament start -
-  the **11 Jun 2026** source-backed FIFA ranking + Elo rating snapshots, manual
-  structural priors, capped placeholders, and the official schedule.
+  the **11 Jun 2026** source-backed FIFA ranking + Elo rating snapshots, the
+  **World Bank WDI 2024** structural prior (now `candidate`: 46 teams source-backed,
+  England/Scotland manual), capped placeholders, and the official schedule.
 - **Live model (future phase):** will ingest completed match results and update
   standings / conditional probabilities. **Not** part of this baseline audit.
 
@@ -25,7 +26,7 @@ omitted (audit must not depend on the current date).
 |---|---|---|
 | Elo rating | **source-backed** (11 Jun 2026 snapshot) | anchor (weight 1.0) |
 | FIFA ranking | **source-backed** (11 Jun 2026 snapshot) | rank driver (cap +/-90) |
-| Structural (GDP+pop) | manual | weak prior (<=10) |
+| Structural (GDP+pop) | candidate (46 World Bank source-backed; England/Scotland manual) | weak prior (<=10) |
 | Squad quality / Recent form / Climate | placeholder | **weight-capped** |
 | Host / Regional / Manager | verified / candidate | structural flags |
 
@@ -38,31 +39,31 @@ Placeholder caps: per-driver +/-25, aggregate
 
 | # | Team | Title |
 |--:|---|--:|
-| 1 | Spain | 26.6% |
-| 2 | Argentina | 22.7% |
-| 3 | France | 13.2% |
-| 4 | England | 7.0% |
-| 5 | Brazil | 5.1% |
+| 1 | Spain | 27.9% |
+| 2 | Argentina | 23.6% |
+| 3 | France | 12.0% |
+| 4 | England | 6.6% |
+| 5 | Brazil | 5.3% |
 | 6 | Portugal | 4.5% |
-| 7 | Colombia | 3.9% |
-| 8 | Netherlands | 3.3% |
-| 9 | Mexico | 2.8% |
-| 10 | Germany | 1.8% |
+| 7 | Colombia | 3.7% |
+| 8 | Netherlands | 2.5% |
+| 9 | Mexico | 2.1% |
+| 10 | Germany | 1.7% |
 
 **Top 10 reach round-of-16**
 
 | # | Team | Reach R16 |
 |--:|---|--:|
-| 1 | Spain | 83.5% |
-| 2 | France | 80.2% |
-| 3 | Argentina | 76.8% |
-| 4 | England | 72.7% |
-| 5 | Mexico | 71.8% |
-| 6 | Brazil | 66.3% |
-| 7 | Portugal | 66.0% |
-| 8 | Belgium | 65.3% |
-| 9 | Colombia | 63.0% |
-| 10 | Germany | 61.0% |
+| 1 | Spain | 83.0% |
+| 2 | France | 79.5% |
+| 3 | Argentina | 75.8% |
+| 4 | Mexico | 73.6% |
+| 5 | England | 73.4% |
+| 6 | Belgium | 66.8% |
+| 7 | Brazil | 66.3% |
+| 8 | Portugal | 65.3% |
+| 9 | Germany | 62.4% |
+| 10 | Switzerland | 61.1% |
 
 **Group-winner probability** (audit-only sim: P(finish 1st), seed `20260611`, 4000
 iters per group; ranks via the production Article-13 standings - this is NOT
@@ -85,7 +86,7 @@ qualifyTop2):
 
 | Match | Fixture | Home win / Draw / Away win |
 |---|---|---|
-| M1 | Mexico v South Africa | 85% / 12% / 2% |
+| M1 | Mexico v South Africa | 86% / 12% / 2% |
 | M5 | Haiti v Scotland | 13% / 21% / 66% |
 | M11 | Netherlands v Japan | 45% / 26% / 29% |
 | M19 | Argentina v Algeria | 77% / 17% / 7% |
@@ -99,9 +100,8 @@ Mexico v South Africa; Elo-equivalent pts, + favours home):
 | Status | Signed net |
 |---|--:|
 | source-backed | 434.4 |
-| manual | 0.9 |
 | verified | 60 |
-| candidate | 0 |
+| candidate | 1.2 |
 | placeholder | 40 |
 
 **Method B - absolute contribution magnitude, aggregated over all 72 group
@@ -110,9 +110,8 @@ fixtures** (overall influence; sum of |contribution| by status):
 | Status | Abs magnitude | Share |
 |---|--:|--:|
 | source-backed | 19683 | 80.8% |
-| manual | 132 | 0.5% |
 | verified | 540 | 2.2% |
-| candidate | 627 | 2.6% |
+| candidate | 759 | 3.1% |
 | placeholder | 3392 | 13.9% |
 
 ## 5. Sanity-check results (invariants - all PASS)
@@ -129,11 +128,13 @@ fixtures** (overall influence; sum of |contribution| by status):
 
 Method B shows **source-backed** contribution magnitude now dominates: with Elo
 promoted to source-backed (Phase 1.10), both the high-influence Elo anchor and the
-capped FIFA-ranking driver come from cited 11 Jun 2026 snapshots, while **manual**
-shrinks to the weak structural prior only. The forecast is therefore anchored by a
-**source-backed** input - a provenance/credibility improvement over the Phase 1.9
-baseline, where manual Elo dominated. This is a status-mix shift only: **no model
-weights were changed**, so the relative magnitude of Elo vs FIFA ranking is
+capped FIFA-ranking driver come from cited 11 Jun 2026 snapshots. The weak
+structural prior moved from `manual` to **`candidate`** in Phase 1.12 (46 teams
+source-backed from the World Bank WDI 2024; England/Scotland remain manual), so
+`manual` all but disappears from the status mix. The forecast is therefore anchored
+by a **source-backed** input - a provenance/credibility improvement over the Phase
+1.9 baseline, where manual Elo dominated. This is a status-mix shift only: **no
+model weights were changed**, so the relative magnitude of Elo vs FIFA ranking is
 unchanged (Elo still spans hundreds of Elo-equivalent pts while FIFA ranking is
 capped at +/-90). That Elo still out-influences FIFA ranking is a **modelling /
 calibration consideration, not a defect**.

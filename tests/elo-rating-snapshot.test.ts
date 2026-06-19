@@ -131,7 +131,7 @@ describe("Elo rating - model integration", () => {
   it("only this phase's family flipped; others unchanged", () => {
     expect(getFeatureStatus("eloRating")).toBe("source-backed");
     expect(getFeatureStatus("fifaRanking")).toBe("source-backed");
-    expect(getFeatureStatus("structural")).toBe("manual");
+    expect(getFeatureStatus("structural")).toBe("candidate");
     expect(getFeatureStatus("squadQuality")).toBe("placeholder");
     expect(getFeatureStatus("recentForm")).toBe("placeholder");
     expect(getFeatureStatus("climateFamiliarity")).toBe("placeholder");

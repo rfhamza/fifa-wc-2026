@@ -7,6 +7,7 @@ import { MODEL_INPUT_SOURCES } from "./sources";
 import { modelInputSnapshot } from "./team-inputs";
 import { fifaRankingSnapshot } from "./snapshots/fifa-ranking-2026-06-11";
 import { eloRatingSnapshot } from "./snapshots/elo-rating-2026-06-11";
+import { structuralEconomicSnapshot } from "./snapshots/structural-economic-2024";
 
 /**
  * Phase 1.7 - assembled MODEL-INPUT LAYER.
@@ -31,6 +32,7 @@ export function getFeatureStatus(family: ModelFeatureFamily): ModelInputStatus {
 
 const FIFA_BY_TEAM = new Map(fifaRankingSnapshot.map((r) => [r.teamId, r]));
 const ELO_BY_TEAM = new Map(eloRatingSnapshot.map((r) => [r.teamId, r]));
+const STRUCTURAL_BY_TEAM = new Map(structuralEconomicSnapshot.map((r) => [r.teamId, r]));
 
 /** Source-backed FIFA ranking row for a team (Phase 1.8), if present. */
 export function getFifaRanking(teamId: string) {
@@ -40,6 +42,11 @@ export function getFifaRanking(teamId: string) {
 /** Source-backed Elo rating row for a team (Phase 1.10), if present. */
 export function getEloRating(teamId: string) {
   return ELO_BY_TEAM.get(teamId);
+}
+
+/** Structural/economic row for a team (Phase 1.12; World Bank WDI or manual), if present. */
+export function getStructuralEconomic(teamId: string) {
+  return STRUCTURAL_BY_TEAM.get(teamId);
 }
 
 export { MODEL_INPUT_SOURCES } from "./sources";
@@ -54,3 +61,8 @@ export {
   ELO_RATING_SOURCE,
   ELO_NAME_TO_ID,
 } from "./snapshots/elo-rating-2026-06-11";
+export {
+  structuralEconomicSnapshot,
+  STRUCTURAL_ECONOMIC_SOURCE,
+  STRUCTURAL_NAME_TO_ID,
+} from "./snapshots/structural-economic-2024";

@@ -20,6 +20,7 @@ export type {
   TeamModelInputs,
   FifaRankingRow,
   EloRatingRow,
+  StructuralEconomicRow,
   ModelInputValidationResult,
 } from "./model-inputs";
 
