@@ -179,6 +179,30 @@ A roadmap from the foundation to a richer product. Each item lists the
   (~0.5%). Status-mix / provenance win; relative Elo-vs-FIFA influence is unchanged
   (a calibration consideration for a later phase, not a defect).
 
+## Done in phase 1.11 (model sensitivity / calibration audit)
+
+- Added an **audit-only** weight-override seam: optional `weights` on
+  `computeDrivers`/`predictFromFeatures` (`lib/model/predict.ts`) and on
+  `runTournamentSimulation` (`lib/simulation/tournament.ts`), defaulting to the
+  production `MODEL_WEIGHTS` (so baseline == production). **No production weights
+  changed**; the placeholder caps stay in force under every variant.
+- Defined ~9 diagnostic variants (`lib/model/audit-variants.ts`): baseline,
+  `elo-75`/`elo-50`, `fifa-125`/`fifa-150` (scaling **both** the FIFA per-place
+  slope and the cap together), `balanced`, `no-placeholders`, `no-host-regional`,
+  and `rating-only` (isolates only the two source-backed Elo + FIFA rating inputs —
+  not all source-backed/verified facts; host advantage is intentionally dropped).
+- `tests/model-sensitivity.test.ts` (invariant-only): every variant is
+  finite/bounded/funnel-monotone/deterministic; **baseline reproduces production**
+  (deterministic fields only, never `generatedAt`); a guardrail proves audit
+  variants cannot mutate `MODEL_WEIGHTS`; placeholder caps still bind;
+  `fixtureSource === "official"`.
+- Generated `docs/MODEL_SENSITIVITY_AUDIT.md` (guarded behind
+  `WRITE_SENSITIVITY_AUDIT=1`, frozen seed `20260611`). **Finding:** Elo dominance
+  is material but not pathological — reducing Elo reshuffles the title race while
+  widening FIFA is bounded by its cap. Variants are **diagnostic only**.
+  **Recommendation:** keep production weights for now; defer any Elo-vs-FIFA
+  re-balancing to a future weight-tuning phase driven by historical backtesting.
+
 ## Phase 2 - Verified data
 
 - Obtain official FIFA group/fixture/venue data (or authoritative JSON);

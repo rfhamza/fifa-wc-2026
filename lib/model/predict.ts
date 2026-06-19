@@ -25,6 +25,7 @@ import {
   SCORELINE_CONFIG,
   PLACEHOLDER_CONTRIBUTION_CAP,
   TOTAL_PLACEHOLDER_CONTRIBUTION_CAP,
+  type ModelWeights,
 } from "./config";
 import { buildFeatureSet } from "./features";
 import { getFeatureStatus } from "@/data/model-inputs";
@@ -72,12 +73,20 @@ import {
   topScorelines,
 } from "@/lib/simulation/poisson";
 
-/** Compute the signed list of driver contributions (A minus B). */
+/**
+ * Compute the signed list of driver contributions (A minus B).
+ *
+ * `weights` defaults to the production `MODEL_WEIGHTS`; an AUDIT-ONLY caller
+ * (Phase 1.11 sensitivity audit) may pass an override object to probe how the
+ * forecast responds to different weightings. The placeholder caps are NOT
+ * overridable here, so they continue to bind under every variant.
+ */
 export function computeDrivers(
   a: TeamFeatureSet,
   b: TeamFeatureSet,
+  weights: ModelWeights = MODEL_WEIGHTS,
 ): ModelDriver[] {
-  const w = MODEL_WEIGHTS;
+  const w = weights;
 
   const rankContribution = clamp(
     (b.fifaRanking - a.fifaRanking) * w.fifaRankingPerPlace,
@@ -184,12 +193,16 @@ export function expectedGoalsFromAdvantage(netAdvantage: number): {
   };
 }
 
-/** Predict a single match from two feature sets. */
+/**
+ * Predict a single match from two feature sets. `weights` defaults to the
+ * production `MODEL_WEIGHTS`; an audit-only override may be supplied (Phase 1.11).
+ */
 export function predictFromFeatures(
   a: TeamFeatureSet,
   b: TeamFeatureSet,
+  weights: ModelWeights = MODEL_WEIGHTS,
 ): MatchPrediction {
-  const drivers = computeDrivers(a, b);
+  const drivers = computeDrivers(a, b, weights);
   const explanation = explainDrivers(drivers);
   const xg = expectedGoalsFromAdvantage(explanation.netAdvantage);
 
