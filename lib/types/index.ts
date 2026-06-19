@@ -18,6 +18,7 @@ export type {
   ModelFeatureFamily,
   ModelInputSource,
   TeamModelInputs,
+  FifaRankingRow,
   ModelInputValidationResult,
 } from "./model-inputs";
 

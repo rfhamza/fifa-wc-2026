@@ -5,6 +5,7 @@ import type {
 } from "@/lib/types";
 import { MODEL_INPUT_SOURCES } from "./sources";
 import { modelInputSnapshot } from "./team-inputs";
+import { fifaRankingSnapshot } from "./snapshots/fifa-ranking-2026-06-11";
 
 /**
  * Phase 1.7 - assembled MODEL-INPUT LAYER.
@@ -27,5 +28,17 @@ export function getFeatureStatus(family: ModelFeatureFamily): ModelInputStatus {
   return MODEL_INPUT_SOURCES[family].status;
 }
 
+const FIFA_BY_TEAM = new Map(fifaRankingSnapshot.map((r) => [r.teamId, r]));
+
+/** Source-backed FIFA ranking row for a team (Phase 1.8), if present. */
+export function getFifaRanking(teamId: string) {
+  return FIFA_BY_TEAM.get(teamId);
+}
+
 export { MODEL_INPUT_SOURCES } from "./sources";
 export { modelInputSnapshot, MODEL_INPUTS_VERSION } from "./team-inputs";
+export {
+  fifaRankingSnapshot,
+  FIFA_RANKING_SOURCE,
+  FIFA_NAME_TO_ID,
+} from "./snapshots/fifa-ranking-2026-06-11";

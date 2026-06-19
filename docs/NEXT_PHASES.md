@@ -128,6 +128,19 @@ A roadmap from the foundation to a richer product. Each item lists the
 - Methodology page + team-detail tiles show each input's status; schedule,
   bracket, Annexe C, draw slots and `fixtureSource: "official"` are unchanged.
 
+## Done in phase 1.8 (FIFA ranking promoted to source-backed)
+
+- Promoted ONLY the `fifaRanking` family from `manual` to `source-backed` from a
+  user-supplied FIFA/Coca-Cola Men's World Ranking PDF snapshot (date 11 Jun 2026),
+  reviewer-transcribed + visually verified (`data/model-inputs/snapshots/
+  fifa-ranking-2026-06-11.ts`, 48 teams). Added `fifaRankingPoints` (carried for
+  explainability; not a new driver). Points are FIFA-published, not recalculated.
+- `validateFifaRankingSnapshot` asserts 48 rows, unique ids/ranks, ranges, name
+  mapping, source metadata, and that no other family status changed. Elo +
+  structural stay `manual`; squad/form/climate stay `placeholder` (capped). No
+  model weights changed; `fixtureSource` stays `"official"`. See
+  `docs/FIFA_RANKING_SNAPSHOT_AUDIT.md`.
+
 ## Phase 2 - Verified data
 
 - Obtain official FIFA group/fixture/venue data (or authoritative JSON);

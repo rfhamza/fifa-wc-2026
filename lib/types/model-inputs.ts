@@ -58,11 +58,22 @@ export interface TeamModelInputs {
   teamId: string;
   eloRating: number;
   fifaRanking: number;
+  /** FIFA ranking points (source-backed snapshot; carried for explainability). */
+  fifaRankingPoints?: number;
   gdpPerCapita: number;
   population: number;
   recentForm: number;
   squadQuality: number;
   climateFamiliarity: number;
+}
+
+/** One row of a transcribed FIFA ranking snapshot (Phase 1.8). */
+export interface FifaRankingRow {
+  teamId: string;
+  /** FIFA display name as printed in the source (e.g. "Korea Republic"). */
+  fifaNameRaw: string;
+  fifaRank: number;
+  fifaPoints: number;
 }
 
 /** Result of validating the model-input layer (mirrors lib/data/validate.ts). */

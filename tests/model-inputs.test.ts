@@ -55,9 +55,9 @@ describe("model-input layer - shape & provenance", () => {
     expect(getFeatureStatus("squadQuality")).toBe("placeholder");
     expect(getFeatureStatus("recentForm")).toBe("placeholder");
     expect(getFeatureStatus("climateFamiliarity")).toBe("placeholder");
-    // Elo anchor + ranking are manual (not falsely source-backed).
+    // Elo anchor stays manual; FIFA ranking is now source-backed (Phase 1.8).
     expect(getFeatureStatus("eloRating")).toBe("manual");
-    expect(getFeatureStatus("fifaRanking")).toBe("manual");
+    expect(getFeatureStatus("fifaRanking")).toBe("source-backed");
   });
 });
 
