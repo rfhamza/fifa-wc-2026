@@ -72,33 +72,42 @@ export interface TeamModelInputs {
 }
 
 /**
- * One row of the structural/economic snapshot (Phase 1.12). World Bank World
- * Development Indicators for the 46 sovereign WB economies (mappingStatus
+ * One row of the structural/economic snapshot (Phase 1.12 / 1.12.1). World Bank
+ * World Development Indicators for the 46 sovereign WB economies (mappingStatus
  * `source-backed`); England + Scotland have no separate WB economy, so their rows
- * keep the existing hand-authored values (mappingStatus `manual`) - they are NOT
- * parent-mapped to the United Kingdom. Indicator years are stored PER indicator
- * (null on manual rows) so a row never implies a single shared data year.
+ * are `official-derived` (Phase 1.12.1) from a user-supplied model-ready workbook
+ * built on ONS / Scottish-Government official statistics + documented FX/bridge
+ * assumptions - they are NOT direct WB observations and are NOT parent-mapped to
+ * the United Kingdom. Indicator years are stored PER indicator (null only on a
+ * plain-`manual` row, of which there are none after 1.12.1) so a row never implies
+ * a single shared data year.
  */
 export interface StructuralEconomicRow {
   teamId: string;
-  /** Economy display name as printed by the World Bank (e.g. "Korea, Rep."); free-text on manual rows. */
+  /** Economy display name (e.g. "Korea, Rep." for WB rows; "England"/"Scotland" for official-derived rows). */
   countryNameRaw: string;
-  /** World Bank / ISO3 economy code (e.g. "DEU"); empty string on manual non-WB rows. */
+  /** World Bank / ISO3 economy code (e.g. "DEU"); empty string on non-WB rows. */
   worldBankCountryCode: string;
-  /** GDP, current US$ (NY.GDP.MKTP.CD). */
+  /** GDP, current US$ (NY.GDP.MKTP.CD / workbook US$ values converted to full USD). */
   gdpCurrentUsd: number;
-  /** GDP per capita, current US$ (NY.GDP.PCAP.CD). */
+  /** GDP per capita, current US$ (NY.GDP.PCAP.CD / workbook). */
   gdpPerCapitaCurrentUsd: number;
-  /** Population, total (SP.POP.TOTL). */
+  /** Population, total (SP.POP.TOTL / workbook). */
   population: number;
-  /** Year of the GDP value (null on manual rows). */
+  /** Year of the GDP value (null only on a plain-manual row). */
   gdpYear: number | null;
-  /** Year of the GDP-per-capita value (null on manual rows). */
+  /** Year of the GDP-per-capita value (null only on a plain-manual row). */
   gdpPerCapitaYear: number | null;
-  /** Year of the population value (null on manual rows). */
+  /** Year of the population value (null only on a plain-manual row). */
   populationYear: number | null;
-  /** `source-backed` = World Bank WDI; `manual` = hand-authored (England/Scotland). */
-  mappingStatus: "source-backed" | "manual";
+  /**
+   * Row-level mapping/provenance status:
+   * - `source-backed`   = direct World Bank WDI row (the 46 economies);
+   * - `official-derived`= England/Scotland workbook values from ONS / Scottish-
+   *   Government official stats + documented FX/bridge assumptions (not direct WB);
+   * - `manual`          = no defensible source trail (none after Phase 1.12.1).
+   */
+  mappingStatus: "source-backed" | "official-derived" | "manual";
 }
 
 /** One row of a transcribed World Football Elo ratings snapshot (Phase 1.10). */

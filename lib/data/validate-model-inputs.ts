@@ -301,22 +301,23 @@ export function validateEloSnapshot(
 }
 
 /**
- * Phase 1.12 - validate the structural/economic snapshot (World Bank WDI 2024).
+ * Phase 1.12 / 1.12.1 - validate the structural/economic snapshot.
  *
  * MIXED `candidate` family: exactly the 48 teams, one row each; finite + positive
  * GDP / GDP-per-capita / population within the model-input ranges; per-indicator
- * years are integers in a sane window on `source-backed` rows (null on `manual`
- * rows); a 3-letter WB code + a mapped display name on every source-backed row;
- * the ONLY manual rows are England + Scotland (no separate WB economy; not
- * parent-mapped to the UK); source metadata present + family status `candidate`;
- * and NO other family silently changed status (Elo/FIFA still source-backed,
- * squad/form/climate still placeholder). Years that drift off the common 2024
- * baseline produce a warning, not an error.
+ * years are integers in a sane window on every sourced row; a 3-letter WB code + a
+ * mapped display name on every `source-backed` (World Bank) row; England + Scotland
+ * are the ONLY `official-derived` rows (Phase 1.12.1: workbook values from ONS /
+ * Scottish-Government + documented FX/bridge, no WB code, NOT parent-mapped to the
+ * UK); ZERO plain-`manual` rows remain; source metadata present + family status
+ * `candidate`; and NO other family silently changed status (Elo/FIFA still
+ * source-backed, squad/form/climate still placeholder). Years that drift off the
+ * common 2024 baseline produce a warning, not an error.
  */
 const STRUCTURAL_YEAR_MIN = 2000;
 const STRUCTURAL_YEAR_MAX = 2025;
 const STRUCTURAL_BASELINE_YEAR = 2024;
-const EXPECTED_MANUAL_STRUCTURAL = new Set(["england", "scotland"]);
+const EXPECTED_DERIVED_STRUCTURAL = new Set(["england", "scotland"]);
 
 export function validateStructuralSnapshot(
   snapshot: StructuralEconomicRow[] = structuralEconomicSnapshot,
@@ -335,6 +336,7 @@ export function validateStructuralSnapshot(
   const [gdpPcMin, gdpPcMax] = RANGES.gdpPerCapita;
   const [popMin, popMax] = RANGES.population;
   const seenTeams = new Set<string>();
+  const derivedTeams = new Set<string>();
   const manualTeams = new Set<string>();
 
   for (const row of snapshot) {
@@ -342,9 +344,14 @@ export function validateStructuralSnapshot(
     seenTeams.add(row.teamId);
     if (!teamIds.has(row.teamId)) errors.push(`structural row team id not in official teams: ${row.teamId}`);
 
-    if (row.mappingStatus !== "source-backed" && row.mappingStatus !== "manual") {
+    if (
+      row.mappingStatus !== "source-backed" &&
+      row.mappingStatus !== "official-derived" &&
+      row.mappingStatus !== "manual"
+    ) {
       errors.push(`${row.teamId}: invalid mappingStatus "${row.mappingStatus}"`);
     }
+    if (row.mappingStatus === "official-derived") derivedTeams.add(row.teamId);
     if (row.mappingStatus === "manual") manualTeams.add(row.teamId);
 
     // Numeric values: finite, positive, and within the model-input ranges.
@@ -368,14 +375,9 @@ export function validateStructuralSnapshot(
       ["populationYear", row.populationYear],
     ] as const;
 
-    if (row.mappingStatus === "source-backed") {
-      // Source-backed rows: 3-letter WB code, mapped name, integer per-indicator years.
-      if (!/^[A-Z]{3}$/.test(row.worldBankCountryCode)) {
-        errors.push(`${row.teamId}: worldBankCountryCode "${row.worldBankCountryCode}" not a 3-letter code`);
-      }
-      if (!row.countryNameRaw || nameMap[row.countryNameRaw] !== row.teamId) {
-        errors.push(`${row.teamId}: countryNameRaw "${row.countryNameRaw}" does not map to this id`);
-      }
+    // Sourced rows (World Bank or official-derived) must carry integer per-indicator
+    // years in a sane window; off-baseline years warn (do not error).
+    const requireSanitYears = () => {
       for (const [label, year] of years) {
         if (
           typeof year !== "number" ||
@@ -388,8 +390,29 @@ export function validateStructuralSnapshot(
           warnings.push(`${row.teamId}: ${label} ${year} differs from baseline ${STRUCTURAL_BASELINE_YEAR}`);
         }
       }
+    };
+
+    if (row.mappingStatus === "source-backed") {
+      // World Bank rows: 3-letter WB code, mapped name, integer per-indicator years.
+      if (!/^[A-Z]{3}$/.test(row.worldBankCountryCode)) {
+        errors.push(`${row.teamId}: worldBankCountryCode "${row.worldBankCountryCode}" not a 3-letter code`);
+      }
+      if (!row.countryNameRaw || nameMap[row.countryNameRaw] !== row.teamId) {
+        errors.push(`${row.teamId}: countryNameRaw "${row.countryNameRaw}" does not map to this id`);
+      }
+      requireSanitYears();
+    } else if (row.mappingStatus === "official-derived") {
+      // Official-derived rows (England/Scotland): NO WB code (not a WB economy, not
+      // parent-mapped to the UK), a display name, and integer per-indicator years.
+      if (row.worldBankCountryCode !== "") {
+        errors.push(`${row.teamId}: official-derived row must have empty worldBankCountryCode (not a World Bank economy)`);
+      }
+      if (!row.countryNameRaw) {
+        errors.push(`${row.teamId}: official-derived row missing countryNameRaw`);
+      }
+      requireSanitYears();
     } else if (row.mappingStatus === "manual") {
-      // Manual rows: no WB code, no per-indicator years (not source-backed).
+      // Manual rows: no WB code, no per-indicator years. (None expected after 1.12.1.)
       if (row.worldBankCountryCode !== "") {
         errors.push(`${row.teamId}: manual row must have empty worldBankCountryCode`);
       }
@@ -404,17 +427,21 @@ export function validateStructuralSnapshot(
     if (!seenTeams.has(t.id)) errors.push(`missing structural row for team ${t.id}`);
   }
 
-  // The ONLY manual rows are England + Scotland (documented decision).
-  for (const id of manualTeams) {
-    if (!EXPECTED_MANUAL_STRUCTURAL.has(id)) {
-      errors.push(`unexpected manual structural row: ${id} (only England/Scotland may be manual)`);
+  // England + Scotland are the ONLY official-derived rows (documented decision).
+  for (const id of derivedTeams) {
+    if (!EXPECTED_DERIVED_STRUCTURAL.has(id)) {
+      errors.push(`unexpected official-derived structural row: ${id} (only England/Scotland may be official-derived)`);
     }
   }
-  for (const id of EXPECTED_MANUAL_STRUCTURAL) {
-    if (!manualTeams.has(id)) errors.push(`expected ${id} to be a manual structural row`);
+  for (const id of EXPECTED_DERIVED_STRUCTURAL) {
+    if (!derivedTeams.has(id)) errors.push(`expected ${id} to be an official-derived structural row`);
+  }
+  // ZERO plain-manual rows remain after Phase 1.12.1.
+  for (const id of manualTeams) {
+    errors.push(`unexpected manual structural row: ${id} (none should remain; use source-backed or official-derived)`);
   }
 
-  // Source metadata present + honestly `candidate` (mixed source-backed/manual).
+  // Source metadata present + honestly `candidate` (mixed WB source-backed + official-derived).
   if (source.status !== "candidate") {
     errors.push(`structural source status must be "candidate" (mixed), got "${source.status}"`);
   }

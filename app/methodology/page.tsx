@@ -52,7 +52,7 @@ export default function MethodologyPage() {
           <li><strong>Manager cohesion</strong> - {MODEL_WEIGHTS.manager} pts for a same-nationality manager. Status: {MODEL_INPUT_SOURCES.managerCohesion.status}.</li>
           <li><strong>Host &amp; regional advantage</strong> - {MODEL_WEIGHTS.host} pts (co-host), {MODEL_WEIGHTS.regional} pts (region). Status: {MODEL_INPUT_SOURCES.hostAdvantage.status} / {MODEL_INPUT_SOURCES.regionalAdvantage.status}.</li>
           <li><strong>Climate familiarity</strong> - {MODEL_WEIGHTS.climate} pts per acclimatization point. Status: {MODEL_INPUT_SOURCES.climateFamiliarity.status} (capped).</li>
-          <li><strong>Structural prior (economic)</strong> - up to {MODEL_WEIGHTS.structural} pts across the 0-1 range, blended from log-scaled GDP per capita and population. An <em>experimental weak prior</em>, deliberately small. Status: {MODEL_INPUT_SOURCES.structural.status} (World Bank WDI {MODEL_INPUT_SOURCES.structural.sourceDate}; 46 economies source-backed, England &amp; Scotland manual - no separate World Bank economy).</li>
+          <li><strong>Structural prior (economic)</strong> - up to {MODEL_WEIGHTS.structural} pts across the 0-1 range, blended from log-scaled GDP per capita and population. An <em>experimental weak prior</em>, deliberately small. Status: {MODEL_INPUT_SOURCES.structural.status} (World Bank WDI {MODEL_INPUT_SOURCES.structural.sourceDate}; 46 economies source-backed, England &amp; Scotland official-derived from ONS / Scottish Government figures - no separate World Bank economy).</li>
         </ul>
       </Section>
 
@@ -159,8 +159,10 @@ export default function MethodologyPage() {
           FIFA ranking and Elo rating are <strong>source-backed</strong> from
           supplied 11 Jun 2026 snapshots, and the structural prior (GDP and
           population) is now <strong>source-backed for 46 teams</strong> from the
-          World Bank World Development Indicators (2024) - England and Scotland
-          stay manual, as they have no separate World Bank economy. The remaining
+          World Bank World Development Indicators (2024); England and Scotland are
+          <strong>official-derived</strong> from ONS / Scottish Government figures
+          (they have no separate World Bank economy), which is why the family stays
+          <strong>candidate</strong> overall. The remaining
           numeric inputs (squad quality, form and climate familiarity) are
           realistic but hand-authored <strong>placeholder</strong> values, and the
           knockout bracket mapping is still illustrative. Each is structured to be

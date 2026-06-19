@@ -222,6 +222,23 @@ A roadmap from the foundation to a richer product. Each item lists the
   never dominant). `fixtureSource` remains `official`. See
   `docs/STRUCTURAL_ECONOMIC_SNAPSHOT_AUDIT.md`.
 
+## Done in phase 1.12.1 (UK constituent structural completion)
+
+- Replaced the England + Scotland hand-authored `manual` structural rows with
+  **`official-derived`** 2024 values from a user-supplied model-ready USD workbook
+  (sheet `Model Ready USD`, 2024 row only) built on ONS / Scottish-Government
+  official statistics + documented FX (annual average GBP/USD) and a 2024 bridge
+  estimate. **Not** World Bank rows; **not** parent-mapped to the UK.
+- Added the row-level `official-derived` `mappingStatus` (smallest clean type
+  change). Now: 46 `source-backed` (World Bank) + 2 `official-derived` (England/
+  Scotland) + **0 plain `manual`**. The family status stays **`candidate`** (mixed
+  source method + 2024 bridge estimates differ from the WB national-economy method).
+- GDP unit fix: workbook GDP is **US$m**, stored as full USD (England
+  3,127,885,000,000; Scotland 267,379,000,000). `validateStructuralSnapshot` +
+  focused tests updated. No model weights changed; Elo/FIFA snapshots, the 46 World
+  Bank rows, placeholders and `fixtureSource` (`official`) all unchanged. Workbook
+  not committed.
+
 ## Phase 2 - Verified data
 
 - Obtain official FIFA group/fixture/venue data (or authoritative JSON);
