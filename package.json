@@ -10,7 +10,8 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "scan:unicode": "node scripts/scan-unicode.mjs"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.0",

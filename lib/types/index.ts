@@ -24,6 +24,17 @@ export type {
   ClimateSuitabilityRow,
   ModelInputValidationResult,
 } from "./model-inputs";
+export type {
+  VenueGeoStatus,
+  VenueGeoSource,
+  VenueGeoRow,
+  VenueGeoValidationResult,
+  ItineraryStop,
+  TeamItinerary,
+  ItineraryMetrics,
+  DeferredContextSubMetric,
+  TournamentContextScore,
+} from "./tournament-context";
 
 export type SourceStatus = "mock" | "candidate" | "verified";
 
