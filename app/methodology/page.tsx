@@ -45,7 +45,7 @@ export default function MethodologyPage() {
           into win, draw and loss probabilities.
         </p>
         <ul className="ml-5 list-disc space-y-1">
-          <li><strong>Elo rating</strong> - overall strength (the anchor, weight {MODEL_WEIGHTS.elo}x). Status: {MODEL_INPUT_SOURCES.eloRating.status}.</li>
+          <li><strong>Elo rating</strong> - overall strength (the anchor, weight {MODEL_WEIGHTS.elo}x). Status: {MODEL_INPUT_SOURCES.eloRating.status} (World Football Elo snapshot, {MODEL_INPUT_SOURCES.eloRating.sourceDate}; published values, not recalculated).</li>
           <li><strong>FIFA ranking</strong> - {MODEL_WEIGHTS.fifaRankingPerPlace} pts per place, capped at {MODEL_WEIGHTS.fifaRankingCap}. Status: {MODEL_INPUT_SOURCES.fifaRanking.status} (supplied FIFA snapshot, {MODEL_INPUT_SOURCES.fifaRanking.sourceDate}).</li>
           <li><strong>Squad quality</strong> - {MODEL_WEIGHTS.squadQuality} pts per quality point. Status: {MODEL_INPUT_SOURCES.squadQuality.status} (capped).</li>
           <li><strong>Recent form</strong> - {MODEL_WEIGHTS.recentForm} pts per form point. Status: {MODEL_INPUT_SOURCES.recentForm.status} (capped).</li>
@@ -63,9 +63,10 @@ export default function MethodologyPage() {
           {" "}(transcribed from a supplied citable snapshot), <em>candidate</em>
           {" "}(derived from cross-verified identity), <em>manual</em>
           {" "}(hand-authored directional estimate, no source yet) and{" "}
-          <em>placeholder</em> (filler). Today every strength <em>value</em> is
-          hand-authored - nothing is claimed source-backed until an authoritative
-          snapshot is supplied and validated.
+          <em>placeholder</em> (filler). The two strongest drivers - Elo rating
+          and FIFA ranking - are now <em>source-backed</em> from supplied,
+          validated 11 Jun 2026 snapshots; the remaining families are honestly
+          labelled and a value is never claimed source-backed without a citation.
         </p>
         <p>
           So low-confidence <strong>placeholder</strong> families cannot silently
@@ -74,8 +75,8 @@ export default function MethodologyPage() {
           and all placeholder families combined are capped at{" "}
           <strong>+/-{TOTAL_PLACEHOLDER_CONTRIBUTION_CAP}</strong>. Squad quality,
           recent form and climate familiarity are placeholders today, so their
-          influence is limited; the Elo anchor and FIFA ranking are hand-authored
-          (manual) estimates that keep their full weight. Capped contributions are
+          influence is limited; the Elo anchor and FIFA ranking are now
+          source-backed and keep their full weight. Capped contributions are
           labelled in each match&apos;s driver explanation.
         </p>
       </Section>
@@ -155,12 +156,12 @@ export default function MethodologyPage() {
 
       <Section title="What is placeholder data">
         <p>
-          Everything numeric in the team data is a realistic but{" "}
-          <strong>mock</strong> placeholder: FIFA rankings, Elo, GDP per capita,
-          population, squad quality, form and climate familiarity. The fixture
-          schedule, venue assignments and the knockout bracket mapping are also
-          illustrative. Each is structured to be swapped for a real data source
-          without touching the model or UI.
+          FIFA ranking and Elo rating are <strong>source-backed</strong> from
+          supplied 11 Jun 2026 snapshots; the remaining numeric inputs (GDP per
+          capita, population, squad quality, form and climate familiarity) are
+          realistic but hand-authored <strong>placeholder/manual</strong> values.
+          The knockout bracket mapping is still illustrative. Each is structured
+          to be swapped for a real data source without touching the model or UI.
         </p>
       </Section>
 

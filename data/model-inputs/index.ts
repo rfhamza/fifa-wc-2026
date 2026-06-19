@@ -6,6 +6,7 @@ import type {
 import { MODEL_INPUT_SOURCES } from "./sources";
 import { modelInputSnapshot } from "./team-inputs";
 import { fifaRankingSnapshot } from "./snapshots/fifa-ranking-2026-06-11";
+import { eloRatingSnapshot } from "./snapshots/elo-rating-2026-06-11";
 
 /**
  * Phase 1.7 - assembled MODEL-INPUT LAYER.
@@ -29,10 +30,16 @@ export function getFeatureStatus(family: ModelFeatureFamily): ModelInputStatus {
 }
 
 const FIFA_BY_TEAM = new Map(fifaRankingSnapshot.map((r) => [r.teamId, r]));
+const ELO_BY_TEAM = new Map(eloRatingSnapshot.map((r) => [r.teamId, r]));
 
 /** Source-backed FIFA ranking row for a team (Phase 1.8), if present. */
 export function getFifaRanking(teamId: string) {
   return FIFA_BY_TEAM.get(teamId);
+}
+
+/** Source-backed Elo rating row for a team (Phase 1.10), if present. */
+export function getEloRating(teamId: string) {
+  return ELO_BY_TEAM.get(teamId);
 }
 
 export { MODEL_INPUT_SOURCES } from "./sources";
@@ -42,3 +49,8 @@ export {
   FIFA_RANKING_SOURCE,
   FIFA_NAME_TO_ID,
 } from "./snapshots/fifa-ranking-2026-06-11";
+export {
+  eloRatingSnapshot,
+  ELO_RATING_SOURCE,
+  ELO_NAME_TO_ID,
+} from "./snapshots/elo-rating-2026-06-11";

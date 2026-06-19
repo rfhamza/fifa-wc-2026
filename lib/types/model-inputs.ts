@@ -57,6 +57,8 @@ export interface ModelInputSource {
 export interface TeamModelInputs {
   teamId: string;
   eloRating: number;
+  /** Elo global rank (source-backed snapshot; carried for explainability). May tie. */
+  eloRank?: number;
   fifaRanking: number;
   /** FIFA ranking points (source-backed snapshot; carried for explainability). */
   fifaRankingPoints?: number;
@@ -65,6 +67,16 @@ export interface TeamModelInputs {
   recentForm: number;
   squadQuality: number;
   climateFamiliarity: number;
+}
+
+/** One row of a transcribed World Football Elo ratings snapshot (Phase 1.10). */
+export interface EloRatingRow {
+  teamId: string;
+  /** Source display name as printed (e.g. "Czech Republic", "Dem. Rep. of Congo"). */
+  eloNameRaw: string;
+  /** Global Elo rank (may tie across teams with equal ratings). */
+  eloRank: number;
+  eloRating: number;
 }
 
 /** One row of a transcribed FIFA ranking snapshot (Phase 1.8). */

@@ -27,10 +27,10 @@ import type { ModelInputStatus, TeamFeatureSet } from "@/lib/types";
  * Phase 1.9 - Frozen pre-tournament forecast BEHAVIOUR AUDIT (QA only).
  *
  * Deterministic invariant checks over the frozen pre-tournament baseline (the
- * 11 Jun 2026 FIFA snapshot + manual Elo + the official schedule). Tests assert
- * INVARIANTS ONLY - never exact probabilities or ordering - so a harmless future
- * model-input change cannot make them fail. Real numbers live in the generated
- * docs/FORECAST_BEHAVIOR_AUDIT.md (run with WRITE_FORECAST_AUDIT=1).
+ * 11 Jun 2026 source-backed FIFA ranking + Elo snapshots + the official schedule).
+ * Tests assert INVARIANTS ONLY - never exact probabilities or ordering - so a
+ * harmless future model-input change cannot make them fail. Real numbers live in
+ * the generated docs/FORECAST_BEHAVIOR_AUDIT.md (run with WRITE_FORECAST_AUDIT=1).
  *
  * No model/weights/data changes; nothing here uses the current system date,
  * updated rankings, or completed match results.
@@ -212,12 +212,12 @@ describe("forecast behaviour audit - placeholder caps bind", () => {
 });
 
 describe("forecast behaviour audit - provenance disclosure", () => {
-  it("FIFA-ranking driver is source-backed; Elo driver is manual", () => {
+  it("FIFA-ranking and Elo drivers are both source-backed", () => {
     const drivers = computeDrivers(buildFeatureSet(getTeam("argentina")), buildFeatureSet(getTeam("new-zealand")));
     expect(drivers.find((d) => d.family === "fifaRanking")?.status).toBe("source-backed");
-    expect(drivers.find((d) => d.family === "eloRating")?.status).toBe("manual");
+    expect(drivers.find((d) => d.family === "eloRating")?.status).toBe("source-backed");
     expect(getFeatureStatus("fifaRanking")).toBe("source-backed");
-    expect(getFeatureStatus("eloRating")).toBe("manual");
+    expect(getFeatureStatus("eloRating")).toBe("source-backed");
   });
 
   it("the resolver still serves the official schedule", () => {
@@ -308,7 +308,7 @@ describe("forecast behaviour audit - doc generation", () => {
       }),
     );
 
-    const md = `# Forecast Behaviour Audit (Phase 1.9)
+    const md = `# Forecast Behaviour Audit (Phase 1.9, extended in Phase 1.10)
 
 > **${LABEL}**
 >
@@ -319,10 +319,10 @@ describe("forecast behaviour audit - doc generation", () => {
 ## 1. Scope - baseline vs live model
 
 - **Baseline model (this audit):** uses information available at tournament start -
-  the **11 Jun 2026** source-backed FIFA ranking snapshot, manual Elo, manual
+  the **11 Jun 2026** source-backed FIFA ranking + Elo rating snapshots, manual
   structural priors, capped placeholders, and the official schedule.
 - **Live model (future phase):** will ingest completed match results and update
-  standings / conditional probabilities. **Not** part of Phase 1.9.
+  standings / conditional probabilities. **Not** part of this baseline audit.
 
 Deterministic seed \`${SEED}\`, ${ITERATIONS} iterations (Monte Carlo). Re-running
 with the same seed yields identical probabilities (asserted in
@@ -333,8 +333,8 @@ omitted (audit must not depend on the current date).
 
 | Family | Status | In model |
 |---|---|---|
+| Elo rating | **source-backed** (11 Jun 2026 snapshot) | anchor (weight 1.0) |
 | FIFA ranking | **source-backed** (11 Jun 2026 snapshot) | rank driver (cap +/-90) |
-| Elo rating | manual | anchor (weight 1.0) |
 | Structural (GDP+pop) | manual | weak prior (<=10) |
 | Squad quality / Recent form / Climate | placeholder | **weight-capped** |
 | Host / Regional / Manager | verified / candidate | structural flags |
@@ -388,23 +388,28 @@ ${absRows}
 - Match W/D/L sums to ~1; group-winner P(win) per group sums to ~1.
 - Placeholder caps bind: max placeholder net magnitude over all fixtures =
   ${round(placeholderMax, 1)} pts (<= ${TOTAL_PLACEHOLDER_CONTRIBUTION_CAP}).
-- FIFA-ranking driver is \`source-backed\`; Elo driver is \`manual\`; \`fixtureSource === "official"\`.
+- Elo and FIFA-ranking drivers are both \`source-backed\`; \`fixtureSource === "official"\`.
 
-## 6. Finding - manual Elo dominates source-backed FIFA ranking
+## 6. Finding - the forecast is now anchored by a source-backed input
 
-Method B shows **manual** contribution magnitude greatly exceeds **source-backed**
-(FIFA ranking is capped at +/-90 while Elo spans hundreds of Elo-equivalent pts).
-The forecast is therefore anchored by a **manual** input, not the source-backed
-one. This is expected given current weights and is **not a defect**, but it means
-source-backed FIFA ranking has limited influence today.
+Method B shows **source-backed** contribution magnitude now dominates: with Elo
+promoted to source-backed (Phase 1.10), both the high-influence Elo anchor and the
+capped FIFA-ranking driver come from cited 11 Jun 2026 snapshots, while **manual**
+shrinks to the weak structural prior only. The forecast is therefore anchored by a
+**source-backed** input - a provenance/credibility improvement over the Phase 1.9
+baseline, where manual Elo dominated. This is a status-mix shift only: **no model
+weights were changed**, so the relative magnitude of Elo vs FIFA ranking is
+unchanged (Elo still spans hundreds of Elo-equivalent pts while FIFA ranking is
+capped at +/-90). That Elo still out-influences FIFA ranking is a **modelling /
+calibration consideration, not a defect**.
 
 ## 7. Recommendation
 
 Probabilities are sane, finite, deterministic, explainable, and not silently
-distorted (placeholders are capped and disclosed). **Before ingesting Elo**, run a
-**separate calibration phase** to decide how the manual Elo anchor and the
-source-backed FIFA ranking should be balanced (and how a future source-backed Elo
-snapshot should be weighted) - rather than letting a manual input dominate. No
+distorted (placeholders are capped and disclosed). The main inputs are now
+source-backed. The remaining open item is **calibration**: run a separate phase to
+decide how the (now source-backed) Elo anchor and the source-backed FIFA ranking
+should be balanced, rather than letting one input dominate by construction. No
 model weights were changed in this phase.
 
 ---

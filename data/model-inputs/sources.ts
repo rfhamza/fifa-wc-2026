@@ -1,5 +1,6 @@
 import type { ModelFeatureFamily, ModelInputSource } from "@/lib/types";
 import { FIFA_RANKING_SOURCE } from "./snapshots/fifa-ranking-2026-06-11";
+import { ELO_RATING_SOURCE } from "./snapshots/elo-rating-2026-06-11";
 
 /**
  * Phase 1.7 - model-input SOURCE REGISTRY (per feature family).
@@ -16,14 +17,8 @@ import { FIFA_RANKING_SOURCE } from "./snapshots/fifa-ranking-2026-06-11";
  * (PLACEHOLDER_CONTRIBUTION_CAP + TOTAL_PLACEHOLDER_CONTRIBUTION_CAP).
  */
 export const MODEL_INPUT_SOURCES: Record<ModelFeatureFamily, ModelInputSource> = {
-  eloRating: {
-    family: "eloRating",
-    label: "Elo rating",
-    sourceName: "Hand-authored directional estimate",
-    status: "manual",
-    notes:
-      "Model anchor. Hand-set to be directionally realistic; promote to source-backed when an Elo snapshot (e.g. eloratings.net) is supplied.",
-  },
+  // Phase 1.10: promoted to source-backed from the supplied 11 Jun 2026 Elo snapshot.
+  eloRating: ELO_RATING_SOURCE,
   // Phase 1.8: promoted to source-backed from the supplied FIFA ranking snapshot.
   fifaRanking: FIFA_RANKING_SOURCE,
   structural: {

@@ -89,9 +89,10 @@ describe("FIFA ranking - model integration", () => {
     expect(fifa!.capped).toBeFalsy();
   });
 
-  it("only fifaRanking was promoted; other families unchanged", () => {
+  it("fifaRanking + eloRating are source-backed; placeholders/structural unchanged", () => {
     expect(getFeatureStatus("fifaRanking")).toBe("source-backed");
-    expect(getFeatureStatus("eloRating")).toBe("manual");
+    // Elo promoted to source-backed in Phase 1.10.
+    expect(getFeatureStatus("eloRating")).toBe("source-backed");
     expect(getFeatureStatus("structural")).toBe("manual");
     expect(getFeatureStatus("squadQuality")).toBe("placeholder");
     expect(getFeatureStatus("recentForm")).toBe("placeholder");
