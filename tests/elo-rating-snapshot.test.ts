@@ -134,7 +134,8 @@ describe("Elo rating - model integration", () => {
     expect(getFeatureStatus("structural")).toBe("candidate");
     expect(getFeatureStatus("squadQuality")).toBe("placeholder");
     expect(getFeatureStatus("recentForm")).toBe("placeholder");
-    expect(getFeatureStatus("climateFamiliarity")).toBe("placeholder");
+    // Phase 1.13 promoted climate placeholder -> candidate.
+    expect(getFeatureStatus("climateFamiliarity")).toBe("candidate");
   });
 
   it("probabilities remain finite and the resolver stays official", async () => {

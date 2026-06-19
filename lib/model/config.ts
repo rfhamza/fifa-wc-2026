@@ -57,6 +57,17 @@ export type ModelWeights = { -readonly [K in keyof typeof MODEL_WEIGHTS]: number
 export const PLACEHOLDER_CONTRIBUTION_CAP = 25;
 export const TOTAL_PLACEHOLDER_CONTRIBUTION_CAP = 40;
 
+/**
+ * Phase 1.13 - climate driver cap (Elo-equivalent points).
+ *
+ * The climate-suitability score is `candidate` (a documented home-climate
+ * playability heuristic, calibration deferred), NOT source-backed - so even though
+ * it is no longer `placeholder` it must stay a weak, bounded signal. Its driver is
+ * explicitly clamped to +/- this cap in lib/model/predict.ts. The model weight is
+ * unchanged; this cap keeps a single experimental prior from ever dominating.
+ */
+export const CLIMATE_CONTRIBUTION_CAP = 25;
+
 export const SCORELINE_CONFIG = {
   /** League-average total goals per match (Poisson baseline). */
   baseTotalGoals: 2.6,

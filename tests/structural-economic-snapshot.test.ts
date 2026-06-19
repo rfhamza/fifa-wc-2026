@@ -233,7 +233,8 @@ describe("structural/economic - model integration", () => {
     expect(getFeatureStatus("fifaRanking")).toBe("source-backed");
     expect(getFeatureStatus("squadQuality")).toBe("placeholder");
     expect(getFeatureStatus("recentForm")).toBe("placeholder");
-    expect(getFeatureStatus("climateFamiliarity")).toBe("placeholder");
+    // Phase 1.13 promoted climate placeholder -> candidate (still capped).
+    expect(getFeatureStatus("climateFamiliarity")).toBe("candidate");
   });
 
   it("probabilities remain finite and the resolver stays official", async () => {

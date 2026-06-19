@@ -21,6 +21,7 @@ export type {
   FifaRankingRow,
   EloRatingRow,
   StructuralEconomicRow,
+  ClimateSuitabilityRow,
   ModelInputValidationResult,
 } from "./model-inputs";
 

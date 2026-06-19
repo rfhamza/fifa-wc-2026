@@ -97,7 +97,8 @@ describe("FIFA ranking - model integration", () => {
     expect(getFeatureStatus("structural")).toBe("candidate");
     expect(getFeatureStatus("squadQuality")).toBe("placeholder");
     expect(getFeatureStatus("recentForm")).toBe("placeholder");
-    expect(getFeatureStatus("climateFamiliarity")).toBe("placeholder");
+    // Climate promoted to a mixed `candidate` family in Phase 1.13 (CCKP/Met Office).
+    expect(getFeatureStatus("climateFamiliarity")).toBe("candidate");
   });
 
   it("probabilities remain finite and the resolver stays official", async () => {
