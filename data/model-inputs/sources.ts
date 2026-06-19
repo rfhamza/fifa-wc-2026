@@ -2,6 +2,7 @@ import type { ModelFeatureFamily, ModelInputSource } from "@/lib/types";
 import { FIFA_RANKING_SOURCE } from "./snapshots/fifa-ranking-2026-06-11";
 import { ELO_RATING_SOURCE } from "./snapshots/elo-rating-2026-06-11";
 import { STRUCTURAL_ECONOMIC_SOURCE } from "./snapshots/structural-economic-2024";
+import { CLIMATE_SUITABILITY_SOURCE } from "./snapshots/climate-suitability-1991-2020";
 
 /**
  * Phase 1.7 - model-input SOURCE REGISTRY (per feature family).
@@ -42,14 +43,13 @@ export const MODEL_INPUT_SOURCES: Record<ModelFeatureFamily, ModelInputSource> =
     notes:
       "Not source-backed (no results feed). Weight-capped until a rolling-results snapshot is supplied.",
   },
-  climateFamiliarity: {
-    family: "climateFamiliarity",
-    label: "Climate familiarity",
-    sourceName: "Placeholder",
-    status: "placeholder",
-    notes:
-      "Not source-backed. Could later be derived from official venue climate vs team home region. Weight-capped for now.",
-  },
+  // Phase 1.13: promoted to a MIXED `candidate` family from home-country 1991-2020
+  // climate normals - 46 economies source-backed (World Bank Climate Knowledge
+  // Portal, CRU TS4.09); England/Scotland official-derived (Met Office / HadUK-Grid),
+  // never CCKP GBR. The DERIVED 12-month playability score is a candidate heuristic
+  // and the driver is capped (CLIMATE_CONTRIBUTION_CAP). See
+  // snapshots/climate-suitability-1991-2020.ts.
+  climateFamiliarity: CLIMATE_SUITABILITY_SOURCE,
   hostAdvantage: {
     family: "hostAdvantage",
     label: "Host advantage",

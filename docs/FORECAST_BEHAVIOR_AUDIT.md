@@ -28,11 +28,14 @@ omitted (audit must not depend on the current date).
 | Elo rating | **source-backed** (11 Jun 2026 snapshot) | anchor (weight 1.0) |
 | FIFA ranking | **source-backed** (11 Jun 2026 snapshot) | rank driver (cap +/-90) |
 | Structural (GDP+pop) | candidate (46 World Bank source-backed; England/Scotland official-derived ONS/SG) | weak prior (<=10) |
-| Squad quality / Recent form / Climate | placeholder | **weight-capped** |
+| Climate suitability | candidate (46 CCKP 1991-2020 source-backed; England/Scotland official-derived Met Office) | weak prior, **capped +/-25** |
+| Squad quality / Recent form | placeholder | **weight-capped** |
 | Host / Regional / Manager | verified / candidate | structural flags |
 
 Placeholder caps: per-driver +/-25, aggregate
-+/-40 Elo-equivalent pts.
++/-40 Elo-equivalent pts. The climate
+`candidate` driver is separately capped at +/-25 (a
+documented home-climate playability heuristic, calibration deferred).
 
 ## 3. Top-level probability snapshot
 
@@ -40,58 +43,58 @@ Placeholder caps: per-driver +/-25, aggregate
 
 | # | Team | Title |
 |--:|---|--:|
-| 1 | Spain | 28.3% |
-| 2 | Argentina | 22.1% |
-| 3 | France | 12.7% |
-| 4 | England | 7.3% |
-| 5 | Brazil | 5.4% |
-| 6 | Portugal | 4.5% |
-| 7 | Colombia | 3.4% |
-| 8 | Netherlands | 2.6% |
-| 9 | Mexico | 2.1% |
-| 10 | Germany | 1.9% |
+| 1 | Spain | 29.1% |
+| 2 | Argentina | 23.5% |
+| 3 | France | 13.1% |
+| 4 | Portugal | 5.9% |
+| 5 | England | 5.9% |
+| 6 | Brazil | 4.7% |
+| 7 | Colombia | 3.2% |
+| 8 | Netherlands | 2.5% |
+| 9 | Mexico | 1.8% |
+| 10 | Germany | 1.7% |
 
 **Top 10 reach round-of-16**
 
 | # | Team | Reach R16 |
 |--:|---|--:|
-| 1 | Spain | 83.0% |
-| 2 | France | 79.0% |
-| 3 | Argentina | 75.8% |
-| 4 | England | 72.8% |
-| 5 | Mexico | 71.8% |
-| 6 | Brazil | 66.6% |
-| 7 | Portugal | 66.0% |
+| 1 | Spain | 83.5% |
+| 2 | France | 81.3% |
+| 3 | Argentina | 74.7% |
+| 4 | England | 73.2% |
+| 5 | Mexico | 73.1% |
+| 6 | Portugal | 70.7% |
+| 7 | Brazil | 66.4% |
 | 8 | Belgium | 65.3% |
-| 9 | Switzerland | 62.5% |
-| 10 | Colombia | 61.1% |
+| 9 | Switzerland | 63.7% |
+| 10 | Germany | 61.9% |
 
 **Group-winner probability** (audit-only sim: P(finish 1st), seed `20260611`, 4000
 iters per group; ranks via the production Article-13 standings - this is NOT
 qualifyTop2):
 
 - **Group A:** Mexico 65% · South Korea 24% · Czechia 10% · South Africa 1%
-- **Group B:** Switzerland 56% · Canada 40% · Bosnia & Herzegovina 4% · Qatar 1%
-- **Group C:** Brazil 65% · Morocco 24% · Scotland 10% · Haiti 1%
-- **Group D:** Türkiye 39% · United States 27% · Australia 17% · Paraguay 17%
-- **Group E:** Germany 52% · Ecuador 39% · Ivory Coast 9% · Curaçao 0%
-- **Group F:** Netherlands 55% · Japan 36% · Sweden 6% · Tunisia 3%
-- **Group G:** Belgium 58% · Iran 25% · Egypt 15% · New Zealand 1%
+- **Group B:** Switzerland 59% · Canada 35% · Bosnia & Herzegovina 5% · Qatar 0%
+- **Group C:** Brazil 64% · Morocco 26% · Scotland 10% · Haiti 1%
+- **Group D:** Türkiye 41% · United States 23% · Australia 18% · Paraguay 18%
+- **Group E:** Germany 52% · Ecuador 41% · Ivory Coast 7% · Curaçao 0%
+- **Group F:** Netherlands 56% · Japan 37% · Sweden 5% · Tunisia 3%
+- **Group G:** Belgium 60% · Iran 25% · Egypt 13% · New Zealand 2%
 - **Group H:** Spain 82% · Uruguay 17% · Cape Verde 1% · Saudi Arabia 0%
-- **Group I:** France 67% · Senegal 17% · Norway 16% · Iraq 0%
-- **Group J:** Argentina 82% · Austria 9% · Algeria 7% · Jordan 2%
-- **Group K:** Portugal 53% · Colombia 42% · Uzbekistan 3% · DR Congo 1%
-- **Group L:** England 62% · Croatia 30% · Panama 7% · Ghana 0%
+- **Group I:** France 68% · Norway 17% · Senegal 15% · Iraq 1%
+- **Group J:** Argentina 85% · Austria 9% · Algeria 5% · Jordan 1%
+- **Group K:** Portugal 55% · Colombia 41% · Uzbekistan 3% · DR Congo 2%
+- **Group L:** England 64% · Croatia 30% · Panama 6% · Ghana 0%
 
 **Sample scheduled matches** (W / D / L for the home side; not played)
 
 | Match | Fixture | Home win / Draw / Away win |
 |---|---|---|
-| M1 | Mexico v South Africa | 86% / 12% / 2% |
-| M5 | Haiti v Scotland | 13% / 21% / 66% |
-| M11 | Netherlands v Japan | 45% / 26% / 29% |
-| M19 | Argentina v Algeria | 77% / 17% / 7% |
-| M21 | Ghana v Panama | 14% / 22% / 64% |
+| M1 | Mexico v South Africa | 85% / 12% / 3% |
+| M5 | Haiti v Scotland | 12% / 21% / 67% |
+| M11 | Netherlands v Japan | 46% / 26% / 28% |
+| M19 | Argentina v Algeria | 79% / 16% / 6% |
+| M21 | Ghana v Panama | 13% / 21% / 66% |
 
 ## 4. Contribution-by-status (two explicitly separate methods)
 
@@ -102,18 +105,18 @@ Mexico v South Africa; Elo-equivalent pts, + favours home):
 |---|--:|
 | source-backed | 434.4 |
 | verified | 60 |
-| candidate | 1.2 |
-| placeholder | 40 |
+| candidate | -3.1 |
+| placeholder | 37 |
 
 **Method B - absolute contribution magnitude, aggregated over all 72 group
 fixtures** (overall influence; sum of |contribution| by status):
 
 | Status | Abs magnitude | Share |
 |---|--:|--:|
-| source-backed | 19683 | 80.8% |
+| source-backed | 19683 | 80.5% |
 | verified | 540 | 2.2% |
-| candidate | 759 | 3.1% |
-| placeholder | 3392 | 13.9% |
+| candidate | 1775 | 7.3% |
+| placeholder | 2464 | 10.1% |
 
 ## 5. Sanity-check results (invariants - all PASS)
 

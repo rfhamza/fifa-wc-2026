@@ -110,6 +110,41 @@ export interface StructuralEconomicRow {
   mappingStatus: "source-backed" | "official-derived" | "manual";
 }
 
+/**
+ * One row of the climate-suitability snapshot (Phase 1.13). Home-country
+ * 1991-2020 monthly climate normals: 46 sovereign economies from the World Bank
+ * Climate Knowledge Portal (CRU TS4.09; `dataStatus` `source-backed`); England +
+ * Scotland from Met Office / HadUK-Grid constituent series (1991-2020 calendar-
+ * month means; `official-derived`) - NOT CCKP `GBR` and NOT parent-mapped to the
+ * United Kingdom. `unresolved` is reserved for an explicitly documented missing
+ * geography (none in this snapshot) and yields a neutral suitability score.
+ *
+ * Raw monthly arrays are the source-backed/official-derived data; the DERIVED
+ * 12-month playability suitability score (lib/model/climate-suitability.ts) is a
+ * documented `candidate` heuristic, not source-backed.
+ */
+export interface ClimateSuitabilityRow {
+  teamId: string;
+  /** Source display name (CCKP economy name, e.g. "Curaçao (Neth.)"; "England"/"Scotland"). */
+  countryNameRaw: string;
+  /** CCKP / ISO3 economy code (e.g. "DEU"); empty string on official-derived/unresolved rows. */
+  climateCode: string;
+  /** Mean air temperature (°C) per calendar month, Jan..Dec (length 12). */
+  monthlyTempC: number[];
+  /** Precipitation (mm/month) per calendar month, Jan..Dec (length 12). */
+  monthlyPrecipMm: number[];
+  /** Climatology baseline period for every value in this snapshot. */
+  baselinePeriod: "1991-2020";
+  /**
+   * Row-level provenance status:
+   * - `source-backed`    = World Bank Climate Knowledge Portal (CRU TS4.09) row;
+   * - `official-derived` = England/Scotland Met Office / HadUK-Grid calendar-month
+   *   means (not CCKP, not parent-mapped to the UK);
+   * - `unresolved`       = documented missing geography; neutral score (none here).
+   */
+  dataStatus: "source-backed" | "official-derived" | "unresolved";
+}
+
 /** One row of a transcribed World Football Elo ratings snapshot (Phase 1.10). */
 export interface EloRatingRow {
   teamId: string;

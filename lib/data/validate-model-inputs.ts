@@ -8,6 +8,7 @@
  * used elsewhere (lib/data/validate.ts).
  */
 import type {
+  ClimateSuitabilityRow,
   EloRatingRow,
   FifaRankingRow,
   ModelFeatureFamily,
@@ -30,11 +31,15 @@ import {
   structuralEconomicSnapshot,
   STRUCTURAL_ECONOMIC_SOURCE,
   STRUCTURAL_NAME_TO_ID,
+  climateSuitabilitySnapshot,
+  CLIMATE_SUITABILITY_SOURCE,
+  CLIMATE_CODE_TO_ID,
 } from "@/data/model-inputs";
 import {
   PLACEHOLDER_CONTRIBUTION_CAP,
   TOTAL_PLACEHOLDER_CONTRIBUTION_CAP,
 } from "@/lib/model/config";
+import { computeClimateSuitability } from "@/lib/model/climate-suitability";
 
 const EXPECTED_TEAMS = 48;
 
@@ -207,7 +212,7 @@ export function validateFifaRankingSnapshot(
     structural: "candidate",
     squadQuality: "placeholder",
     recentForm: "placeholder",
-    climateFamiliarity: "placeholder",
+    climateFamiliarity: "candidate",
   };
   for (const [family, status] of Object.entries(EXPECTED_STATUS)) {
     const actual = MODEL_INPUT_SOURCES[family as ModelFeatureFamily].status;
@@ -290,7 +295,7 @@ export function validateEloSnapshot(
     structural: "candidate",
     squadQuality: "placeholder",
     recentForm: "placeholder",
-    climateFamiliarity: "placeholder",
+    climateFamiliarity: "candidate",
   };
   for (const [family, status] of Object.entries(EXPECTED_STATUS)) {
     const actual = MODEL_INPUT_SOURCES[family as ModelFeatureFamily].status;
@@ -458,7 +463,167 @@ export function validateStructuralSnapshot(
     fifaRanking: "source-backed",
     squadQuality: "placeholder",
     recentForm: "placeholder",
-    climateFamiliarity: "placeholder",
+    climateFamiliarity: "candidate",
+  };
+  for (const [family, status] of Object.entries(EXPECTED_STATUS)) {
+    const actual = MODEL_INPUT_SOURCES[family as ModelFeatureFamily].status;
+    if (actual !== status) errors.push(`family ${family} status changed unexpectedly: ${actual} (expected ${status})`);
+  }
+
+  return { valid: errors.length === 0, errors, warnings };
+}
+
+/**
+ * Phase 1.13 - validate the climate-suitability snapshot.
+ *
+ * MIXED `candidate` family: exactly the 48 teams, one row each; every row carries
+ * length-12 finite monthly temperature (deg C) + precipitation (mm) arrays in sane
+ * ranges, a baseline period of "1991-2020", and a derived suitability score in
+ * [0,1]. 46 rows are `source-backed` (CCKP / ISO3 code maps to the team); England +
+ * Scotland are the ONLY `official-derived` rows (Met Office; empty code, NOT mapped
+ * to GBR); `unresolved` is allowed ONLY for explicitly documented missing
+ * geographies (currently only Curacao if ever needed) and must score exactly 0.5.
+ * Counts are conditional on how many rows are unresolved (U): official-derived === 2
+ * and source-backed === 48 - 2 - U. Source metadata present + family status
+ * `candidate`; and NO other family silently changed status.
+ */
+const EXPECTED_DERIVED_CLIMATE = new Set(["england", "scotland"]);
+const ALLOWED_UNRESOLVED_CLIMATE = new Set(["curacao"]);
+const CLIMATE_TEMP_MIN = -60;
+const CLIMATE_TEMP_MAX = 60;
+const CLIMATE_PRECIP_MIN = 0;
+const CLIMATE_PRECIP_MAX = 2000;
+
+export function validateClimateSnapshot(
+  snapshot: ClimateSuitabilityRow[] = climateSuitabilitySnapshot,
+  teams: Team[] = officialTeams,
+  source: ModelInputSource = CLIMATE_SUITABILITY_SOURCE,
+  codeMap: Record<string, string> = CLIMATE_CODE_TO_ID,
+): ModelInputValidationResult {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+  const teamIds = new Set(teams.map((t) => t.id));
+
+  if (snapshot.length !== EXPECTED_TEAMS) {
+    errors.push(`expected ${EXPECTED_TEAMS} climate rows, got ${snapshot.length}`);
+  }
+
+  const seenTeams = new Set<string>();
+  const sourceBacked = new Set<string>();
+  const derivedTeams = new Set<string>();
+  const unresolvedTeams = new Set<string>();
+
+  const checkArray = (id: string, label: string, arr: number[], min: number, max: number) => {
+    if (!Array.isArray(arr) || arr.length !== 12) {
+      errors.push(`${id}: ${label} must have 12 monthly values, got ${Array.isArray(arr) ? arr.length : typeof arr}`);
+      return;
+    }
+    for (let m = 0; m < 12; m++) {
+      const v = arr[m];
+      if (typeof v !== "number" || !Number.isFinite(v) || v < min || v > max) {
+        errors.push(`${id}: ${label}[${m}] ${String(v)} out of range [${min}, ${max}]`);
+      }
+    }
+  };
+
+  for (const row of snapshot) {
+    if (seenTeams.has(row.teamId)) errors.push(`duplicate climate row for ${row.teamId}`);
+    seenTeams.add(row.teamId);
+    if (!teamIds.has(row.teamId)) errors.push(`climate row team id not in official teams: ${row.teamId}`);
+
+    if (
+      row.dataStatus !== "source-backed" &&
+      row.dataStatus !== "official-derived" &&
+      row.dataStatus !== "unresolved"
+    ) {
+      errors.push(`${row.teamId}: invalid dataStatus "${row.dataStatus}"`);
+    }
+    if (row.baselinePeriod !== "1991-2020") {
+      errors.push(`${row.teamId}: baselinePeriod must be "1991-2020", got "${row.baselinePeriod}"`);
+    }
+
+    checkArray(row.teamId, "monthlyTempC", row.monthlyTempC, CLIMATE_TEMP_MIN, CLIMATE_TEMP_MAX);
+    checkArray(row.teamId, "monthlyPrecipMm", row.monthlyPrecipMm, CLIMATE_PRECIP_MIN, CLIMATE_PRECIP_MAX);
+
+    // Derived suitability score must be bounded 0..1 on every row.
+    const score = computeClimateSuitability(row);
+    if (!Number.isFinite(score) || score < 0 || score > 1) {
+      errors.push(`${row.teamId}: suitability score ${String(score)} out of [0,1]`);
+    }
+
+    if (row.dataStatus === "source-backed") {
+      sourceBacked.add(row.teamId);
+      if (!/^[A-Z]{3}$/.test(row.climateCode)) {
+        errors.push(`${row.teamId}: climateCode "${row.climateCode}" not a 3-letter code`);
+      } else if (codeMap[row.climateCode] !== row.teamId) {
+        errors.push(`${row.teamId}: climateCode "${row.climateCode}" does not map to this id`);
+      }
+    } else if (row.dataStatus === "official-derived") {
+      derivedTeams.add(row.teamId);
+      if (row.climateCode !== "") {
+        errors.push(`${row.teamId}: official-derived row must have empty climateCode (not CCKP/GBR)`);
+      }
+      if (!row.countryNameRaw) {
+        errors.push(`${row.teamId}: official-derived row missing countryNameRaw`);
+      }
+    } else if (row.dataStatus === "unresolved") {
+      unresolvedTeams.add(row.teamId);
+      if (Math.abs(score - 0.5) > 1e-9) {
+        errors.push(`${row.teamId}: unresolved row must score 0.5 (neutral), got ${score}`);
+      }
+    }
+  }
+
+  // Every app team must have exactly one climate row.
+  for (const t of teams) {
+    if (!seenTeams.has(t.id)) errors.push(`missing climate row for team ${t.id}`);
+  }
+
+  // England + Scotland are the ONLY official-derived rows (documented decision).
+  for (const id of derivedTeams) {
+    if (!EXPECTED_DERIVED_CLIMATE.has(id)) {
+      errors.push(`unexpected official-derived climate row: ${id} (only England/Scotland may be)`);
+    }
+  }
+  for (const id of EXPECTED_DERIVED_CLIMATE) {
+    if (!derivedTeams.has(id)) errors.push(`expected ${id} to be an official-derived climate row`);
+  }
+  // Unresolved rows are allowed only for explicitly documented missing geographies.
+  for (const id of unresolvedTeams) {
+    if (!ALLOWED_UNRESOLVED_CLIMATE.has(id)) {
+      errors.push(`unexpected unresolved climate row: ${id} (only documented missing geographies may be unresolved)`);
+    }
+  }
+
+  // Conditional counts (no contradictory assumptions): 2 official-derived, U
+  // unresolved, and source-backed === 48 - 2 - U.
+  const U = unresolvedTeams.size;
+  if (derivedTeams.size !== 2) {
+    errors.push(`expected exactly 2 official-derived climate rows, got ${derivedTeams.size}`);
+  }
+  const expectedSourceBacked = EXPECTED_TEAMS - 2 - U;
+  if (sourceBacked.size !== expectedSourceBacked) {
+    errors.push(`expected ${expectedSourceBacked} source-backed climate rows (48 - 2 - ${U} unresolved), got ${sourceBacked.size}`);
+  }
+
+  // Source metadata present + honestly `candidate` (mixed source-backed + official-derived).
+  if (source.status !== "candidate") {
+    errors.push(`climate source status must be "candidate" (mixed), got "${source.status}"`);
+  }
+  for (const field of ["sourceName", "sourceUrl", "sourceDate"] as const) {
+    if (!source[field]) errors.push(`climate source missing ${field}`);
+  }
+  if (MODEL_INPUT_SOURCES.climateFamiliarity.status !== "candidate") {
+    errors.push("climateFamiliarity family status must be candidate");
+  }
+
+  // Honesty guard: no OTHER family silently changed status.
+  const EXPECTED_STATUS: Partial<Record<ModelFeatureFamily, string>> = {
+    eloRating: "source-backed",
+    fifaRanking: "source-backed",
+    structural: "candidate",
+    squadQuality: "placeholder",
+    recentForm: "placeholder",
   };
   for (const [family, status] of Object.entries(EXPECTED_STATUS)) {
     const actual = MODEL_INPUT_SOURCES[family as ModelFeatureFamily].status;

@@ -9,6 +9,7 @@ import { computeDrivers, expectedGoalsFromAdvantage, predictMatch } from "@/lib/
 import {
   PLACEHOLDER_CONTRIBUTION_CAP,
   TOTAL_PLACEHOLDER_CONTRIBUTION_CAP,
+  CLIMATE_CONTRIBUTION_CAP,
   SIMULATION_CONFIG,
 } from "@/lib/model/config";
 import {
@@ -211,6 +212,32 @@ describe("forecast behaviour audit - placeholder caps bind", () => {
   });
 });
 
+describe("forecast behaviour audit - climate is a capped candidate", () => {
+  it("every climate driver is candidate and clamped to +/- the climate cap", () => {
+    for (const f of allGroupFixtures()) {
+      const drivers = computeDrivers(buildFeatureSet(getTeam(f.homeTeamId)), buildFeatureSet(getTeam(f.awayTeamId)));
+      const climate = drivers.find((d) => d.family === "climateFamiliarity")!;
+      expect(climate.status).toBe("candidate");
+      expect(Math.abs(climate.contribution)).toBeLessThanOrEqual(CLIMATE_CONTRIBUTION_CAP + 1e-9);
+    }
+  });
+
+  it("climate is non-dominant: a small share of total driver magnitude in aggregate", () => {
+    let climateAbs = 0;
+    let totalAbs = 0;
+    for (const f of allGroupFixtures()) {
+      const drivers = computeDrivers(buildFeatureSet(getTeam(f.homeTeamId)), buildFeatureSet(getTeam(f.awayTeamId)));
+      for (const d of drivers) {
+        totalAbs += Math.abs(d.contribution);
+        if (d.family === "climateFamiliarity") climateAbs += Math.abs(d.contribution);
+      }
+    }
+    const share = climateAbs / totalAbs;
+    expect(share).toBeGreaterThanOrEqual(0);
+    expect(share).toBeLessThan(0.2); // a weak prior, never an anchor
+  });
+});
+
 describe("forecast behaviour audit - provenance disclosure", () => {
   it("FIFA-ranking and Elo drivers are both source-backed", () => {
     const drivers = computeDrivers(buildFeatureSet(getTeam("argentina")), buildFeatureSet(getTeam("new-zealand")));
@@ -338,11 +365,14 @@ omitted (audit must not depend on the current date).
 | Elo rating | **source-backed** (11 Jun 2026 snapshot) | anchor (weight 1.0) |
 | FIFA ranking | **source-backed** (11 Jun 2026 snapshot) | rank driver (cap +/-90) |
 | Structural (GDP+pop) | candidate (46 World Bank source-backed; England/Scotland official-derived ONS/SG) | weak prior (<=10) |
-| Squad quality / Recent form / Climate | placeholder | **weight-capped** |
+| Climate suitability | candidate (46 CCKP 1991-2020 source-backed; England/Scotland official-derived Met Office) | weak prior, **capped +/-${CLIMATE_CONTRIBUTION_CAP}** |
+| Squad quality / Recent form | placeholder | **weight-capped** |
 | Host / Regional / Manager | verified / candidate | structural flags |
 
 Placeholder caps: per-driver +/-${PLACEHOLDER_CONTRIBUTION_CAP}, aggregate
-+/-${TOTAL_PLACEHOLDER_CONTRIBUTION_CAP} Elo-equivalent pts.
++/-${TOTAL_PLACEHOLDER_CONTRIBUTION_CAP} Elo-equivalent pts. The climate
+\`candidate\` driver is separately capped at +/-${CLIMATE_CONTRIBUTION_CAP} (a
+documented home-climate playability heuristic, calibration deferred).
 
 ## 3. Top-level probability snapshot
 

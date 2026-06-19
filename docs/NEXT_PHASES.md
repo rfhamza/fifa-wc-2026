@@ -239,6 +239,32 @@ A roadmap from the foundation to a richer product. Each item lists the
   Bank rows, placeholders and `fixtureSource` (`official`) all unchanged. Workbook
   not committed.
 
+## Done in phase 1.13 (climate suitability promoted to candidate - CCKP + Met Office)
+
+- Promoted `climateFamiliarity` from `placeholder` to a mixed **`candidate`** family
+  backed by a new climate-suitability snapshot of home-country **1991-2020 monthly
+  normals**: 46 economies **`source-backed`** from the World Bank **Climate Knowledge
+  Portal** (CRU TS4.09; mean temperature + precipitation, incl. Curaçao/CUW),
+  England + Scotland **`official-derived`** from **Met Office / HadUK-Grid**
+  constituent series (calendar-month means over 1991-2020). **Not** CCKP `GBR`;
+  **not** parent-mapped to the UK. Split: **46 `source-backed` + 2 `official-derived`
+  + 0 `unresolved`** = 48.
+- Snapshot is **generated** (`scripts/generate-climate-snapshot.py`) from the supplied
+  CCKP `.xlsx` + Met Office `.txt`, never hand-transcribed; raw exports not committed.
+  CRU blank arid-month precipitation (e.g. Qatar Jun-Sep) is stored as `0.0` mm
+  (documented; score-neutral).
+- Derived signal: a **12-month year-round playability** suitability score
+  (`lib/model/climate-suitability.ts`), 0..1 - ideal band 10-24 °C, cold floor 0 °C,
+  heat ceiling 32 °C, excessive-rain penalty ramping 250->500 mm capped at 0.15
+  (temperature dominates). Documented candidate heuristic; calibration deferred. This
+  is **not** a tournament-acclimatisation score (no June-July window, venue, travel,
+  altitude, humidity - deferred to a later tournament-context phase).
+- Generalised the driver cap (`predict.ts`): no longer keyed off `placeholder` alone,
+  so the climate `candidate` stays explicitly capped at **+/-25** (`CLIMATE_CONTRIBUTION_CAP`);
+  the aggregate placeholder cap stays placeholder-only. **No model weights changed**;
+  Elo/FIFA remain source-backed anchors. New `validateClimateSnapshot` + climate
+  snapshot/score tests; forecast + sensitivity audits regenerated.
+
 ## Phase 2 - Verified data
 
 - Obtain official FIFA group/fixture/venue data (or authoritative JSON);

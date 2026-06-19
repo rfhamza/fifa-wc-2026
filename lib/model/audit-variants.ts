@@ -80,8 +80,8 @@ export const AUDIT_VARIANTS: ModelVariant[] = [
   },
   {
     id: "no-placeholders",
-    label: "No placeholder inputs",
-    note: "Zeroes squad quality / recent form / climate (the capped placeholders).",
+    label: "No placeholder/capped inputs",
+    note: "Zeroes squad quality / recent form (capped placeholders) and the capped climate candidate (Phase 1.13).",
     weights: withOverrides({ squadQuality: 0, recentForm: 0, climate: 0 }),
   },
   {

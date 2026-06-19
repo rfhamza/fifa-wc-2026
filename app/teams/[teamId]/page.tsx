@@ -14,7 +14,9 @@ import {
   getFifaRanking,
   getEloRating,
   getStructuralEconomic,
+  getClimateSuitability,
 } from "@/data/model-inputs";
+import { climateSuitabilityTo100 } from "@/lib/model/climate-suitability";
 import { StageFunnelChart } from "@/components/charts/stage-funnel-chart";
 import { ProbabilityBar } from "@/components/charts/probability-bar";
 import { teams, teamById, getTeam, getVenue, getFixturesForTeam } from "@/lib/data";
@@ -39,7 +41,7 @@ export default function TeamPage({ params }: { params: { teamId: string } }) {
   const elo = getEloRating(team.id);
   const struct = getStructuralEconomic(team.id);
   // Row-level structural provenance: World Bank source-backed rows show the data
-  // year; England/Scotland are honestly flagged manual (no separate WB economy).
+  // year; England/Scotland are official-derived (no separate WB economy).
   const gdpPerCapita = struct?.gdpPerCapitaCurrentUsd ?? team.gdpPerCapita;
   const population = struct?.population ?? team.population;
   const structuralHint =
@@ -48,6 +50,19 @@ export default function TeamPage({ params }: { params: { teamId: string } }) {
       : struct?.mappingStatus === "official-derived"
         ? `official-derived - ONS/Scottish Gov ${struct.populationYear}`
         : "manual";
+
+  // Phase 1.13: climate familiarity is now a candidate 12-month playability score
+  // (CCKP 1991-2020; England/Scotland Met Office), capped in the model.
+  const climate = getClimateSuitability(team.id);
+  const climateScore = climate
+    ? Math.round(climateSuitabilityTo100(climate))
+    : team.climateFamiliarity;
+  const climateHint =
+    climate?.dataStatus === "source-backed"
+      ? "candidate - CCKP 1991-2020 (capped)"
+      : climate?.dataStatus === "official-derived"
+        ? "candidate - Met Office 1991-2020 (capped)"
+        : `${MODEL_INPUT_SOURCES.climateFamiliarity.status} - capped`;
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -96,7 +111,7 @@ export default function TeamPage({ params }: { params: { teamId: string } }) {
         />
         <StatTile label="Squad quality" value={`${team.squadQuality}/100`} hint={`${MODEL_INPUT_SOURCES.squadQuality.status} - capped`} />
         <StatTile label="Recent form" value={`${team.recentForm}/100`} hint={`${MODEL_INPUT_SOURCES.recentForm.status} - capped`} />
-        <StatTile label="Climate familiarity" value={`${team.climateFamiliarity}/100`} hint={`${MODEL_INPUT_SOURCES.climateFamiliarity.status} - capped`} />
+        <StatTile label="Climate familiarity" value={`${climateScore}/100`} hint={climateHint} />
         <StatTile
           label="GDP per capita"
           value={`$${(gdpPerCapita / 1000).toFixed(1)}k`}
@@ -139,22 +154,23 @@ export default function TeamPage({ params }: { params: { teamId: string } }) {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <ThermometerSun className="h-4 w-4 text-accent" /> Acclimatization signal
+              <ThermometerSun className="h-4 w-4 text-accent" /> Home climate suitability
             </CardTitle>
             <CardDescription>
-              How well the squad is expected to cope with North American summer
-              venues (heat, humidity, altitude).
+              Year-round football-playability of the home climate (1991-2020 monthly
+              normals). A candidate prior, capped in the model - not a
+              tournament-acclimatization score.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Climate familiarity</span>
-              <span className="font-semibold">{team.climateFamiliarity}/100</span>
+              <span className="text-muted-foreground">Climate suitability</span>
+              <span className="font-semibold">{climateScore}/100</span>
             </div>
             <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
               <div
                 className="h-full rounded-full bg-accent"
-                style={{ width: `${team.climateFamiliarity}%` }}
+                style={{ width: `${climateScore}%` }}
               />
             </div>
           </CardContent>

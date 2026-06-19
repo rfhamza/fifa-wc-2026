@@ -25,28 +25,48 @@ import {
   SCORELINE_CONFIG,
   PLACEHOLDER_CONTRIBUTION_CAP,
   TOTAL_PLACEHOLDER_CONTRIBUTION_CAP,
+  CLIMATE_CONTRIBUTION_CAP,
   type ModelWeights,
 } from "./config";
 import { buildFeatureSet } from "./features";
 import { getFeatureStatus } from "@/data/model-inputs";
+import type { ModelFeatureFamily, ModelInputStatus } from "@/lib/types";
 
 /** Coerce non-finite contributions to 0 so a missing input never yields NaN. */
 const finite = (x: number): number => (Number.isFinite(x) ? x : 0);
 
 /**
- * Apply the Phase 1.7 placeholder-weight caps: tag every driver with its family
- * status, clamp each `placeholder` driver to +/- PLACEHOLDER_CONTRIBUTION_CAP,
- * then scale all placeholder drivers down together if their combined magnitude
- * exceeds TOTAL_PLACEHOLDER_CONTRIBUTION_CAP. Deterministic; manual/candidate/
- * source-backed/verified families are never capped.
+ * Per-driver contribution cap (Elo-equivalent pts), or `undefined` if uncapped.
+ * Generalised in Phase 1.13 so the cap is no longer keyed off `placeholder` alone:
+ *  - every `placeholder` family is clamped to +/- PLACEHOLDER_CONTRIBUTION_CAP;
+ *  - the climate family is a documented `candidate` heuristic and is clamped to
+ *    +/- CLIMATE_CONTRIBUTION_CAP even though it is no longer placeholder.
+ * Other source-backed/verified/candidate families remain uncapped.
+ */
+function contributionCapFor(
+  family: ModelFeatureFamily | undefined,
+  status: ModelInputStatus | undefined,
+): number | undefined {
+  if (status === "placeholder") return PLACEHOLDER_CONTRIBUTION_CAP;
+  if (family === "climateFamiliarity") return CLIMATE_CONTRIBUTION_CAP;
+  return undefined;
+}
+
+/**
+ * Tag every driver with its family status and apply the per-driver contribution
+ * caps (placeholder families + the capped climate `candidate`), then scale all
+ * `placeholder` drivers down together if their combined magnitude exceeds
+ * TOTAL_PLACEHOLDER_CONTRIBUTION_CAP. Deterministic. The aggregate cap stays
+ * placeholder-only (climate is bounded individually, not pooled here).
  */
 function applyInputStatusAndCaps(drivers: ModelDriver[]): ModelDriver[] {
   const tagged = drivers.map((d) => {
     const status = d.family ? getFeatureStatus(d.family) : undefined;
     let contribution = finite(d.contribution);
     let capped = false;
-    if (status === "placeholder" && Math.abs(contribution) > PLACEHOLDER_CONTRIBUTION_CAP) {
-      contribution = clamp(contribution, -PLACEHOLDER_CONTRIBUTION_CAP, PLACEHOLDER_CONTRIBUTION_CAP);
+    const cap = contributionCapFor(d.family, status);
+    if (cap !== undefined && Math.abs(contribution) > cap) {
+      contribution = clamp(contribution, -cap, cap);
       capped = true;
     }
     return { ...d, status, contribution, capped };

@@ -12,6 +12,7 @@ import {
   SIMULATION_CONFIG,
   PLACEHOLDER_CONTRIBUTION_CAP,
   TOTAL_PLACEHOLDER_CONTRIBUTION_CAP,
+  CLIMATE_CONTRIBUTION_CAP,
 } from "@/lib/model/config";
 import { MODEL_INPUT_SOURCES } from "@/data/model-inputs";
 import { bracket } from "@/lib/data";
@@ -51,7 +52,7 @@ export default function MethodologyPage() {
           <li><strong>Recent form</strong> - {MODEL_WEIGHTS.recentForm} pts per form point. Status: {MODEL_INPUT_SOURCES.recentForm.status} (capped).</li>
           <li><strong>Manager cohesion</strong> - {MODEL_WEIGHTS.manager} pts for a same-nationality manager. Status: {MODEL_INPUT_SOURCES.managerCohesion.status}.</li>
           <li><strong>Host &amp; regional advantage</strong> - {MODEL_WEIGHTS.host} pts (co-host), {MODEL_WEIGHTS.regional} pts (region). Status: {MODEL_INPUT_SOURCES.hostAdvantage.status} / {MODEL_INPUT_SOURCES.regionalAdvantage.status}.</li>
-          <li><strong>Climate familiarity</strong> - {MODEL_WEIGHTS.climate} pts per acclimatization point. Status: {MODEL_INPUT_SOURCES.climateFamiliarity.status} (capped).</li>
+          <li><strong>Climate suitability</strong> - {MODEL_WEIGHTS.climate} pts per playability point, capped at +/-{CLIMATE_CONTRIBUTION_CAP}. Status: {MODEL_INPUT_SOURCES.climateFamiliarity.status} (a 12-month home-climate playability score from CCKP 1991-2020 normals; England &amp; Scotland from Met Office / HadUK-Grid - a candidate heuristic, not a tournament-acclimatization score).</li>
           <li><strong>Structural prior (economic)</strong> - up to {MODEL_WEIGHTS.structural} pts across the 0-1 range, blended from log-scaled GDP per capita and population. An <em>experimental weak prior</em>, deliberately small. Status: {MODEL_INPUT_SOURCES.structural.status} (World Bank WDI {MODEL_INPUT_SOURCES.structural.sourceDate}; 46 economies source-backed, England &amp; Scotland official-derived from ONS / Scottish Government figures - no separate World Bank economy).</li>
         </ul>
       </Section>
@@ -73,11 +74,13 @@ export default function MethodologyPage() {
           drive the forecast, each placeholder driver is capped at{" "}
           <strong>+/-{PLACEHOLDER_CONTRIBUTION_CAP}</strong> Elo-equivalent points,
           and all placeholder families combined are capped at{" "}
-          <strong>+/-{TOTAL_PLACEHOLDER_CONTRIBUTION_CAP}</strong>. Squad quality,
-          recent form and climate familiarity are placeholders today, so their
-          influence is limited; the Elo anchor and FIFA ranking are now
-          source-backed and keep their full weight. Capped contributions are
-          labelled in each match&apos;s driver explanation.
+          <strong>+/-{TOTAL_PLACEHOLDER_CONTRIBUTION_CAP}</strong>. Squad quality
+          and recent form are placeholders today, so their influence is limited;
+          the climate-suitability <em>candidate</em> is similarly capped at{" "}
+          <strong>+/-{CLIMATE_CONTRIBUTION_CAP}</strong> as a deliberately weak
+          prior; the Elo anchor and FIFA ranking are source-backed and keep their
+          full weight. Capped contributions are labelled in each match&apos;s
+          driver explanation.
         </p>
       </Section>
 
@@ -162,8 +165,11 @@ export default function MethodologyPage() {
           World Bank World Development Indicators (2024); England and Scotland are
           <strong>official-derived</strong> from ONS / Scottish Government figures
           (they have no separate World Bank economy), which is why the family stays
-          <strong>candidate</strong> overall. The remaining
-          numeric inputs (squad quality, form and climate familiarity) are
+          <strong>candidate</strong> overall. Climate suitability is also now a
+          <strong>candidate</strong> family (Phase 1.13): a 12-month home-climate
+          playability score from World Bank Climate Knowledge Portal 1991-2020
+          normals (England &amp; Scotland from Met Office / HadUK-Grid), kept
+          capped. The remaining numeric inputs (squad quality and form) are
           realistic but hand-authored <strong>placeholder</strong> values, and the
           knockout bracket mapping is still illustrative. Each is structured to be
           swapped for a real data source without touching the model or UI.
