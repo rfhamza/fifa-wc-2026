@@ -141,6 +141,22 @@ A roadmap from the foundation to a richer product. Each item lists the
   model weights changed; `fixtureSource` stays `"official"`. See
   `docs/FIFA_RANKING_SNAPSHOT_AUDIT.md`.
 
+## Done in phase 1.9 (frozen pre-tournament forecast behaviour audit)
+
+- Added a deterministic QA audit (`tests/forecast-behavior.test.ts`, invariant-only)
+  over the **frozen pre-tournament baseline** (11 Jun 2026 FIFA snapshot + manual
+  Elo + official schedule): determinism, finiteness, probability bounds/sums, the
+  stage funnel, placeholder caps binding, source-backed/manual driver disclosure,
+  and `fixtureSource === "official"`. Plus an audit-only group-winner sim
+  (P(finish 1st) via the production Article-13 standings) - distinct from
+  qualifyTop2.
+- Generated `docs/FORECAST_BEHAVIOR_AUDIT.md` (guarded behind
+  `WRITE_FORECAST_AUDIT=1`; real numbers, frozen seed `20260611`). **Finding:**
+  manual Elo dominates the source-backed FIFA ranking (abs-magnitude ~61% vs ~16%).
+  Recommendation: run a **separate calibration phase** before/with Elo ingestion.
+  No model weights/data/schedule/bracket changed; baseline-only (not conditioned on
+  matches played after 11 Jun, not compared to actual outcomes).
+
 ## Phase 2 - Verified data
 
 - Obtain official FIFA group/fixture/venue data (or authoritative JSON);
