@@ -13,6 +13,7 @@ import type {
   ModelFeatureFamily,
   ModelInputSource,
   ModelInputValidationResult,
+  StructuralEconomicRow,
   Team,
   TeamModelInputs,
 } from "@/lib/types";
@@ -26,6 +27,9 @@ import {
   eloRatingSnapshot,
   ELO_RATING_SOURCE,
   ELO_NAME_TO_ID,
+  structuralEconomicSnapshot,
+  STRUCTURAL_ECONOMIC_SOURCE,
+  STRUCTURAL_NAME_TO_ID,
 } from "@/data/model-inputs";
 import {
   PLACEHOLDER_CONTRIBUTION_CAP,
@@ -48,7 +52,7 @@ const ALL_FAMILIES: ModelFeatureFamily[] = [
 
 /** Sane numeric bounds per REQUIRED input (range checks, not exactness). */
 const RANGES: Record<
-  keyof Omit<TeamModelInputs, "teamId" | "fifaRankingPoints" | "eloRank">,
+  keyof Omit<TeamModelInputs, "teamId" | "fifaRankingPoints" | "eloRank" | "gdpCurrentUsd">,
   [number, number]
 > = {
   eloRating: [1000, 2200],
@@ -200,7 +204,7 @@ export function validateFifaRankingSnapshot(
   // Honesty guard: no OTHER family silently changed status.
   const EXPECTED_STATUS: Partial<Record<ModelFeatureFamily, string>> = {
     eloRating: "source-backed",
-    structural: "manual",
+    structural: "candidate",
     squadQuality: "placeholder",
     recentForm: "placeholder",
     climateFamiliarity: "placeholder",
@@ -283,7 +287,148 @@ export function validateEloSnapshot(
   // Honesty guard: no OTHER family silently changed status.
   const EXPECTED_STATUS: Partial<Record<ModelFeatureFamily, string>> = {
     fifaRanking: "source-backed",
-    structural: "manual",
+    structural: "candidate",
+    squadQuality: "placeholder",
+    recentForm: "placeholder",
+    climateFamiliarity: "placeholder",
+  };
+  for (const [family, status] of Object.entries(EXPECTED_STATUS)) {
+    const actual = MODEL_INPUT_SOURCES[family as ModelFeatureFamily].status;
+    if (actual !== status) errors.push(`family ${family} status changed unexpectedly: ${actual} (expected ${status})`);
+  }
+
+  return { valid: errors.length === 0, errors, warnings };
+}
+
+/**
+ * Phase 1.12 - validate the structural/economic snapshot (World Bank WDI 2024).
+ *
+ * MIXED `candidate` family: exactly the 48 teams, one row each; finite + positive
+ * GDP / GDP-per-capita / population within the model-input ranges; per-indicator
+ * years are integers in a sane window on `source-backed` rows (null on `manual`
+ * rows); a 3-letter WB code + a mapped display name on every source-backed row;
+ * the ONLY manual rows are England + Scotland (no separate WB economy; not
+ * parent-mapped to the UK); source metadata present + family status `candidate`;
+ * and NO other family silently changed status (Elo/FIFA still source-backed,
+ * squad/form/climate still placeholder). Years that drift off the common 2024
+ * baseline produce a warning, not an error.
+ */
+const STRUCTURAL_YEAR_MIN = 2000;
+const STRUCTURAL_YEAR_MAX = 2025;
+const STRUCTURAL_BASELINE_YEAR = 2024;
+const EXPECTED_MANUAL_STRUCTURAL = new Set(["england", "scotland"]);
+
+export function validateStructuralSnapshot(
+  snapshot: StructuralEconomicRow[] = structuralEconomicSnapshot,
+  teams: Team[] = officialTeams,
+  source: ModelInputSource = STRUCTURAL_ECONOMIC_SOURCE,
+  nameMap: Record<string, string> = STRUCTURAL_NAME_TO_ID,
+): ModelInputValidationResult {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+  const teamIds = new Set(teams.map((t) => t.id));
+
+  if (snapshot.length !== EXPECTED_TEAMS) {
+    errors.push(`expected ${EXPECTED_TEAMS} structural rows, got ${snapshot.length}`);
+  }
+
+  const [gdpPcMin, gdpPcMax] = RANGES.gdpPerCapita;
+  const [popMin, popMax] = RANGES.population;
+  const seenTeams = new Set<string>();
+  const manualTeams = new Set<string>();
+
+  for (const row of snapshot) {
+    if (seenTeams.has(row.teamId)) errors.push(`duplicate structural row for ${row.teamId}`);
+    seenTeams.add(row.teamId);
+    if (!teamIds.has(row.teamId)) errors.push(`structural row team id not in official teams: ${row.teamId}`);
+
+    if (row.mappingStatus !== "source-backed" && row.mappingStatus !== "manual") {
+      errors.push(`${row.teamId}: invalid mappingStatus "${row.mappingStatus}"`);
+    }
+    if (row.mappingStatus === "manual") manualTeams.add(row.teamId);
+
+    // Numeric values: finite, positive, and within the model-input ranges.
+    if (!Number.isFinite(row.gdpCurrentUsd) || row.gdpCurrentUsd <= 0) {
+      errors.push(`${row.teamId}: gdpCurrentUsd ${row.gdpCurrentUsd} not finite positive`);
+    }
+    if (
+      !Number.isFinite(row.gdpPerCapitaCurrentUsd) ||
+      row.gdpPerCapitaCurrentUsd < gdpPcMin ||
+      row.gdpPerCapitaCurrentUsd > gdpPcMax
+    ) {
+      errors.push(`${row.teamId}: gdpPerCapitaCurrentUsd ${row.gdpPerCapitaCurrentUsd} out of range [${gdpPcMin}, ${gdpPcMax}]`);
+    }
+    if (!Number.isFinite(row.population) || row.population < popMin || row.population > popMax) {
+      errors.push(`${row.teamId}: population ${row.population} out of range [${popMin}, ${popMax}]`);
+    }
+
+    const years = [
+      ["gdpYear", row.gdpYear],
+      ["gdpPerCapitaYear", row.gdpPerCapitaYear],
+      ["populationYear", row.populationYear],
+    ] as const;
+
+    if (row.mappingStatus === "source-backed") {
+      // Source-backed rows: 3-letter WB code, mapped name, integer per-indicator years.
+      if (!/^[A-Z]{3}$/.test(row.worldBankCountryCode)) {
+        errors.push(`${row.teamId}: worldBankCountryCode "${row.worldBankCountryCode}" not a 3-letter code`);
+      }
+      if (!row.countryNameRaw || nameMap[row.countryNameRaw] !== row.teamId) {
+        errors.push(`${row.teamId}: countryNameRaw "${row.countryNameRaw}" does not map to this id`);
+      }
+      for (const [label, year] of years) {
+        if (
+          typeof year !== "number" ||
+          !Number.isInteger(year) ||
+          year < STRUCTURAL_YEAR_MIN ||
+          year > STRUCTURAL_YEAR_MAX
+        ) {
+          errors.push(`${row.teamId}: ${label} ${String(year)} not an integer in ${STRUCTURAL_YEAR_MIN}..${STRUCTURAL_YEAR_MAX}`);
+        } else if (year !== STRUCTURAL_BASELINE_YEAR) {
+          warnings.push(`${row.teamId}: ${label} ${year} differs from baseline ${STRUCTURAL_BASELINE_YEAR}`);
+        }
+      }
+    } else if (row.mappingStatus === "manual") {
+      // Manual rows: no WB code, no per-indicator years (not source-backed).
+      if (row.worldBankCountryCode !== "") {
+        errors.push(`${row.teamId}: manual row must have empty worldBankCountryCode`);
+      }
+      for (const [label, year] of years) {
+        if (year !== null) errors.push(`${row.teamId}: manual ${label} must be null, got ${String(year)}`);
+      }
+    }
+  }
+
+  // Every app team must have exactly one structural row.
+  for (const t of teams) {
+    if (!seenTeams.has(t.id)) errors.push(`missing structural row for team ${t.id}`);
+  }
+
+  // The ONLY manual rows are England + Scotland (documented decision).
+  for (const id of manualTeams) {
+    if (!EXPECTED_MANUAL_STRUCTURAL.has(id)) {
+      errors.push(`unexpected manual structural row: ${id} (only England/Scotland may be manual)`);
+    }
+  }
+  for (const id of EXPECTED_MANUAL_STRUCTURAL) {
+    if (!manualTeams.has(id)) errors.push(`expected ${id} to be a manual structural row`);
+  }
+
+  // Source metadata present + honestly `candidate` (mixed source-backed/manual).
+  if (source.status !== "candidate") {
+    errors.push(`structural source status must be "candidate" (mixed), got "${source.status}"`);
+  }
+  for (const field of ["sourceName", "sourceUrl", "sourceDate"] as const) {
+    if (!source[field]) errors.push(`structural source missing ${field}`);
+  }
+  if (MODEL_INPUT_SOURCES.structural.status !== "candidate") {
+    errors.push("structural family status must be candidate");
+  }
+
+  // Honesty guard: no OTHER family silently changed status.
+  const EXPECTED_STATUS: Partial<Record<ModelFeatureFamily, string>> = {
+    eloRating: "source-backed",
+    fifaRanking: "source-backed",
     squadQuality: "placeholder",
     recentForm: "placeholder",
     climateFamiliarity: "placeholder",

@@ -319,8 +319,9 @@ describe("forecast behaviour audit - doc generation", () => {
 ## 1. Scope - baseline vs live model
 
 - **Baseline model (this audit):** uses information available at tournament start -
-  the **11 Jun 2026** source-backed FIFA ranking + Elo rating snapshots, manual
-  structural priors, capped placeholders, and the official schedule.
+  the **11 Jun 2026** source-backed FIFA ranking + Elo rating snapshots, the
+  **World Bank WDI 2024** structural prior (now \`candidate\`: 46 teams source-backed,
+  England/Scotland manual), capped placeholders, and the official schedule.
 - **Live model (future phase):** will ingest completed match results and update
   standings / conditional probabilities. **Not** part of this baseline audit.
 
@@ -335,7 +336,7 @@ omitted (audit must not depend on the current date).
 |---|---|---|
 | Elo rating | **source-backed** (11 Jun 2026 snapshot) | anchor (weight 1.0) |
 | FIFA ranking | **source-backed** (11 Jun 2026 snapshot) | rank driver (cap +/-90) |
-| Structural (GDP+pop) | manual | weak prior (<=10) |
+| Structural (GDP+pop) | candidate (46 World Bank source-backed; England/Scotland manual) | weak prior (<=10) |
 | Squad quality / Recent form / Climate | placeholder | **weight-capped** |
 | Host / Regional / Manager | verified / candidate | structural flags |
 
@@ -394,11 +395,13 @@ ${absRows}
 
 Method B shows **source-backed** contribution magnitude now dominates: with Elo
 promoted to source-backed (Phase 1.10), both the high-influence Elo anchor and the
-capped FIFA-ranking driver come from cited 11 Jun 2026 snapshots, while **manual**
-shrinks to the weak structural prior only. The forecast is therefore anchored by a
-**source-backed** input - a provenance/credibility improvement over the Phase 1.9
-baseline, where manual Elo dominated. This is a status-mix shift only: **no model
-weights were changed**, so the relative magnitude of Elo vs FIFA ranking is
+capped FIFA-ranking driver come from cited 11 Jun 2026 snapshots. The weak
+structural prior moved from \`manual\` to **\`candidate\`** in Phase 1.12 (46 teams
+source-backed from the World Bank WDI 2024; England/Scotland remain manual), so
+\`manual\` all but disappears from the status mix. The forecast is therefore anchored
+by a **source-backed** input - a provenance/credibility improvement over the Phase
+1.9 baseline, where manual Elo dominated. This is a status-mix shift only: **no
+model weights were changed**, so the relative magnitude of Elo vs FIFA ranking is
 unchanged (Elo still spans hundreds of Elo-equivalent pts while FIFA ranking is
 capped at +/-90). That Elo still out-influences FIFA ranking is a **modelling /
 calibration consideration, not a defect**.

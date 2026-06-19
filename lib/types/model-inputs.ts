@@ -64,9 +64,41 @@ export interface TeamModelInputs {
   fifaRankingPoints?: number;
   gdpPerCapita: number;
   population: number;
+  /** GDP (current US$), source-backed for WB-mapped teams; carried for explainability. */
+  gdpCurrentUsd?: number;
   recentForm: number;
   squadQuality: number;
   climateFamiliarity: number;
+}
+
+/**
+ * One row of the structural/economic snapshot (Phase 1.12). World Bank World
+ * Development Indicators for the 46 sovereign WB economies (mappingStatus
+ * `source-backed`); England + Scotland have no separate WB economy, so their rows
+ * keep the existing hand-authored values (mappingStatus `manual`) - they are NOT
+ * parent-mapped to the United Kingdom. Indicator years are stored PER indicator
+ * (null on manual rows) so a row never implies a single shared data year.
+ */
+export interface StructuralEconomicRow {
+  teamId: string;
+  /** Economy display name as printed by the World Bank (e.g. "Korea, Rep."); free-text on manual rows. */
+  countryNameRaw: string;
+  /** World Bank / ISO3 economy code (e.g. "DEU"); empty string on manual non-WB rows. */
+  worldBankCountryCode: string;
+  /** GDP, current US$ (NY.GDP.MKTP.CD). */
+  gdpCurrentUsd: number;
+  /** GDP per capita, current US$ (NY.GDP.PCAP.CD). */
+  gdpPerCapitaCurrentUsd: number;
+  /** Population, total (SP.POP.TOTL). */
+  population: number;
+  /** Year of the GDP value (null on manual rows). */
+  gdpYear: number | null;
+  /** Year of the GDP-per-capita value (null on manual rows). */
+  gdpPerCapitaYear: number | null;
+  /** Year of the population value (null on manual rows). */
+  populationYear: number | null;
+  /** `source-backed` = World Bank WDI; `manual` = hand-authored (England/Scotland). */
+  mappingStatus: "source-backed" | "manual";
 }
 
 /** One row of a transcribed World Football Elo ratings snapshot (Phase 1.10). */

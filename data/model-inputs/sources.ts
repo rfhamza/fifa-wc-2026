@@ -1,6 +1,7 @@
 import type { ModelFeatureFamily, ModelInputSource } from "@/lib/types";
 import { FIFA_RANKING_SOURCE } from "./snapshots/fifa-ranking-2026-06-11";
 import { ELO_RATING_SOURCE } from "./snapshots/elo-rating-2026-06-11";
+import { STRUCTURAL_ECONOMIC_SOURCE } from "./snapshots/structural-economic-2024";
 
 /**
  * Phase 1.7 - model-input SOURCE REGISTRY (per feature family).
@@ -21,14 +22,10 @@ export const MODEL_INPUT_SOURCES: Record<ModelFeatureFamily, ModelInputSource> =
   eloRating: ELO_RATING_SOURCE,
   // Phase 1.8: promoted to source-backed from the supplied FIFA ranking snapshot.
   fifaRanking: FIFA_RANKING_SOURCE,
-  structural: {
-    family: "structural",
-    label: "Structural prior (GDP + population)",
-    sourceName: "Hand-authored placeholder magnitudes",
-    status: "manual",
-    notes:
-      "Weak economic prior (log-scaled GDP per capita + population); promote when a World Bank/IMF snapshot is supplied.",
-  },
+  // Phase 1.12: promoted to a MIXED `candidate` family from the World Bank WDI 2024
+  // snapshot - 46 economies source-backed; England/Scotland stay manual (no separate
+  // WB economy, not parent-mapped to the UK). See snapshots/structural-economic-2024.ts.
+  structural: STRUCTURAL_ECONOMIC_SOURCE,
   squadQuality: {
     family: "squadQuality",
     label: "Squad quality",

@@ -203,6 +203,25 @@ A roadmap from the foundation to a richer product. Each item lists the
   **Recommendation:** keep production weights for now; defer any Elo-vs-FIFA
   re-balancing to a future weight-tuning phase driven by historical backtesting.
 
+## Done in phase 1.12 (structural/economic promoted to candidate - World Bank)
+
+- Promoted the **structural/economic** family from `manual` to a **mixed
+  `candidate`** family using the **World Bank World Development Indicators** (2024):
+  population (talent-pool proxy) and GDP / GDP per capita (wealth & infrastructure
+  proxy) - the first direct implementation of the Klement/Joachim structural core.
+  Three approved indicators only (`NY.GDP.MKTP.CD`, `NY.GDP.PCAP.CD`, `SP.POP.TOTL`).
+- **46 of 48 teams are `source-backed`**; **England & Scotland stay `manual`**
+  (per-row `mappingStatus`) - UK constituent FAs with no separate World Bank
+  economy, intentionally **not** parent-mapped to the United Kingdom.
+- New snapshot `data/model-inputs/snapshots/structural-economic-2024.ts` (per-
+  indicator years, frozen 2024 baseline; 2025 not used), `validateStructuralSnapshot`
+  + `tests/structural-economic-snapshot.test.ts`, and the dev-only reproducer
+  `scripts/fetch-structural-economic.mjs` (no runtime dep; CSV/DataBank fallback).
+- **No production model weights changed**; structural stays a weak contextual prior
+  (`MODEL_WEIGHTS.structural = 10`, bounded per pair, a small share in aggregate -
+  never dominant). `fixtureSource` remains `official`. See
+  `docs/STRUCTURAL_ECONOMIC_SNAPSHOT_AUDIT.md`.
+
 ## Phase 2 - Verified data
 
 - Obtain official FIFA group/fixture/venue data (or authoritative JSON);

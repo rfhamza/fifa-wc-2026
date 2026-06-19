@@ -93,7 +93,8 @@ describe("FIFA ranking - model integration", () => {
     expect(getFeatureStatus("fifaRanking")).toBe("source-backed");
     // Elo promoted to source-backed in Phase 1.10.
     expect(getFeatureStatus("eloRating")).toBe("source-backed");
-    expect(getFeatureStatus("structural")).toBe("manual");
+    // Structural promoted to a mixed `candidate` family in Phase 1.12 (World Bank WDI).
+    expect(getFeatureStatus("structural")).toBe("candidate");
     expect(getFeatureStatus("squadQuality")).toBe("placeholder");
     expect(getFeatureStatus("recentForm")).toBe("placeholder");
     expect(getFeatureStatus("climateFamiliarity")).toBe("placeholder");
