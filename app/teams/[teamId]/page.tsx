@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { StatTile } from "@/components/teams/stat-tile";
-import { MODEL_INPUT_SOURCES } from "@/data/model-inputs";
+import { MODEL_INPUT_SOURCES, getFifaRanking } from "@/data/model-inputs";
 import { StageFunnelChart } from "@/components/charts/stage-funnel-chart";
 import { ProbabilityBar } from "@/components/charts/probability-bar";
 import { teams, teamById, getTeam, getVenue, getFixturesForTeam } from "@/lib/data";
@@ -30,6 +30,7 @@ export default function TeamPage({ params }: { params: { teamId: string } }) {
 
   const prob = getStageProbability(team.id);
   const fixtures = getFixturesForTeam(team.id);
+  const fifa = getFifaRanking(team.id);
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -60,6 +61,13 @@ export default function TeamPage({ params }: { params: { teamId: string } }) {
 
       {/* Core metrics (model inputs carry an honest source status; Phase 1.7) */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {fifa && (
+          <StatTile
+            label="FIFA ranking"
+            value={`#${fifa.fifaRank}`}
+            hint={`${MODEL_INPUT_SOURCES.fifaRanking.status} - ${fifa.fifaPoints} pts`}
+          />
+        )}
         <StatTile label="Elo rating" value={team.elo} hint={MODEL_INPUT_SOURCES.eloRating.status} />
         <StatTile label="Squad quality" value={`${team.squadQuality}/100`} hint={`${MODEL_INPUT_SOURCES.squadQuality.status} - capped`} />
         <StatTile label="Recent form" value={`${team.recentForm}/100`} hint={`${MODEL_INPUT_SOURCES.recentForm.status} - capped`} />

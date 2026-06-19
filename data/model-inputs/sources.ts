@@ -1,4 +1,5 @@
 import type { ModelFeatureFamily, ModelInputSource } from "@/lib/types";
+import { FIFA_RANKING_SOURCE } from "./snapshots/fifa-ranking-2026-06-11";
 
 /**
  * Phase 1.7 - model-input SOURCE REGISTRY (per feature family).
@@ -23,14 +24,8 @@ export const MODEL_INPUT_SOURCES: Record<ModelFeatureFamily, ModelInputSource> =
     notes:
       "Model anchor. Hand-set to be directionally realistic; promote to source-backed when an Elo snapshot (e.g. eloratings.net) is supplied.",
   },
-  fifaRanking: {
-    family: "fifaRanking",
-    label: "FIFA ranking",
-    sourceName: "Hand-authored directional estimate",
-    status: "manual",
-    notes:
-      "Hand-set ranking signal; promote when an official FIFA/Coca-Cola World Ranking snapshot is supplied.",
-  },
+  // Phase 1.8: promoted to source-backed from the supplied FIFA ranking snapshot.
+  fifaRanking: FIFA_RANKING_SOURCE,
   structural: {
     family: "structural",
     label: "Structural prior (GDP + population)",
