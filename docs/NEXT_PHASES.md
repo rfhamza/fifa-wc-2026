@@ -265,6 +265,31 @@ A roadmap from the foundation to a richer product. Each item lists the
   Elo/FIFA remain source-backed anchors. New `validateClimateSnapshot` + climate
   snapshot/score tests; forecast + sensitivity audits regenerated.
 
+## Done in phase 1.17B (squad roster foundation - standalone, UNWIRED, leakage-risk)
+
+- Added a **source-backed final-squad roster snapshot**
+  (`data/model-inputs/snapshots/squad-2026-06-11.ts`): 48 teams x 26 players (1248 rows) with
+  name/position/DOB/age/club/club-country/height/caps/goals, derived from a **user-supplied CSV**
+  off the FIFA final-squad PDF. Raw CSV/XLSX NOT committed; SHA-256 anchors recorded
+  (player `b155454...`, aggregates `47ba078...`, xlsx `9db68c6...`). Generator
+  `scripts/generate-squad-snapshot.mjs`; types `lib/types/squad.ts`; validator
+  `lib/data/validate-squad.ts`.
+- **Roster metadata only - NO squad-quality score, fully UNWIRED:** active `squadQuality` stays
+  `placeholder` (weight 4.0), `predict.ts`/`features.ts`/`team-inputs.ts`/`sources.ts`/
+  `ModelFeatureFamily` untouched, no `lib/model/*` import (test-guarded), `fixtureSource` stays
+  `official`, no probability change.
+- **LEAKAGE-RISK:** the FIFA PDF version postdates kickoff (`squadDate 2026-06-20` >
+  opening `2026-06-11`); marked leakage-risk and must not feed pre-tournament probabilities
+  (`docs/SQUAD_PLAYER_LEAKAGE_CONTROL.md`). `clubInTop5AssociationCountry` is an honest
+  association-country proxy (NOT a top-5 league tier); `clubStrengthScore`/`squadDepthScore`
+  deferred (null); no market value / proprietary ratings. See `docs/SQUAD_PLAYER_SOURCE_AUDIT.md`.
+
+## Done in phase 1.17A (squad/player source & licensing audit - decision: roster-only foundation)
+
+- Audited sources/licensing; chose **Option B** (roster-only foundation), rejected proprietary
+  ratings/market value and scraping. Squad-quality scoring + any wiring deferred (D rejected);
+  revisit after backtesting (1.18).
+
 ## Done in phase 1.16C (recent-form replacement decision - NO replacement)
 
 - **Decision: do not replace the active `recentForm` placeholder yet (Option A).** The
