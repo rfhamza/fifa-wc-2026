@@ -7,14 +7,17 @@ import {
   scoreItineraryMetrics,
   travelScore,
   restScore,
+  altitudeBurden,
   altitudeScore,
   timeZoneScore,
   venueContinuityScore,
   TRAVEL_FULL_PENALTY_KM,
   REST_CONGESTED_DAYS,
   REST_COMFORTABLE_DAYS,
-  ALTITUDE_FULL_PENALTY_M,
+  ALTITUDE_LOWER_THRESHOLD_M,
+  ALTITUDE_FULL_BURDEN_M,
   TIMEZONE_FULL_PENALTY_HOURS,
+  COMPOSITE_WEIGHTS,
   DEFERRED_SUB_METRICS,
 } from "@/lib/tournament-context";
 import { venueGeoById } from "@/data/model-inputs/snapshots/venue-geo-2026";
@@ -85,10 +88,38 @@ describe("tournament-context sub-scores - bounds & monotonicity", () => {
     expect(restScore(Number.POSITIVE_INFINITY)).toBe(1);
   });
 
-  it("altitude: +1 at sea level, -1 at/above full penalty (Mexico City)", () => {
-    expect(altitudeScore(0)).toBe(1);
-    expect(altitudeScore(ALTITUDE_FULL_PENALTY_M)).toBe(-1);
-    expect(altitudeScore(ALTITUDE_FULL_PENALTY_M / 2)).toBeCloseTo(0, 9);
+  it("altitudeBurden: 0 below lower threshold, 1 at full-burden, linear between", () => {
+    expect(altitudeBurden(ALTITUDE_LOWER_THRESHOLD_M - 1)).toBe(0);
+    expect(altitudeBurden(0)).toBe(0);
+    expect(altitudeBurden(ALTITUDE_FULL_BURDEN_M)).toBe(1);
+    expect(altitudeBurden(ALTITUDE_FULL_BURDEN_M + 500)).toBe(1);
+    const mid = (ALTITUDE_LOWER_THRESHOLD_M + ALTITUDE_FULL_BURDEN_M) / 2;
+    expect(altitudeBurden(mid)).toBeCloseTo(0.5, 9);
+  });
+
+  it("altitude (dose): sea level -> +1, all high-altitude -> -1, empty -> +1", () => {
+    expect(altitudeScore([0, 0, 0])).toBe(1);
+    expect(
+      altitudeScore([
+        ALTITUDE_FULL_BURDEN_M,
+        ALTITUDE_FULL_BURDEN_M,
+        ALTITUDE_FULL_BURDEN_M,
+      ]),
+    ).toBe(-1);
+    expect(altitudeScore([])).toBe(1);
+  });
+
+  it("altitude dose: ONE high-altitude match of three does NOT saturate", () => {
+    const oneHigh = altitudeScore([ALTITUDE_FULL_BURDEN_M, 30, 30]);
+    const allHigh = altitudeScore([
+      ALTITUDE_FULL_BURDEN_M,
+      ALTITUDE_FULL_BURDEN_M,
+      ALTITUDE_FULL_BURDEN_M,
+    ]);
+    // mean burden = (1+0+0)/3 -> score = 1 - 2/3 ~= +0.333, NOT the -1 floor.
+    expect(oneHigh).toBeCloseTo(1 - (2 / 3), 9);
+    expect(oneHigh).toBeGreaterThan(0);
+    expect(oneHigh).toBeGreaterThan(allHigh + 1);
   });
 
   it("timeZone: +1 at zero, -1 at/above full penalty", () => {
@@ -100,6 +131,44 @@ describe("tournament-context sub-scores - bounds & monotonicity", () => {
     expect(venueContinuityScore(0)).toBe(0);
     expect(venueContinuityScore(0.5)).toBe(0.5);
     expect(venueContinuityScore(1)).toBe(1);
+  });
+});
+
+describe("composite weights (Phase 1.15A)", () => {
+  it("are named constants with travel/rest/altitude carrying the main signal", () => {
+    expect(COMPOSITE_WEIGHTS.travel).toBe(1);
+    expect(COMPOSITE_WEIGHTS.rest).toBe(1);
+    expect(COMPOSITE_WEIGHTS.altitude).toBe(1);
+    // time-zone + venue-continuity are down-weighted (but kept in the breakdown).
+    expect(COMPOSITE_WEIGHTS.timeZone).toBeLessThan(1);
+    expect(COMPOSITE_WEIGHTS.venueContinuity).toBeLessThan(1);
+  });
+
+  it("composite is the deterministic weighted mean of the five sub-scores", () => {
+    // A simple synthetic itinerary; recompute the weighted mean independently.
+    const mc = venueGeoById.get("mexico-city")!; // 2200 m
+    const ny = venueGeoById.get("new-york")!; // sea level
+    const itin: TeamItinerary = {
+      teamId: "w",
+      stops: [
+        stop(ny, "2026-06-12T19:00:00Z", 1),
+        stop(mc, "2026-06-16T19:00:00Z", 2),
+        stop(ny, "2026-06-20T19:00:00Z", 3),
+      ],
+    };
+    const s = scoreItineraryMetrics(computeItineraryMetrics(itin));
+    const w = COMPOSITE_WEIGHTS;
+    const sum = w.travel + w.rest + w.altitude + w.timeZone + w.venueContinuity;
+    const expected =
+      (s.travel * w.travel +
+        s.rest * w.rest +
+        s.altitude * w.altitude +
+        s.timeZone * w.timeZone +
+        s.venueContinuity * w.venueContinuity) /
+      sum;
+    expect(s.composite).toBeCloseTo(expected, 9);
+    expect(s.composite).toBeGreaterThanOrEqual(-1);
+    expect(s.composite).toBeLessThanOrEqual(1);
   });
 });
 

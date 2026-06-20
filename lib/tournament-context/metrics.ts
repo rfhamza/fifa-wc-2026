@@ -34,6 +34,7 @@ export function computeItineraryMetrics(itin: TeamItinerary): ItineraryMetrics {
   const restGapsDays: number[] = [];
 
   let maxAltitudeMeters = stops.length > 0 ? stops[0]!.geo.altitudeMeters : 0;
+  const matchAltitudesMeters = stops.map((s) => s.geo.altitudeMeters);
 
   for (let i = 1; i < stops.length; i++) {
     const prev = stops[i - 1]!;
@@ -79,6 +80,7 @@ export function computeItineraryMetrics(itin: TeamItinerary): ItineraryMetrics {
     restGapsDays,
     minRestDays,
     maxAltitudeMeters,
+    matchAltitudesMeters,
     maxAltitudeGainMeters,
     totalTimeZoneShiftHours,
     maxTimeZoneShiftHours,

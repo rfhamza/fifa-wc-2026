@@ -8,6 +8,7 @@ import {
 } from "@/lib/tournament-context";
 import { venueGeoById } from "@/data/model-inputs/snapshots/venue-geo-2026";
 import { teams, fixtures, fixtureSource } from "@/lib/data";
+import { MODEL_WEIGHTS } from "@/lib/model/config";
 import type { Fixture } from "@/lib/types";
 
 describe("group-stage itineraries - derivation from resolved fixtures", () => {
@@ -102,5 +103,9 @@ describe("tournament-context is NOT wired into the model (scope guard)", () => {
     // Venue-geo is a standalone snapshot; it must not alter fixtures/resolution.
     expect(fixtureSource).toBe("official");
     expect(fixtures).toHaveLength(72);
+  });
+
+  it("MODEL_WEIGHTS has no tournamentContext key (score stays unwired)", () => {
+    expect(Object.keys(MODEL_WEIGHTS)).not.toContain("tournamentContext");
   });
 });

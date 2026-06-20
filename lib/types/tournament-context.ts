@@ -96,8 +96,10 @@ export interface ItineraryMetrics {
   restGapsDays: number[];
   /** Smallest rest gap (days); Infinity-free, 0 legs -> Number.POSITIVE_INFINITY. */
   minRestDays: number;
-  /** Highest altitude any match is played at (m). */
+  /** Highest altitude any match is played at (m). Kept for explanation/breakdown. */
   maxAltitudeMeters: number;
+  /** Altitude (m) at each stop, in itinerary order. Basis for the per-match dose. */
+  matchAltitudesMeters: number[];
   /** Largest altitude increase across a single leg (m; >= 0). */
   maxAltitudeGainMeters: number;
   /** Sum of absolute time-zone offset changes across legs (hours). */

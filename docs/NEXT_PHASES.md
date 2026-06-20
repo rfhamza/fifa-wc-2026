@@ -265,6 +265,27 @@ A roadmap from the foundation to a richer product. Each item lists the
   Elo/FIFA remain source-backed anchors. New `validateClimateSnapshot` + climate
   snapshot/score tests; forecast + sensitivity audits regenerated.
 
+## Done in phase 1.15A (tournament-context scoring refinement - still unwired)
+
+- **Altitude is now a per-match dose, not a campaign max.** Each match gets a
+  burden in `0..1` (0 below 1000 m, linear to 1 at 2200 m), and the team altitude
+  sub-score is the mean burden over its 3 matches (`altitude = 1 - 2*mean(burden)`).
+  A single Mexico City match no longer saturates the whole campaign; genuine
+  multi-match altitude exposure (Mexico) still gets a strong penalty. Named
+  constants `ALTITUDE_LOWER_THRESHOLD_M` / `ALTITUDE_FULL_BURDEN_M`;
+  `ItineraryMetrics.matchAltitudesMeters` added as the basis.
+- **Weighted composite** via named `COMPOSITE_WEIGHTS` (travel/rest/altitude `1`,
+  timeZone/venueContinuity `0.5`) so travel/rest/altitude carry the main signal;
+  the near-inert time-zone and travel-overlapping venue-continuity axes are
+  down-weighted but stay visible in the breakdown.
+- **Skew documented, not hard-corrected** (a fragile fixed re-centring was rejected);
+  integration, if later approved, uses pairwise differences `(a-b)` + a tight cap.
+- Re-audit in `docs/TOURNAMENT_CONTEXT_SCORE_AUDIT.md`: altitude no longer dominates
+  the negative tail (now rest/travel-driven); stdev tightened 0.235 -> 0.178.
+- **Still unwired**: no `predict.ts` driver, no `tournamentContext` weight, no
+  probability change, `fixtureSource` stays `official`, host/regional untouched.
+  Model integration remains deferred and requires separate approval.
+
 ## Done in phase 1.14 (tournament-context foundation - venue geo + signed score)
 
 - Added a **source-backed venue-geo snapshot** of the 16 host stadiums
