@@ -46,7 +46,7 @@ const RAW_TEAMS: Team[] = [
   // ---------------- Group C ----------------
   { id: "brazil", name: "Brazil", countryCode: "BRA", confederation: "CONMEBOL", group: "C", flag: "🇧🇷", fifaRanking: 5, elo: 2030, gdpPerCapita: 8900, population: 216400000, managerNationality: "Brazil", sameNationalityManager: true, squadQuality: 89, recentForm: 78, climateFamiliarity: 88 },
   { id: "morocco", name: "Morocco", countryCode: "MAR", confederation: "CAF", group: "C", flag: "🇲🇦", fifaRanking: 13, elo: 1900, gdpPerCapita: 3800, population: 37500000, managerNationality: "Morocco", sameNationalityManager: true, squadQuality: 78, recentForm: 75, climateFamiliarity: 85 },
-  { id: "scotland", name: "Scotland", countryCode: "SCO", confederation: "UEFA", group: "C", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", fifaRanking: 44, elo: 1785, gdpPerCapita: 38000, population: 5500000, managerNationality: "Scotland", sameNationalityManager: true, squadQuality: 69, recentForm: 62, climateFamiliarity: 52 },
+  { id: "scotland", name: "Scotland", countryCode: "SCO", confederation: "UEFA", group: "C", flag: "SCO", fifaRanking: 44, elo: 1785, gdpPerCapita: 38000, population: 5500000, managerNationality: "Scotland", sameNationalityManager: true, squadQuality: 69, recentForm: 62, climateFamiliarity: 52 },
   { id: "haiti", name: "Haiti", countryCode: "HAI", confederation: "CONCACAF", group: "C", flag: "🇭🇹", fifaRanking: 83, elo: 1640, gdpPerCapita: 1700, population: 11700000, managerNationality: "France", sameNationalityManager: false, squadQuality: 57, recentForm: 55, climateFamiliarity: 86 },
 
   // ---------------- Group D ----------------
@@ -98,7 +98,7 @@ const RAW_TEAMS: Team[] = [
   { id: "congo-dr", name: "DR Congo", countryCode: "COD", confederation: "CAF", group: "K", flag: "🇨🇩", fifaRanking: 59, elo: 1715, gdpPerCapita: 650, population: 102300000, managerNationality: "France", sameNationalityManager: false, squadQuality: 67, recentForm: 64, climateFamiliarity: 87 },
 
   // ---------------- Group L ----------------
-  { id: "england", name: "England", countryCode: "ENG", confederation: "UEFA", group: "L", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", fifaRanking: 4, elo: 2055, gdpPerCapita: 46100, population: 56500000, managerNationality: "England", sameNationalityManager: true, squadQuality: 88, recentForm: 80, climateFamiliarity: 60 },
+  { id: "england", name: "England", countryCode: "ENG", confederation: "UEFA", group: "L", flag: "ENG", fifaRanking: 4, elo: 2055, gdpPerCapita: 46100, population: 56500000, managerNationality: "England", sameNationalityManager: true, squadQuality: 88, recentForm: 80, climateFamiliarity: 60 },
   { id: "croatia", name: "Croatia", countryCode: "CRO", confederation: "UEFA", group: "L", flag: "🇭🇷", fifaRanking: 10, elo: 1955, gdpPerCapita: 18500, population: 3850000, managerNationality: "Croatia", sameNationalityManager: true, squadQuality: 80, recentForm: 70, climateFamiliarity: 60 },
   { id: "panama", name: "Panama", countryCode: "PAN", confederation: "CONCACAF", group: "L", flag: "🇵🇦", fifaRanking: 41, elo: 1740, gdpPerCapita: 17000, population: 4400000, managerNationality: "Panama", sameNationalityManager: true, squadQuality: 60, recentForm: 56, climateFamiliarity: 87 },
   { id: "ghana", name: "Ghana", countryCode: "GHA", confederation: "CAF", group: "L", flag: "🇬🇭", fifaRanking: 68, elo: 1690, gdpPerCapita: 2400, population: 33500000, managerNationality: "Ghana", sameNationalityManager: true, squadQuality: 64, recentForm: 52, climateFamiliarity: 88 },

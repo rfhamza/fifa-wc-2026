@@ -265,6 +265,34 @@ A roadmap from the foundation to a richer product. Each item lists the
   Elo/FIFA remain source-backed anchors. New `validateClimateSnapshot` + climate
   snapshot/score tests; forecast + sensitivity audits regenerated.
 
+## Done in phase 1.14 (tournament-context foundation - venue geo + signed score)
+
+- Added a **source-backed venue-geo snapshot** of the 16 host stadiums
+  (`data/model-inputs/snapshots/venue-geo-2026.ts`): latitude/longitude (LatLong.net), altitude
+  (Starting11), and IANA time zone, transcribed from a user-supplied CSV (raw CSV
+  NOT committed; per-row `sourceRef` + `VENUE_GEO_SOURCE` provenance). Standalone -
+  NOT added to `officialDataset`; the `Venue` type, fixtures, schedule, draw slots
+  and resolver are unchanged. `validateVenueGeoSnapshot` asserts coverage, ranges,
+  resolvable IANA zones, identity consistency, and the no-climate-field scope guard.
+- New **pure tournament-context layer** (`lib/tournament-context/`): derives each
+  team's ordered group-stage itinerary from the resolved fixtures + venue geo,
+  computes travel (haversine) / rest / altitude / time-zone-shift /
+  repeated-venue metrics, and maps them to a **signed `-1..+1`** score (sub-scores
+  + composite). Time-zone offsets use the built-in `Intl` TZDB (no network, no
+  live weather). Documented candidate heuristics; calibration deferred.
+- **Venue heat / venue-climate normals are deferred** (no source-backed venue
+  climate dataset; `Venue.avgTempC`/`climate` placeholders are NOT used as sourced).
+  Every score lists `heat`/`venueClimate` as `deferred`; the composite uses only
+  travel/rest/altitude/time-zone/venue-continuity.
+- **Not wired into the model**: nothing under `lib/model/*` imports the layer (a
+  test guards this); no probabilities, model weights, fixtures, bracket, schedule,
+  draw slots, Elo/FIFA/structural/climate snapshots, host/regional logic, or nav
+  changed; `fixtureSource` stays `official`. New tests
+  (`tests/venue-geo-snapshot.test.ts`, `tests/tournament-context-score.test.ts`,
+  `tests/tournament-context-itineraries.test.ts`) + a hidden/suspicious Unicode scan
+  (`npm run scan:unicode`). See `docs/VENUE_GEO_SNAPSHOT_AUDIT.md` and
+  `docs/TOURNAMENT_CONTEXT.md`.
+
 ## Phase 2 - Verified data
 
 - Obtain official FIFA group/fixture/venue data (or authoritative JSON);
