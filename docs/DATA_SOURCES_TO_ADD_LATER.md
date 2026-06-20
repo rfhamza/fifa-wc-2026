@@ -15,6 +15,15 @@ touching the model or UI.
 | Candidate schedule + draw order (Phase 1.5) | **candidate (staged, isolated)** | Cross-checked from 2 third-party sources (Telegraph wallchart + fan-made Excel workbook) into `data/candidate/`: 72 fixtures w/ kickoffs (UTC), venues, match numbers + intra-group draw order. NOT official; the resolver never imports it (`fixtureSource` stays `position-generated`). See `docs/CANDIDATE_SCHEDULE_RECONCILIATION.md`. |
 | Official schedule + draw positions (Phase 1.6 Step B) | **ACTIVE (official), subject to change** | Activated from the staged OFFICIAL FIFA schedule (`FWC26_Match_Schedule_v17_10042026_EN.pdf`, v17 / 10 Apr 2026, ET, **subject to change**): `data/official/fixtures.ts` populated (72 rows) + all 48 verified draw positions on `data/official/teams.ts`. Resolver serves `fixtureSource: "official"` (no fallback); host slots A1/B1/D1 preserved. Telegraph/Excel candidate layer is a cross-check only. PDF binary NOT committed. See `docs/OFFICIAL_SCHEDULE_TRANSCRIPTION_AUDIT.md`. |
 
+**Recent form (Phase 1.16B):** a **source-backed** last-10 results snapshot now exists,
+derived from a user-supplied CSV based on the **CC0 international-results dataset**
+(`data/model-inputs/snapshots/recent-form-2026-06-11.ts`, anchored by CSV SHA-256). It is
+**standalone + UNWIRED** - the active `recentForm` family stays `placeholder` and probabilities
+are unchanged. The derived score is RAW form (overlaps Elo/FIFA, audit-only); the opponent-Elo
+**residual is deferred** (needs opponent Elo at match time). Active integration is Phase 1.16C;
+**football-data.org** stays **Phase 2.0** live-state infrastructure (exported to a static
+snapshot), never a baseline runtime dependency. See `docs/RECENT_FORM_SOURCE_AUDIT.md`.
+
 To reach `verified`: supply official FIFA data (or authoritative JSON), populate
 `data/official/*`, and flip the relevant `sourceStatus` to `"verified"`. The
 Phase 1.5 candidate schedule does **not** shortcut this: agreement between two

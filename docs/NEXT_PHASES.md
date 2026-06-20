@@ -265,6 +265,26 @@ A roadmap from the foundation to a richer product. Each item lists the
   Elo/FIFA remain source-backed anchors. New `validateClimateSnapshot` + climate
   snapshot/score tests; forecast + sensitivity audits regenerated.
 
+## Done in phase 1.16B (recent-form foundation - standalone, UNWIRED)
+
+- Added a **source-backed recent-results snapshot**
+  (`data/model-inputs/snapshots/recent-form-2026-06-11.ts`): 48 teams x 10 latest-first
+  pre-cutoff matches, derived from a **user-supplied pre-derived CSV** based on the **CC0
+  international-results dataset**. Raw CSV/XLSX NOT committed; SHA-256
+  `0a73d73f...` is the reproducibility anchor. Generator
+  `scripts/generate-recent-form-snapshot.mjs` (dev-only).
+- Pure utilities `lib/recent-form/` (aggregates + a RAW signed `-1..+1`
+  `recentFormCandidateScore`, fixed `NEUTRAL_PPM = 1.5`) and standalone validator
+  `lib/data/validate-recent-form.ts`. Leakage cutoff: matches strictly before
+  `2026-06-11T19:00:00Z`.
+- **Completely UNWIRED / probability-neutral:** active `recentForm` stays `placeholder`,
+  `MODEL_WEIGHTS.recentForm` stays `2.0`, `predict.ts`/`features.ts`/`team-inputs.ts`/
+  `sources.ts`/`ModelFeatureFamily` untouched; no `lib/model/*` import (test-guarded);
+  `fixtureSource` stays `official`. RAW form overlaps Elo/FIFA -> audit-only; the
+  opponent-Elo **residual is DEFERRED** (no opponent Elo at match time yet). See
+  `docs/RECENT_FORM_SOURCE_AUDIT.md`. Active integration is deferred to 1.16C (capped
+  `+/-10` candidate, sensitivity audit) and the residual/backtesting to 1.18.
+
 ## Done in phase 1.15B (wire tournament-context as a capped candidate driver)
 
 - Wired the signed `-1..+1` tournament-context composite into the model as the

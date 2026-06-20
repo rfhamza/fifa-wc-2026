@@ -35,6 +35,16 @@ export type {
   DeferredContextSubMetric,
   TournamentContextScore,
 } from "./tournament-context";
+export type {
+  RecentFormStatus,
+  RecentFormSource,
+  MatchResult,
+  VenuePerspective,
+  RecentMatch,
+  RecentFormRow,
+  RecentFormValidationResult,
+  RecentFormScore,
+} from "./recent-form";
 
 export type SourceStatus = "mock" | "candidate" | "verified";
 
