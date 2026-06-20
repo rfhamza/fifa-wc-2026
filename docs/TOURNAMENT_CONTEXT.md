@@ -1,10 +1,11 @@
-# Tournament Context (Phase 1.14) - method
+# Tournament Context (Phase 1.14 / 1.15A / 1.15B) - method
 
 A pure, signed `-1..+1` tournament-context score for each team's group-stage
-itinerary. **Not wired into the prediction model** in this phase: it changes no
-probabilities and no model weights. It exists as an explainable, independently
-testable seam (`lib/tournament-context/`) that a later, approved phase can
-calibrate and wire in.
+itinerary (`lib/tournament-context/`). **Phase 1.15B wired it into the model** as a
+`candidate` driver, consumed as a pairwise difference and hard-capped to `+/-15`
+(see `docs/TOURNAMENT_CONTEXT_DRIVER_AUDIT.md` and `docs/MODEL_METHOD.md`). The score
+itself remains pure, explainable, and independently testable; calibration is
+deferred to historical backtesting.
 
 ## Pipeline
 
@@ -131,17 +132,17 @@ source-backed venue climate-normal dataset; the existing `Venue.avgTempC` /
 used). Every `TournamentContextScore` lists `["heat", "venueClimate"]` in its
 `deferred` field, and the composite excludes them.
 
-## Status: candidate, unwired
+## Status: candidate, wired (Phase 1.15B)
 
-The score is a **candidate** heuristic (calibration deferred) and is **not wired
-into the prediction model**. Future model integration (e.g. a capped
-`tournamentContext` candidate driver) **requires separate approval** and is not
-part of this phase.
+The score is a **candidate** heuristic (calibration deferred). As of Phase 1.15B it
+is **wired into the model** as the capped `tournamentContext` driver (pairwise
+difference, `+/-15` cap). It moves probabilities only through that single capped
+driver; future calibration/backtesting may tune or demote it.
 
-## What this phase does NOT do
+## What this driver does NOT do
 
-- No model wiring: nothing under `lib/model/*` imports `lib/tournament-context/*`
-  (a test guards this).
-- No change to probabilities, model weights, fixtures, bracket, schedule, draw
-  slots, the Elo / FIFA / structural / climate snapshots, host/regional logic, or
-  global navigation.
+- No change to fixtures, bracket, schedule, draw slots, the Elo / FIFA / structural /
+  climate snapshots, host/regional logic, or global navigation.
+- No existing model weight changed (only the new `tournamentContext` key added).
+- No host/regional double-count (those drivers untouched); no venue heat/venue-climate;
+  no live results / current weather / recent form / squad / player / football-data.org.

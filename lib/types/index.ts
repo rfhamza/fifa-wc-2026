@@ -303,6 +303,11 @@ export interface TeamFeatureSet {
   isHost: boolean;
   /** True if the team's confederation is regionally close to host region. */
   isRegional: boolean;
+  /**
+   * Signed -1..+1 relative tournament-context score (Phase 1.15B candidate driver).
+   * Consumed only as a PAIRWISE difference in `predict.ts`, capped to +/-15.
+   */
+  tournamentContext: number;
 }
 
 /** A single driver (feature) contribution to a prediction's explanation. */

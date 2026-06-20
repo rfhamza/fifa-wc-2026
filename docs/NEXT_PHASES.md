@@ -265,6 +265,26 @@ A roadmap from the foundation to a richer product. Each item lists the
   Elo/FIFA remain source-backed anchors. New `validateClimateSnapshot` + climate
   snapshot/score tests; forecast + sensitivity audits regenerated.
 
+## Done in phase 1.15B (wire tournament-context as a capped candidate driver)
+
+- Wired the signed `-1..+1` tournament-context composite into the model as the
+  `tournamentContext` **candidate** driver: `(a.tc - b.tc) * MODEL_WEIGHTS.tournamentContext`
+  (weight `15`), **hard-capped `+/-15`** (`TOURNAMENT_CONTEXT_CONTRIBUTION_CAP`), applied
+  after the raw contribution and **not pooled** with placeholders. Consumed as a
+  pairwise difference so the score's positive skew cancels.
+- Registered `tournamentContext` in the model-input source registry as `candidate`
+  (venue geo source-backed; itinerary/metrics calculated; composite candidate; heat/
+  venue-climate deferred; no live data). Value carried on `TeamModelInputs` /
+  `TeamFeatureSet`, validated finite in `[-1,1]`.
+- Impact (off->on, 4000 iters): modest, max `|delta|` ~`0.93pp`; biggest faller Colombia
+  (lowest-ranked context), increases spread across mid/strong sides; hosts get no
+  outsized boost (Mexico ranks near the bottom of the context field). Symmetry + sum~1 +
+  determinism preserved; regenerated `docs/MODEL_SENSITIVITY_AUDIT.md`.
+- No host/regional/Elo/FIFA/structural/climate snapshot changes; no fixtures/bracket/
+  schedule/draw-slot changes; `fixtureSource` stays `official`; existing weights unchanged
+  (only the new key). Docs: `TOURNAMENT_CONTEXT_DRIVER_AUDIT.md`, `MODEL_METHOD.md`,
+  `TOURNAMENT_CONTEXT.md`. Calibration/backtesting may later tune or demote the driver.
+
 ## Done in phase 1.15A (tournament-context scoring refinement - still unwired)
 
 - **Altitude is now a per-match dose, not a campaign max.** Each match gets a

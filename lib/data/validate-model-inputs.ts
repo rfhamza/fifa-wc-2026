@@ -53,6 +53,7 @@ const ALL_FAMILIES: ModelFeatureFamily[] = [
   "hostAdvantage",
   "regionalAdvantage",
   "managerCohesion",
+  "tournamentContext",
 ];
 
 /** Sane numeric bounds per REQUIRED input (range checks, not exactness). */
@@ -67,6 +68,8 @@ const RANGES: Record<
   recentForm: [0, 100],
   squadQuality: [0, 100],
   climateFamiliarity: [0, 100],
+  // Phase 1.15B: signed -1..+1 relative tournament-context score.
+  tournamentContext: [-1, 1],
 };
 
 export function validateModelInputs(

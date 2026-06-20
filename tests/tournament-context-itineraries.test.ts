@@ -1,5 +1,3 @@
-import { readFileSync, readdirSync } from "node:fs";
-import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   groupStageItineraries,
@@ -63,49 +61,15 @@ describe("group-stage itineraries - derivation from resolved fixtures", () => {
   });
 });
 
-describe("tournament-context is NOT wired into the model (scope guard)", () => {
-  const root = process.cwd();
-
-  const collectTs = (dir: string): string[] => {
-    const out: string[] = [];
-    for (const entry of readdirSync(dir, { withFileTypes: true })) {
-      const p = join(dir, entry.name);
-      if (entry.isDirectory()) out.push(...collectTs(p));
-      else if (entry.name.endsWith(".ts")) out.push(p);
-    }
-    return out;
-  };
-
-  // Match actual import/require/dynamic-import of a module path (not prose in
-  // comments, which legitimately mention the "tournament-context phase").
-  const importsModule = (src: string, needle: string): boolean => {
-    const re = new RegExp(
-      `(?:from|import|require)\\s*\\(?\\s*["'][^"']*${needle}[^"']*["']`,
-    );
-    return re.test(src);
-  };
-
-  it("no file under lib/model imports the tournament-context layer", () => {
-    for (const file of collectTs(join(root, "lib", "model"))) {
-      const src = readFileSync(file, "utf8");
-      expect(importsModule(src, "tournament-context")).toBe(false);
-    }
-  });
-
-  it("no file under lib/model imports venue-geo", () => {
-    for (const file of collectTs(join(root, "lib", "model"))) {
-      const src = readFileSync(file, "utf8");
-      expect(importsModule(src, "venue-geo")).toBe(false);
-    }
-  });
-
+describe("tournament-context is wired as a capped candidate driver (Phase 1.15B)", () => {
   it("officialDataset still serves the official schedule unchanged", () => {
-    // Venue-geo is a standalone snapshot; it must not alter fixtures/resolution.
+    // Wiring the score must not alter fixtures/resolution.
     expect(fixtureSource).toBe("official");
     expect(fixtures).toHaveLength(72);
   });
 
-  it("MODEL_WEIGHTS has no tournamentContext key (score stays unwired)", () => {
-    expect(Object.keys(MODEL_WEIGHTS)).not.toContain("tournamentContext");
+  it("MODEL_WEIGHTS has a tournamentContext key (score is now wired)", () => {
+    expect(Object.keys(MODEL_WEIGHTS)).toContain("tournamentContext");
+    expect(MODEL_WEIGHTS.tournamentContext).toBe(15);
   });
 });
