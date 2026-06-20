@@ -24,6 +24,15 @@ are unchanged. The derived score is RAW form (overlaps Elo/FIFA, audit-only); th
 **football-data.org** stays **Phase 2.0** live-state infrastructure (exported to a static
 snapshot), never a baseline runtime dependency. See `docs/RECENT_FORM_SOURCE_AUDIT.md`.
 
+**Squad/player roster (Phase 1.17B):** a **source-backed final-squad roster snapshot** exists
+(`data/model-inputs/snapshots/squad-2026-06-11.ts`, 48x26 players from the FIFA final-squad PDF
+via a user-supplied CSV; SHA-256 anchored; raw not committed). It is **standalone + UNWIRED +
+leakage-risk** (the PDF version postdates kickoff): the active `squadQuality` family stays
+`placeholder` and probabilities are unchanged. No squad-quality score, no market value, no
+proprietary ratings; `clubStrengthScore`/`squadDepthScore` deferred. Any squad-quality scoring or
+wiring is deferred to after backtesting (Phase 1.18) and a proven pre-start squad release. See
+`docs/SQUAD_PLAYER_SOURCE_AUDIT.md` and `docs/SQUAD_PLAYER_LEAKAGE_CONTROL.md`.
+
 To reach `verified`: supply official FIFA data (or authoritative JSON), populate
 `data/official/*`, and flip the relevant `sourceStatus` to `"verified"`. The
 Phase 1.5 candidate schedule does **not** shortcut this: agreement between two

@@ -45,6 +45,15 @@ export type {
   RecentFormValidationResult,
   RecentFormScore,
 } from "./recent-form";
+export type {
+  SquadType,
+  PlayerPosition,
+  SquadSource,
+  SquadPlayer,
+  SquadAggregates,
+  SquadRow,
+  SquadValidationResult,
+} from "./squad";
 
 export type SourceStatus = "mock" | "candidate" | "verified";
 
