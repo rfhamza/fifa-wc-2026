@@ -5,6 +5,15 @@ scoring refinements (per-match altitude dose; weighted composite; documented ske
 Generated from `tournamentContextScores()` over all 48 teams (each with 3 stops).
 The score remains a **candidate** heuristic and is **not** wired into the model.
 
+**Read this as a RELATIVE score, not an absolute verdict.** The realised distribution is
+positive-skewed (min around `+0.01`), so a positive raw score does **not** mean a team has
+an absolutely favourable path - almost every team is positive. Rankings are what matter:
+"Top 10" = most favourable **relative to the field**, "Bottom 10" = least favourable / most
+difficult **relative to the field** (even though their raw scores are still positive).
+Future model integration, if approved, uses pairwise differences
+`(teamA.tournamentContext - teamB.tournamentContext) * weight`, so the absolute offset
+cancels and only the relative gap between two teams affects anything.
+
 ## Distribution: before vs after
 
 | Metric | Before (1.14) | After (1.15A) |
@@ -18,14 +27,16 @@ The score remains a **candidate** heuristic and is **not** wired into the model.
 | altitude sub-score min | **-1.000** (5 teams) | **-0.648** (1 team: Mexico) |
 | altitude sub-score range | 1.99 | 1.65 |
 
-## Top 10 (most favourable, after)
+## Top 10 (most favourable relative to the field, after)
 
 Paraguay +0.90, Argentina +0.79, Türkiye +0.75, South Korea +0.74, Australia +0.73,
 Iran +0.73, Egypt +0.70, United States +0.68, New Zealand +0.68, Netherlands +0.66.
 Drivers: short travel, clean rest, low/near-zero altitude burden, no time-zone shift.
 
-## Bottom 10 (most difficult, after)
+## Bottom 10 (least favourable relative to the field, after)
 
+These are the **least favourable paths relative to the field**, not teams with an
+absolutely bad path - note every score below is still positive:
 Mexico +0.40, Ecuador +0.38, England +0.33, Croatia +0.33, South Africa +0.30,
 Algeria +0.23, Uzbekistan +0.19, Czechia +0.18, DR Congo +0.09, Colombia +0.01.
 Drivers are now **rest congestion and travel** (e.g. Colombia/DR Congo/Croatia rest

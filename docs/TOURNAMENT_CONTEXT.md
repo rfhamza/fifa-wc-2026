@@ -97,15 +97,22 @@ visible** in the per-component breakdown.
 `venueContinuity` is a **benefit axis** (never a penalty): a team that never reuses
 a venue scores `0` on this axis, not `-1`.
 
-### Skew / interpretation
+### Skew / interpretation (a RELATIVE score)
 
-The realised 48-team composite is **favourability-skewed** (most teams positive;
-after the altitude-dose change essentially all positive, since a single altitude
-match is no longer punishing). This skew is **documented, not hard-corrected**: a
-fixed re-centring was considered and rejected as fragile (it would depend on the
-specific draw and change if the draw changed). If model integration is later
-approved, it will use **pairwise differences `(a - b)` behind a tight cap**, so the
-constant skew cancels and only relative differences between two teams matter.
+Treat the composite as a **relative** tournament-context score, **not** an absolute
+verdict on a team's path. The realised 48-team composite is **favourability-skewed**
+(most teams positive; after the altitude-dose change essentially all positive, since a
+single altitude match is no longer punishing, min around `+0.01`). So a **positive raw
+score does not mean a team has an absolutely favourable path** - almost every team is
+positive. What matters is the **ranking relative to the field**: the lowest-ranked teams
+are the **least favourable / most difficult relative to the field**, even though their
+raw scores are still positive (not negative).
+
+This skew is **documented, not hard-corrected**: a fixed re-centring was considered and
+rejected as fragile (it would depend on the specific draw and change if the draw
+changed). If model integration is later approved, it will use **pairwise differences
+`(teamA.tournamentContext - teamB.tournamentContext) * weight` behind a tight cap**, so
+the absolute offset cancels and only the relative gap between two teams matters.
 
 ## Excluded: host / regional advantage (no double-counting)
 
