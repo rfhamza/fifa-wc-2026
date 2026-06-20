@@ -265,6 +265,26 @@ A roadmap from the foundation to a richer product. Each item lists the
   Elo/FIFA remain source-backed anchors. New `validateClimateSnapshot` + climate
   snapshot/score tests; forecast + sensitivity audits regenerated.
 
+## Done in phase 1.16C (recent-form replacement decision - NO replacement)
+
+- **Decision: do not replace the active `recentForm` placeholder yet (Option A).** The
+  source-backed recent-form candidate (Phase 1.16B) stays **audit-only / unwired**; active
+  `recentForm` remains `placeholder` (0..100, weight 2.0), no model wiring, no probability change.
+- Rationale (audit in `docs/RECENT_FORM_REPLACEMENT_AUDIT.md`): candidate correlates highly with
+  Elo (r=0.774) and FIFA (0.779) - it mostly re-measures known strength; it overrewards
+  friendly-heavy / easy recent schedules (e.g. Argentina 0.80 on ~70% friendlies); the additive
+  fix (opponent-Elo residual) is deferred (no opponent Elo at match time). Scale analysis:
+  B-literal (-1..+1, weight 2.0) is safe but nearly negligible (~0.6%/pair); B-rescaled (0..100)
+  is overpowered (~15.6%/pair) and rejected.
+- The source-backed snapshot remains a valuable **audit foundation** for the future residual,
+  backtesting, and explainability.
+
+## Roadmap (next, planning-gated)
+- **Phase 1.17A:** squad/player quality - **source & licensing audit only** (no implementation
+  until licensing is clean).
+- **Phase 1.18:** historical backtesting / calibration, including the **opponent-Elo residual**
+  for recent form (revisit active replacement then).
+
 ## Done in phase 1.16B (recent-form foundation - standalone, UNWIRED)
 
 - Added a **source-backed recent-results snapshot**
