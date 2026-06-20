@@ -1,7 +1,7 @@
 # Venue-Geo Snapshot Audit (Phase 1.14)
 
 Provenance and scope for the host-venue geo/context snapshot
-(`data/official/venue-geo.ts`).
+(`data/model-inputs/snapshots/venue-geo-2026.ts`).
 
 ## What this is
 

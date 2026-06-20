@@ -6,7 +6,7 @@ import {
   itineraryForTeam,
   deriveItineraries,
 } from "@/lib/tournament-context";
-import { venueGeoById } from "@/data/official/venue-geo";
+import { venueGeoById } from "@/data/model-inputs/snapshots/venue-geo-2026";
 import { teams, fixtures, fixtureSource } from "@/lib/data";
 import type { Fixture } from "@/lib/types";
 

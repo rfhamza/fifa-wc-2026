@@ -3,7 +3,7 @@ import {
   venueGeoSnapshot,
   venueGeoById,
   VENUE_GEO_SOURCE,
-} from "@/data/official/venue-geo";
+} from "@/data/model-inputs/snapshots/venue-geo-2026";
 import { officialVenues } from "@/data/official/venues";
 import { validateVenueGeoSnapshot } from "@/lib/data/validate-venue-geo";
 import type { VenueGeoRow } from "@/lib/types";

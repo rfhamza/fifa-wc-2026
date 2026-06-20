@@ -17,7 +17,7 @@ import {
   TIMEZONE_FULL_PENALTY_HOURS,
   DEFERRED_SUB_METRICS,
 } from "@/lib/tournament-context";
-import { venueGeoById } from "@/data/official/venue-geo";
+import { venueGeoById } from "@/data/model-inputs/snapshots/venue-geo-2026";
 import type { ItineraryStop, TeamItinerary, VenueGeoRow } from "@/lib/types";
 
 const stop = (

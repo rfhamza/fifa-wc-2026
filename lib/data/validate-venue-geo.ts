@@ -18,7 +18,7 @@ import { officialVenues } from "@/data/official/venues";
 import {
   venueGeoSnapshot,
   VENUE_GEO_SOURCE,
-} from "@/data/official/venue-geo";
+} from "@/data/model-inputs/snapshots/venue-geo-2026";
 
 const LAT_MIN = -90;
 const LAT_MAX = 90;

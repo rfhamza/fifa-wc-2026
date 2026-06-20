@@ -5,9 +5,11 @@
  * Scans tracked text files for invisible or deceptive characters that can hide
  * content or smuggle intent past review: zero-width characters, bidirectional
  * controls (the "Trojan Source" class), other Cf format controls, the BOM in the
- * middle of a file, and disallowed C0/C1 control characters. Legitimate accented
- * letters and emoji (already present in the repo: country names, flag emoji) are
- * NOT flagged.
+ * middle of a file, TAG characters (U+E0000..U+E007F), NBSP/soft hyphen, and
+ * disallowed C0/C1 control characters. Visible characters already consistent with
+ * the repo - accented country-name diacritics and regional-indicator flag emoji -
+ * are NOT flagged. Flag-emoji TAG sequences are intentionally NOT exempted, so any
+ * TAG character is reported.
  *
  * Exit code 0 = clean, 1 = findings (so it can gate CI / pre-PR checks).
  * Usage: node scripts/scan-unicode.mjs
@@ -33,7 +35,12 @@ const SUSPICIOUS = [
   { name: "INVISIBLE OPERATOR", test: (c) => c >= 0x2061 && c <= 0x2064 },
   { name: "INTERLINEAR ANNOTATION", test: (c) => c >= 0xfff9 && c <= 0xfffb },
   { name: "TAG / DEPRECATED FORMAT CHAR", test: (c) => c >= 0xe0000 && c <= 0xe007f },
-  { name: "C0 CONTROL (non tab/newline/cr)", test: (c) => c < 0x09 || (c > 0x0d && c < 0x20) },
+  { name: "NO-BREAK SPACE", test: (c) => c === 0x00a0 },
+  { name: "SOFT HYPHEN", test: (c) => c === 0x00ad },
+  { name: "NARROW NO-BREAK / FIGURE SPACE", test: (c) => c === 0x202f || c === 0x2007 },
+  { name: "LINE / PARAGRAPH SEPARATOR", test: (c) => c === 0x2028 || c === 0x2029 },
+  // C0 controls except TAB (0x09) and LF (0x0a) - so CR (0x0d), VT, FF are flagged.
+  { name: "C0 CONTROL (incl. CR)", test: (c) => c < 0x20 && c !== 0x09 && c !== 0x0a },
   { name: "C1 CONTROL", test: (c) => c >= 0x80 && c <= 0x9f },
 ];
 
@@ -59,31 +66,16 @@ for (const file of trackedTextFiles()) {
   }
   let line = 1;
   let col = 0;
-  // Tag characters (U+E0020..U+E007F) are legitimate ONLY inside a black-flag
-  // emoji subdivision sequence (U+1F3F4 ... U+E007F), e.g. the Scotland/England
-  // flag emoji. Track that we are inside such a sequence and allow tags there.
-  let inFlagSeq = false;
   for (const ch of text) {
     const cp = ch.codePointAt(0);
     if (ch === "\n") {
       line += 1;
       col = 0;
-      inFlagSeq = false;
       continue;
     }
     col += 1;
     // Allow a BOM only as the very first character of a file.
     if (cp === 0xfeff && line === 1 && col === 1) continue;
-
-    if (cp === 0x1f3f4) {
-      inFlagSeq = true;
-      continue;
-    }
-    if (inFlagSeq && cp >= 0xe0020 && cp <= 0xe007f) {
-      if (cp === 0xe007f) inFlagSeq = false; // CANCEL TAG ends the sequence
-      continue;
-    }
-    inFlagSeq = false;
 
     for (const rule of SUSPICIOUS) {
       if (rule.test(cp)) {

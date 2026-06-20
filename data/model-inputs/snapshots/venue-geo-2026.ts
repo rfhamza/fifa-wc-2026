@@ -3,9 +3,12 @@ import type { VenueGeoRow, VenueGeoSource } from "@/lib/types";
 /**
  * Phase 1.14 - venue geo/context snapshot (16 host stadiums).
  * ----------------------------------------------------------
- * Source-backed venue coordinates, altitude and IANA time zone for the 2026 host
- * venues. Transcribed from a USER-SUPPLIED venue-geo CSV (the raw CSV is NOT
- * committed). This is a standalone snapshot: it is NOT added to `officialDataset`
+ * A MODELLING/PROVENANCE input snapshot (lives under data/model-inputs/snapshots/,
+ * NOT data/official/) carrying source-backed venue coordinates, altitude and IANA
+ * time zone for the 2026 host venues. Coordinates/altitude/time zone are modelling
+ * inputs, not FIFA fixture/venue identity, so they belong here rather than in the
+ * official fixture/venue resolver. Transcribed from a USER-SUPPLIED venue-geo CSV
+ * (the raw CSV is NOT committed). Standalone: it is NOT added to `officialDataset`
  * and does NOT change the `Venue` type, fixtures, schedule, or the resolver.
  *
  * Provenance:

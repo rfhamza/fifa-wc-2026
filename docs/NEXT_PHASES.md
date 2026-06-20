@@ -268,7 +268,7 @@ A roadmap from the foundation to a richer product. Each item lists the
 ## Done in phase 1.14 (tournament-context foundation - venue geo + signed score)
 
 - Added a **source-backed venue-geo snapshot** of the 16 host stadiums
-  (`data/official/venue-geo.ts`): latitude/longitude (LatLong.net), altitude
+  (`data/model-inputs/snapshots/venue-geo-2026.ts`): latitude/longitude (LatLong.net), altitude
   (Starting11), and IANA time zone, transcribed from a user-supplied CSV (raw CSV
   NOT committed; per-row `sourceRef` + `VENUE_GEO_SOURCE` provenance). Standalone -
   NOT added to `officialDataset`; the `Venue` type, fixtures, schedule, draw slots

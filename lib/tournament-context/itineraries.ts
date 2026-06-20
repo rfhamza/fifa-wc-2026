@@ -13,7 +13,7 @@ import type {
   VenueGeoRow,
 } from "@/lib/types";
 import { fixtures as resolvedFixtures } from "@/lib/data";
-import { venueGeoById } from "@/data/official/venue-geo";
+import { venueGeoById } from "@/data/model-inputs/snapshots/venue-geo-2026";
 
 /** Chronological key for a fixture: matchday first, then kickoff/date. */
 function orderKey(f: Fixture): [number, number] {

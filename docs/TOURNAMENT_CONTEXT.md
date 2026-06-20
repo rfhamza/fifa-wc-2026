@@ -10,7 +10,7 @@ calibrate and wire in.
 
 ```
 venue-geo snapshot (source-backed)        resolved group-stage fixtures
-   data/official/venue-geo.ts                       lib/data
+   data/model-inputs/snapshots/venue-geo-2026.ts    lib/data
                  \                                   /
                   v                                 v
             lib/tournament-context/itineraries.ts (deriveItineraries)
