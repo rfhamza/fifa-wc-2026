@@ -39,16 +39,16 @@ test) and the **placeholder caps remain in force** under every variant.
 
 | # | Team | Title |
 |--:|---|--:|
-| 1 | Spain | 29.1% |
-| 2 | Argentina | 23.5% |
-| 3 | France | 13.1% |
-| 4 | Portugal | 5.9% |
-| 5 | England | 5.9% |
-| 6 | Brazil | 4.7% |
-| 7 | Colombia | 3.2% |
-| 8 | Netherlands | 2.5% |
-| 9 | Mexico | 1.8% |
-| 10 | Germany | 1.7% |
+| 1 | Spain | 28.6% |
+| 2 | Argentina | 21.6% |
+| 3 | France | 14.3% |
+| 4 | England | 8.0% |
+| 5 | Portugal | 5.8% |
+| 6 | Brazil | 4.8% |
+| 7 | Netherlands | 2.4% |
+| 8 | Colombia | 2.1% |
+| 9 | Mexico | 1.9% |
+| 10 | Germany | 1.8% |
 
 ## 4. Biggest title movers vs baseline (per variant)
 
@@ -58,11 +58,11 @@ _Elo anchor reduced to 75% to test reliance on the dominant rating._
 
 | Team | Baseline | Variant | Δ |
 |---|--:|--:|--:|
-| Argentina | 23.5% | 18.1% | -5.4% |
-| Spain | 29.1% | 24.6% | -4.5% |
-| England | 5.9% | 7.5% | +1.6% |
-| Mexico | 1.8% | 2.9% | +1.1% |
-| Belgium | 1.0% | 1.9% | +0.9% |
+| Spain | 28.6% | 23.2% | -5.4% |
+| Argentina | 21.6% | 18.6% | -2.9% |
+| Mexico | 1.9% | 3.5% | +1.6% |
+| England | 8.0% | 6.5% | -1.5% |
+| France | 14.3% | 13.0% | -1.4% |
 
 ### Elo x0.50 (`elo-50`)
 
@@ -70,11 +70,11 @@ _Elo anchor halved - strongest probe of Elo dominance._
 
 | Team | Baseline | Variant | Δ |
 |---|--:|--:|--:|
-| Spain | 29.1% | 17.2% | -11.9% |
-| Argentina | 23.5% | 14.5% | -8.9% |
-| Mexico | 1.8% | 4.0% | +2.3% |
-| France | 13.1% | 10.9% | -2.1% |
-| Germany | 1.7% | 3.5% | +1.8% |
+| Spain | 28.6% | 17.3% | -11.2% |
+| Argentina | 21.6% | 15.2% | -6.4% |
+| France | 14.3% | 10.7% | -3.7% |
+| Brazil | 4.8% | 7.3% | +2.5% |
+| Mexico | 1.9% | 4.0% | +2.1% |
 
 ### FIFA x1.25 (slope + cap) (`fifa-125`)
 
@@ -82,11 +82,11 @@ _FIFA slope (per place) and cap (max contribution) both x1.25._
 
 | Team | Baseline | Variant | Δ |
 |---|--:|--:|--:|
-| Spain | 29.1% | 26.7% | -2.5% |
-| England | 5.9% | 7.6% | +1.7% |
-| France | 13.1% | 14.8% | +1.7% |
-| Argentina | 23.5% | 22.7% | -0.8% |
-| Netherlands | 2.5% | 3.1% | +0.7% |
+| Argentina | 21.6% | 23.2% | +1.6% |
+| England | 8.0% | 6.7% | -1.3% |
+| France | 14.3% | 13.5% | -0.9% |
+| Portugal | 5.8% | 6.6% | +0.8% |
+| Belgium | 1.6% | 0.9% | -0.7% |
 
 ### FIFA x1.50 (slope + cap) (`fifa-150`)
 
@@ -94,11 +94,11 @@ _FIFA slope (per place) and cap (max contribution) both x1.50._
 
 | Team | Baseline | Variant | Δ |
 |---|--:|--:|--:|
-| England | 5.9% | 8.9% | +3.0% |
-| Argentina | 23.5% | 21.9% | -1.5% |
-| Netherlands | 2.5% | 3.6% | +1.1% |
-| Portugal | 5.9% | 5.0% | -1.0% |
-| Colombia | 3.2% | 2.4% | -0.8% |
+| Spain | 28.6% | 30.3% | +1.7% |
+| Argentina | 21.6% | 22.9% | +1.4% |
+| France | 14.3% | 13.5% | -0.9% |
+| England | 8.0% | 7.4% | -0.6% |
+| Belgium | 1.6% | 1.1% | -0.5% |
 
 ### Elo/FIFA balanced (`balanced`)
 
@@ -106,11 +106,11 @@ _Elo x0.60 with FIFA slope + cap x1.50 - re-balances the two rating inputs._
 
 | Team | Baseline | Variant | Δ |
 |---|--:|--:|--:|
-| Spain | 29.1% | 20.6% | -8.5% |
-| Argentina | 23.5% | 17.3% | -6.3% |
-| Mexico | 1.8% | 3.9% | +2.1% |
-| England | 5.9% | 7.7% | +1.8% |
-| Portugal | 5.9% | 7.8% | +1.8% |
+| Spain | 28.6% | 19.6% | -9.0% |
+| Argentina | 21.6% | 14.5% | -7.1% |
+| Mexico | 1.9% | 4.0% | +2.1% |
+| Germany | 1.8% | 3.7% | +1.9% |
+| Brazil | 4.8% | 6.2% | +1.4% |
 
 ### No placeholder/capped inputs (`no-placeholders`)
 
@@ -118,11 +118,11 @@ _Zeroes squad quality / recent form (capped placeholders) and the capped climate
 
 | Team | Baseline | Variant | Δ |
 |---|--:|--:|--:|
-| Argentina | 23.5% | 18.1% | -5.4% |
-| Spain | 29.1% | 23.8% | -5.3% |
-| England | 5.9% | 7.6% | +1.8% |
-| Mexico | 1.8% | 3.3% | +1.6% |
-| Netherlands | 2.5% | 4.0% | +1.6% |
+| Argentina | 21.6% | 17.1% | -4.4% |
+| France | 14.3% | 11.5% | -2.9% |
+| England | 8.0% | 6.2% | -1.9% |
+| Spain | 28.6% | 27.3% | -1.3% |
+| Japan | 0.7% | 1.9% | +1.3% |
 
 ### No host/regional advantage (`no-host-regional`)
 
@@ -130,11 +130,11 @@ _Zeroes host + regional step contributions (tournament-context flags)._
 
 | Team | Baseline | Variant | Δ |
 |---|--:|--:|--:|
-| Argentina | 23.5% | 21.1% | -2.4% |
-| England | 5.9% | 7.3% | +1.4% |
-| Brazil | 4.7% | 5.9% | +1.2% |
-| Netherlands | 2.5% | 3.5% | +1.1% |
-| Spain | 29.1% | 28.3% | -0.8% |
+| France | 14.3% | 13.1% | -1.3% |
+| Argentina | 21.6% | 22.7% | +1.1% |
+| Mexico | 1.9% | 1.1% | -0.9% |
+| Netherlands | 2.4% | 3.2% | +0.8% |
+| Spain | 28.6% | 27.9% | -0.7% |
 
 ### Rating-only (Elo + FIFA) (`rating-only`)
 
@@ -142,25 +142,25 @@ _Isolates ONLY the two source-backed RATING inputs (Elo + FIFA ranking). It zero
 
 | Team | Baseline | Variant | Δ |
 |---|--:|--:|--:|
-| Spain | 29.1% | 23.4% | -5.7% |
-| Argentina | 23.5% | 19.0% | -4.5% |
-| England | 5.9% | 8.0% | +2.1% |
-| Portugal | 5.9% | 4.2% | -1.8% |
-| Ecuador | 1.1% | 2.5% | +1.4% |
+| Spain | 28.6% | 24.0% | -4.6% |
+| Argentina | 21.6% | 17.3% | -4.2% |
+| France | 14.3% | 11.5% | -2.9% |
+| Colombia | 2.1% | 4.7% | +2.5% |
+| Ecuador | 1.1% | 2.6% | +1.4% |
 
 ## 5. Contribution mix by source status (abs-magnitude share, all 72 group fixtures)
 
 | Variant | source-backed | manual | verified | candidate | placeholder |
 |---|--:|--:|--:|--:|--:|
-| Baseline (production) | 80% | 0% | 2% | 7% | 10% |
+| Baseline (production) | 80% | 0% | 2% | 8% | 10% |
 | Elo x0.75 | 76% | 0% | 3% | 9% | 12% |
-| Elo x0.50 | 70% | 0% | 3% | 11% | 15% |
-| FIFA x1.25 (slope + cap) | 81% | 0% | 2% | 7% | 10% |
-| FIFA x1.50 (slope + cap) | 82% | 0% | 2% | 7% | 9% |
-| Elo/FIFA balanced | 75% | 0% | 3% | 9% | 13% |
-| No placeholder/capped inputs | 94% | 0% | 3% | 4% | 0% |
-| No host/regional advantage | 83% | 0% | 0% | 7% | 10% |
-| Rating-only (Elo + FIFA) | 100% | 0% | 0% | 0% | 0% |
+| Elo x0.50 | 70% | 0% | 3% | 12% | 15% |
+| FIFA x1.25 (slope + cap) | 81% | 0% | 2% | 8% | 10% |
+| FIFA x1.50 (slope + cap) | 81% | 0% | 2% | 7% | 9% |
+| Elo/FIFA balanced | 75% | 0% | 3% | 10% | 13% |
+| No placeholder/capped inputs | 93% | 0% | 3% | 4% | 0% |
+| No host/regional advantage | 82% | 0% | 0% | 7% | 10% |
+| Rating-only (Elo + FIFA) | 99% | 0% | 0% | 1% | 0% |
 
 ## 6. Selected match sensitivity - Saudi Arabia v Uruguay (W/D/L)
 
@@ -170,23 +170,23 @@ _Isolates ONLY the two source-backed RATING inputs (Elo + FIFA ranking). It zero
 | Elo x0.75 | 9% | 19% | 72% |
 | Elo x0.50 | 14% | 22% | 64% |
 | FIFA x1.25 (slope + cap) | 5% | 15% | 80% |
-| FIFA x1.50 (slope + cap) | 4% | 15% | 81% |
-| Elo/FIFA balanced | 10% | 19% | 70% |
+| FIFA x1.50 (slope + cap) | 5% | 15% | 81% |
+| Elo/FIFA balanced | 10% | 20% | 70% |
 | No placeholder/capped inputs | 9% | 18% | 73% |
 | No host/regional advantage | 6% | 16% | 78% |
 | Rating-only (Elo + FIFA) | 9% | 18% | 73% |
 
 ## 7. Selected group-winner sensitivity - Group D (P finish 1st, 1500 iters)
 
-- **Baseline (production):** Türkiye 41% · United States 22% · Paraguay 19% · Australia 18%
-- **Elo x0.75:** Türkiye 39% · United States 24% · Paraguay 17% · Australia 20%
-- **Elo x0.50:** Türkiye 33% · United States 31% · Paraguay 17% · Australia 20%
-- **FIFA x1.25 (slope + cap):** Türkiye 42% · United States 23% · Paraguay 17% · Australia 18%
-- **FIFA x1.50 (slope + cap):** Türkiye 42% · United States 23% · Paraguay 16% · Australia 18%
-- **Elo/FIFA balanced:** Türkiye 34% · United States 30% · Paraguay 15% · Australia 20%
-- **No placeholder/capped inputs:** Türkiye 40% · United States 23% · Paraguay 21% · Australia 16%
-- **No host/regional advantage:** Türkiye 46% · United States 17% · Paraguay 20% · Australia 18%
-- **Rating-only (Elo + FIFA):** Türkiye 43% · United States 15% · Paraguay 24% · Australia 19%
+- **Baseline (production):** Türkiye 40% · United States 23% · Australia 18% · Paraguay 18%
+- **Elo x0.75:** Türkiye 37% · United States 25% · Australia 20% · Paraguay 18%
+- **Elo x0.50:** Türkiye 32% · United States 30% · Australia 20% · Paraguay 18%
+- **FIFA x1.25 (slope + cap):** Türkiye 41% · United States 23% · Australia 18% · Paraguay 17%
+- **FIFA x1.50 (slope + cap):** Türkiye 43% · United States 22% · Australia 18% · Paraguay 17%
+- **Elo/FIFA balanced:** Türkiye 36% · United States 30% · Australia 19% · Paraguay 15%
+- **No placeholder/capped inputs:** Türkiye 39% · United States 23% · Australia 17% · Paraguay 22%
+- **No host/regional advantage:** Türkiye 45% · United States 17% · Australia 18% · Paraguay 20%
+- **Rating-only (Elo + FIFA):** Türkiye 43% · United States 15% · Australia 19% · Paraguay 23%
 
 ## 8. Reading the results
 

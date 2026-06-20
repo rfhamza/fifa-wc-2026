@@ -71,4 +71,19 @@ export const MODEL_INPUT_SOURCES: Record<ModelFeatureFamily, ModelInputSource> =
     status: "candidate",
     notes: "Same-nationality-manager proxy from cross-verified identity data.",
   },
+  // Phase 1.15B: tournament-context driver. Provenance chain: venue geo is
+  // source-backed (venue-geo-2026.ts); official fixtures are the official schedule;
+  // the itinerary + metrics are CALCULATED; the signed -1..+1 composite is a
+  // CANDIDATE heuristic (calibration deferred). Heat/venue-climate remain deferred.
+  // No live/current data. Driver capped (TOURNAMENT_CONTEXT_CONTRIBUTION_CAP) and
+  // consumed as a pairwise difference in lib/model/predict.ts.
+  tournamentContext: {
+    family: "tournamentContext",
+    label: "Tournament context",
+    sourceName:
+      "Derived: venue geo (source-backed) + official fixtures (calculated itinerary/metrics)",
+    status: "candidate",
+    notes:
+      "Signed -1..+1 relative score (travel/rest/altitude/time-zone/venue-continuity) from the group-stage itinerary. Candidate heuristic; capped and used as a pairwise difference. Excludes host/regional advantage (no double-count); heat/venue-climate deferred; no live/current data.",
+  },
 };

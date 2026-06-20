@@ -27,8 +27,20 @@ combine and be ranked in the explanation.
 | Regional advantage | `(regionalA - regionalB) x w.regional` | `18` |
 | Climate familiarity | `(climA - climB) x w.climate` | `0.8` |
 | Structural depth (economic) | `(structA - structB) x w.structural` | `10` (weak) |
+| Tournament context | `(tcA - tcB) x w.tournamentContext`, capped `+/-15` | `15` (candidate) |
 
-`netAdvantage = sum  contributions`. `explainDrivers()` splits the drivers into
+`netAdvantage = sum  contributions`.
+
+### Tournament context (candidate, Phase 1.15B)
+`tournamentContext  in  [-1,+1]` is the team's RELATIVE group-stage logistics score
+(travel / rest / altitude-dose / time-zone / venue-continuity) from
+`lib/tournament-context`, built on the source-backed venue-geo snapshot + official
+fixtures. It is a `candidate` heuristic, consumed only as a **pairwise difference**
+(the raw score is favourability-skewed, so the offset cancels) and **hard-capped to
+`+/-15` Elo** (`TOURNAMENT_CONTEXT_CONTRIBUTION_CAP`) - below regional (18) and climate
+(25), and separately capped (never pooled with placeholders). It **excludes**
+host/regional advantage (no double-count) and **excludes** venue heat/venue-climate
+(deferred). See `docs/TOURNAMENT_CONTEXT_DRIVER_AUDIT.md`. `explainDrivers()` splits the drivers into
 ranked positive/negative lists for the UI.
 
 ### Structural / economic prior

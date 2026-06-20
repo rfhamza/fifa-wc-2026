@@ -29,7 +29,8 @@ export type ModelFeatureFamily =
   | "climateFamiliarity"
   | "hostAdvantage"
   | "regionalAdvantage"
-  | "managerCohesion";
+  | "managerCohesion"
+  | "tournamentContext";
 
 /** Provenance for one model-input feature family. */
 export interface ModelInputSource {
@@ -69,6 +70,14 @@ export interface TeamModelInputs {
   recentForm: number;
   squadQuality: number;
   climateFamiliarity: number;
+  /**
+   * Phase 1.15B - signed -1..+1 RELATIVE tournament-context score (the team's
+   * group-stage travel/rest/altitude/time-zone/venue-continuity logistics), from
+   * `tournamentContextScoreForTeam(...).composite`. Positive = more favourable
+   * relative to the field; the raw value is favourability-skewed, so the model
+   * consumes only PAIRWISE differences (offset cancels). `candidate` status.
+   */
+  tournamentContext: number;
 }
 
 /**

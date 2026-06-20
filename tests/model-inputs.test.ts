@@ -15,6 +15,7 @@ import {
   PLACEHOLDER_CONTRIBUTION_CAP,
   TOTAL_PLACEHOLDER_CONTRIBUTION_CAP,
   CLIMATE_CONTRIBUTION_CAP,
+  TOURNAMENT_CONTEXT_CONTRIBUTION_CAP,
 } from "@/lib/model/config";
 import { getTeam } from "@/lib/data";
 import { officialTeams } from "@/data/official/teams";
@@ -23,15 +24,19 @@ import type { ModelFeatureFamily, TeamModelInputs } from "@/lib/types";
 const FAMILIES: ModelFeatureFamily[] = [
   "eloRating", "fifaRanking", "structural", "squadQuality", "recentForm",
   "climateFamiliarity", "hostAdvantage", "regionalAdvantage", "managerCohesion",
+  "tournamentContext",
 ];
 
 describe("model-input layer - shape & provenance", () => {
   it("covers all 48 teams with finite numeric inputs", () => {
     expect(modelInputSnapshot).toHaveLength(48);
     for (const m of modelInputSnapshot) {
-      for (const v of [m.eloRating, m.fifaRanking, m.gdpPerCapita, m.population, m.recentForm, m.squadQuality, m.climateFamiliarity]) {
+      for (const v of [m.eloRating, m.fifaRanking, m.gdpPerCapita, m.population, m.recentForm, m.squadQuality, m.climateFamiliarity, m.tournamentContext]) {
         expect(Number.isFinite(v)).toBe(true);
       }
+      // Phase 1.15B: signed -1..+1 relative tournament-context score.
+      expect(m.tournamentContext).toBeGreaterThanOrEqual(-1);
+      expect(m.tournamentContext).toBeLessThanOrEqual(1);
     }
     expect(new Set(modelInputSnapshot.map((m) => m.teamId)).size).toBe(48);
   });
@@ -56,6 +61,8 @@ describe("model-input layer - shape & provenance", () => {
     expect(getFeatureStatus("squadQuality")).toBe("placeholder");
     expect(getFeatureStatus("recentForm")).toBe("placeholder");
     expect(getFeatureStatus("climateFamiliarity")).toBe("candidate");
+    // Phase 1.15B: tournament-context is a candidate driver.
+    expect(getFeatureStatus("tournamentContext")).toBe("candidate");
     // Elo anchor + FIFA ranking are both source-backed (Phase 1.10 / 1.8).
     expect(getFeatureStatus("eloRating")).toBe("source-backed");
     expect(getFeatureStatus("fifaRanking")).toBe("source-backed");
@@ -125,6 +132,19 @@ describe("placeholder-weight caps", () => {
     const d = byFamily.get("climateFamiliarity")!;
     expect(d.status).toBe("candidate");
     expect(Math.abs(d.contribution)).toBeLessThanOrEqual(CLIMATE_CONTRIBUTION_CAP + 1e-9);
+  });
+
+  it("caps the tournamentContext candidate driver to +/- TOURNAMENT_CONTEXT_CONTRIBUTION_CAP (Phase 1.15B)", () => {
+    const d = byFamily.get("tournamentContext")!;
+    expect(d.status).toBe("candidate");
+    expect(Math.abs(d.contribution)).toBeLessThanOrEqual(TOURNAMENT_CONTEXT_CONTRIBUTION_CAP + 1e-9);
+  });
+
+  it("does not pool the tournamentContext candidate with placeholders", () => {
+    const placeholderFamilies = drivers
+      .filter((d) => d.status === "placeholder")
+      .map((d) => d.family);
+    expect(placeholderFamilies).not.toContain("tournamentContext");
   });
 
   it("caps the combined placeholder contribution to +/- TOTAL cap", () => {

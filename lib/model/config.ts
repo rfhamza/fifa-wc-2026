@@ -33,6 +33,13 @@ export const MODEL_WEIGHTS = {
    * prior, never a determinative match-level predictor.
    */
   structural: 10,
+  /**
+   * Phase 1.15B — Elo points per unit of signed tournament-context difference
+   * (score is -1..+1). Applied to the PAIRWISE difference (a - b), then hard-capped
+   * to +/- TOURNAMENT_CONTEXT_CONTRIBUTION_CAP. Deliberately conservative: the
+   * largest realised pairwise gap (~0.9) yields ~13 Elo, under the cap.
+   */
+  tournamentContext: 15,
 } as const;
 
 /**
@@ -67,6 +74,18 @@ export const TOTAL_PLACEHOLDER_CONTRIBUTION_CAP = 40;
  * unchanged; this cap keeps a single experimental prior from ever dominating.
  */
 export const CLIMATE_CONTRIBUTION_CAP = 25;
+
+/**
+ * Phase 1.15B - tournament-context driver cap (Elo-equivalent points).
+ *
+ * The tournament-context composite is a `candidate` heuristic (relative,
+ * favourability-skewed, calibration deferred) that partially overlaps the binary
+ * host/regional drivers, so its driver is clamped to +/- this cap in
+ * lib/model/predict.ts and is consumed only as a pairwise difference. Conservative
+ * at +/-15 (below regional 18 and climate 25); separately capped, never pooled with
+ * placeholders. Raise only after historical backtesting.
+ */
+export const TOURNAMENT_CONTEXT_CONTRIBUTION_CAP = 15;
 
 export const SCORELINE_CONFIG = {
   /** League-average total goals per match (Poisson baseline). */

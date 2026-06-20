@@ -67,6 +67,9 @@ export function buildFeatureSet(team: Team): TeamFeatureSet {
   const climateFamiliarity = finite(mi?.climateFamiliarity, team.climateFamiliarity);
   const gdpPerCapita = finite(mi?.gdpPerCapita, team.gdpPerCapita);
   const population = finite(mi?.population, team.population);
+  // Phase 1.15B: signed -1..+1 relative tournament-context score (candidate),
+  // neutral 0 fallback. Consumed as a pairwise difference + capped in predict.ts.
+  const tournamentContext = finite(mi?.tournamentContext, 0);
 
   return {
     teamId: team.id,
@@ -83,5 +86,6 @@ export function buildFeatureSet(team: Team): TeamFeatureSet {
     isRegional:
       REGIONAL_CONFEDERATIONS.has(team.confederation) &&
       !HOST_TEAM_IDS.has(team.id),
+    tournamentContext,
   };
 }

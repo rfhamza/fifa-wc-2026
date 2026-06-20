@@ -26,6 +26,7 @@ import {
   PLACEHOLDER_CONTRIBUTION_CAP,
   TOTAL_PLACEHOLDER_CONTRIBUTION_CAP,
   CLIMATE_CONTRIBUTION_CAP,
+  TOURNAMENT_CONTEXT_CONTRIBUTION_CAP,
   type ModelWeights,
 } from "./config";
 import { buildFeatureSet } from "./features";
@@ -41,7 +42,10 @@ const finite = (x: number): number => (Number.isFinite(x) ? x : 0);
  *  - every `placeholder` family is clamped to +/- PLACEHOLDER_CONTRIBUTION_CAP;
  *  - the climate family is a documented `candidate` heuristic and is clamped to
  *    +/- CLIMATE_CONTRIBUTION_CAP even though it is no longer placeholder.
- * Other source-backed/verified/candidate families remain uncapped.
+ *  - the tournament-context family (Phase 1.15B) is a documented `candidate`
+ *    heuristic and is clamped to +/- TOURNAMENT_CONTEXT_CONTRIBUTION_CAP.
+ * These candidate caps bind individually and are NOT pooled with placeholders.
+ * Other source-backed/verified families remain uncapped.
  */
 function contributionCapFor(
   family: ModelFeatureFamily | undefined,
@@ -49,6 +53,7 @@ function contributionCapFor(
 ): number | undefined {
   if (status === "placeholder") return PLACEHOLDER_CONTRIBUTION_CAP;
   if (family === "climateFamiliarity") return CLIMATE_CONTRIBUTION_CAP;
+  if (family === "tournamentContext") return TOURNAMENT_CONTEXT_CONTRIBUTION_CAP;
   return undefined;
 }
 
@@ -174,6 +179,16 @@ export function computeDrivers(
       contribution: (a.structuralDepth - b.structuralDepth) * w.structural,
       detail:
         "Experimental weak economic prior (log-scaled GDP per capita + population).",
+    },
+    {
+      label: "Tournament context",
+      family: "tournamentContext",
+      contribution:
+        (a.tournamentContext - b.tournamentContext) * w.tournamentContext,
+      detail:
+        `Relative group-stage logistics (travel/rest/altitude/time-zone/venue-continuity) ` +
+        `${a.tournamentContext.toFixed(2)} vs ${b.tournamentContext.toFixed(2)} (candidate, capped; ` +
+        `heat/venue-climate deferred; excludes host/regional).`,
     },
   ];
 

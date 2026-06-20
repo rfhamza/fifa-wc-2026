@@ -5,6 +5,7 @@ import { eloRatingSnapshot } from "./snapshots/elo-rating-2026-06-11";
 import { structuralEconomicSnapshot } from "./snapshots/structural-economic-2024";
 import { climateSuitabilitySnapshot } from "./snapshots/climate-suitability-1991-2020";
 import { climateSuitabilityTo100 } from "@/lib/model/climate-suitability";
+import { tournamentContextScoreForTeam } from "@/lib/tournament-context";
 
 /** Source-backed FIFA ranking (rank + points) by team id (Phase 1.8). */
 const FIFA_BY_TEAM = new Map(fifaRankingSnapshot.map((r) => [r.teamId, r]));
@@ -28,7 +29,7 @@ const CLIMATE_BY_TEAM = new Map(climateSuitabilitySnapshot.map((r) => [r.teamId,
  * per-family provenance + status, and lib/model/config.ts for the placeholder
  * weight caps that keep low-confidence families from dominating probabilities.
  */
-export const MODEL_INPUTS_VERSION = "2026-06-19-climate-cckp-v6";
+export const MODEL_INPUTS_VERSION = "2026-06-20-tournament-context-v7";
 
 export const modelInputSnapshot: TeamModelInputs[] = officialTeams.map((t) => {
   // FIFA ranking (Phase 1.8), Elo rating (Phase 1.10) and structural/economic
@@ -57,5 +58,9 @@ export const modelInputSnapshot: TeamModelInputs[] = officialTeams.map((t) => {
     climateFamiliarity: climate
       ? climateSuitabilityTo100(climate)
       : t.climateFamiliarity,
+    // Phase 1.15B: signed -1..+1 relative tournament-context score from the team's
+    // group-stage itinerary (venue geo + official fixtures). Neutral 0 fallback if
+    // a team has no resolvable itinerary. Candidate; capped + pairwise in predict.ts.
+    tournamentContext: tournamentContextScoreForTeam(t.id)?.composite ?? 0,
   };
 });
