@@ -33,12 +33,16 @@ never pooled (completing the four does not begin calibration).
 
 ### Parity vs production (see `docs/BACKTESTING_PARITY_AUDIT.md`)
 The evaluator mirrors only the active **Elo/FIFA/host/regional** driver math and **shares** the Poisson
-W/D/L step + `config` constants; it does not import `lib/model/predict.ts` (that would pull in 2026
-`data/model-inputs`). Production uses the full **10-driver** path. **Numerical parity is reasoned, NOT
-yet test-proven** — the only identified prediction-output difference today is production's 4-decimal
-rounding; full parity stays unproven until a pure-core extraction + parity test. Staged path: parity
-audit → pure-core extraction → LOTO diagnostics → calibration (only if separately approved). Calibration
-is **NO-GO** today.
+W/D/L step + `config` constants; it does not import `lib/model/predict.ts` or `lib/model/prediction-core.ts`
+(it still runs its own duplicated math). Production uses the full **10-driver** path.
+
+**Phase 1.18C-4:** a pure, `data/model-inputs`-free prediction core (`lib/model/prediction-core.ts`) now
+exists and production `lib/model/predict.ts` **delegates** to it; **production output parity is
+test-proven** by golden tests (`tests/prediction-core-parity.test.ts`). **The backtesting harness has NOT
+yet migrated to the core** — harness↔production numerical parity is a **separate future PR (1.18C-5)** and
+is not yet asserted. **Historical diagnostic metrics are unchanged** by 1.18C-4. Staged path: parity audit
+→ **pure-core extraction (done, production-side)** → harness migration to the core → LOTO diagnostics →
+calibration (only if separately approved). Calibration is **NO-GO** today.
 - `types.ts` — source-pack contract.
 - `validate-historical.ts` — `validateHistoricalPack()`: coverage (32 teams / 8×4 groups / 64
   matches = 48+16), team-mapping resolution, result consistency, leakage (Elo/FIFA dated strictly
