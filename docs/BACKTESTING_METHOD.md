@@ -14,13 +14,14 @@ It is isolated (`lib/backtesting/*` imports only the import-safe `lib/model/conf
 (`tests/backtesting-match-evaluator.test.ts`). Modules:
 `lib/backtesting/{metrics,feature-adapter,model-variants,match-evaluator}.ts`.
 
-**Ingested packs:** **WC-2022** (1.18B-2) and **WC-2018** (1.18B-4) — both validated, with diagnostic
-results in `docs/BACKTESTING_WC2022_BASELINE_RESULTS.md` and `docs/BACKTESTING_WC2018_BASELINE_RESULTS.md`
-(diagnostic-only; per-tournament, never pooled). The validator host check is parameterized via
-`HistoricalPackExpectations` (`WC2022_EXPECTATIONS` = Qatar/AFC, `WC2018_EXPECTATIONS` = Russia/UEFA).
-Each tournament uses a dedicated generator (`scripts/generate-historical-<year>.mjs`); a shared
-generator is deferred until 2014 (N=3). Still **no calibration, no replay, no weight tuning, no
-production/probability change.**
+**Ingested packs:** **WC-2022** (1.18B-2), **WC-2018** (1.18B-4), and **WC-2014** (1.18B-6) — all
+validated, with diagnostic results in `docs/BACKTESTING_WC2022_BASELINE_RESULTS.md`,
+`docs/BACKTESTING_WC2018_BASELINE_RESULTS.md`, and `docs/BACKTESTING_WC2014_BASELINE_RESULTS.md`
+(diagnostic-only; per-tournament, **never pooled** — three tournaments is still not a calibration set).
+The validator host check is parameterized via `HistoricalPackExpectations` (`WC2022_EXPECTATIONS` =
+Qatar/AFC, `WC2018_EXPECTATIONS` = Russia/UEFA, `WC2014_EXPECTATIONS` = Brazil/CONMEBOL). Each
+tournament uses a dedicated generator (`scripts/generate-historical-<year>.mjs`); a shared generator
+remains deferred. Still **no calibration, no replay, no weight tuning, no production/probability change.**
 
 ## Scope
 Primary: **2010, 2014, 2018, 2022**; stretch: **1998, 2002, 2006**. **2026 excluded** (target;
