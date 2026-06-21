@@ -27,6 +27,12 @@ live/in-tournament data.
   computable (which 2026-alone could not).
 - **Climate normals**: time-invariant 1991-2020 normals are reusable across tournaments.
 
+## Realized pilot (Phase 1.18B-2)
+The **WC-2022** pack is the first ingested source pack (identity + results + pre-tournament Elo +
+FIFA; optional packs deferred). Sources used: OpenFootball (CC0) for fixtures/results, eloratings via
+ProFootballLogic for pre-tournament Elo, and the 2022-10-06 FIFA release via a public mirror. Raw
+files are not committed (checksums only). See `docs/BACKTESTING_WC2022_SNAPSHOT.md`.
+
 ## Excluded / off-limits
 football-data.org (Phase 2.0 only), Transfermarkt/EA/SoFIFA/Opta ratings or values, scraping, and
 any post-tournament or 2026 in-tournament data.
