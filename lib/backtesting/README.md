@@ -24,6 +24,12 @@ never pooled (completing the four does not begin calibration).
   (`WC2022_EXPECTATIONS` Qatar/AFC, `WC2018_EXPECTATIONS` Russia/UEFA, `WC2014_EXPECTATIONS`
   Brazil/CONMEBOL, `WC2010_EXPECTATIONS` South Africa/CAF + OFC=1). Each tournament has a dedicated
   generator; a shared generator remains deferred (reassess after validating the four-tournament pattern).
+- `consolidate.ts` — pure four-tournament diagnostic consolidation (`consolidateDiagnostics`):
+  per-tournament + equal-weight **macro-average** summaries; pinned by
+  `tests/backtesting-consolidation.test.ts`; report in `docs/BACKTESTING_FOUR_TOURNAMENT_DIAGNOSTICS.md`
+  (DIAGNOSTIC ONLY). **Calibration stays out of scope** — NO-GO until a production/backtesting parity
+  audit, a defined objective, and a LOTO validation design exist; if later approved, temperature/
+  probability scaling is preferred over feature-weight tuning.
 - `types.ts` — source-pack contract.
 - `validate-historical.ts` — `validateHistoricalPack()`: coverage (32 teams / 8×4 groups / 64
   matches = 48+16), team-mapping resolution, result consistency, leakage (Elo/FIFA dated strictly

@@ -26,6 +26,18 @@ not yet approved):** validate the four-tournament diagnostic pattern, then decid
 shared-generator refactor and/or a pooled (LOTO) diagnostic report is warranted **before** any
 calibration. Still **no calibration, no replay, no weight tuning, no production/probability change.**
 
+## Four-tournament consolidation (Phase 1.18C-1)
+The primary historical source scope is complete and the four-tournament diagnostics are consolidated
+in `docs/BACKTESTING_FOUR_TOURNAMENT_DIAGNOSTICS.md` (DIAGNOSTIC ONLY), produced by the pure helper
+`lib/backtesting/consolidate.ts` and pinned by `tests/backtesting-consolidation.test.ts`. The headline
+aggregate is the **macro-average** (equal weight per tournament); no pooled micro-average is reported.
+**Diagnostics stay strictly separate from calibration.** Calibration remains **out of scope / NO-GO**
+until: (1) a **production/backtesting parity audit** confirms the harness matches the production
+stateless prediction core; (2) a **calibration objective** is defined up front; and (3) a
+**leave-one-tournament-out (LOTO)** validation is designed before any tuning. If calibration is later
+approved, **probability/temperature scaling is preferred over feature-weight tuning**, must be
+reversible/documented, and must live separately from the source-backed snapshots.
+
 ## Scope
 Primary: **2010, 2014, 2018, 2022**; stretch: **1998, 2002, 2006**. **2026 excluded** (target;
 also 48-team format - historical 32-team backtests validate the **match-level engine + driver
