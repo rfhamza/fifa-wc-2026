@@ -14,14 +14,17 @@ It is isolated (`lib/backtesting/*` imports only the import-safe `lib/model/conf
 (`tests/backtesting-match-evaluator.test.ts`). Modules:
 `lib/backtesting/{metrics,feature-adapter,model-variants,match-evaluator}.ts`.
 
-**Ingested packs:** **WC-2022** (1.18B-2), **WC-2018** (1.18B-4), and **WC-2014** (1.18B-6) — all
-validated, with diagnostic results in `docs/BACKTESTING_WC2022_BASELINE_RESULTS.md`,
-`docs/BACKTESTING_WC2018_BASELINE_RESULTS.md`, and `docs/BACKTESTING_WC2014_BASELINE_RESULTS.md`
-(diagnostic-only; per-tournament, **never pooled** — three tournaments is still not a calibration set).
+**Ingested packs:** **WC-2022** (1.18B-2), **WC-2018** (1.18B-4), **WC-2014** (1.18B-6), and **WC-2010**
+(1.18B-8) — the **primary historical scope (2010, 2014, 2018, 2022) is now complete**. All validated,
+with diagnostic results in `docs/BACKTESTING_WC{2022,2018,2014,2010}_BASELINE_RESULTS.md`
+(diagnostic-only; per-tournament, **never pooled** — completing the four does NOT begin calibration).
 The validator host check is parameterized via `HistoricalPackExpectations` (`WC2022_EXPECTATIONS` =
-Qatar/AFC, `WC2018_EXPECTATIONS` = Russia/UEFA, `WC2014_EXPECTATIONS` = Brazil/CONMEBOL). Each
-tournament uses a dedicated generator (`scripts/generate-historical-<year>.mjs`); a shared generator
-remains deferred. Still **no calibration, no replay, no weight tuning, no production/probability change.**
+Qatar/AFC, `WC2018_EXPECTATIONS` = Russia/UEFA, `WC2014_EXPECTATIONS` = Brazil/CONMEBOL,
+`WC2010_EXPECTATIONS` = South Africa/CAF, OFC=1). Each tournament uses a dedicated generator
+(`scripts/generate-historical-<year>.mjs`); a shared generator remains deferred. **Next (separate,
+not yet approved):** validate the four-tournament diagnostic pattern, then decide whether a small
+shared-generator refactor and/or a pooled (LOTO) diagnostic report is warranted **before** any
+calibration. Still **no calibration, no replay, no weight tuning, no production/probability change.**
 
 ## Scope
 Primary: **2010, 2014, 2018, 2022**; stretch: **1998, 2002, 2006**. **2026 excluded** (target;

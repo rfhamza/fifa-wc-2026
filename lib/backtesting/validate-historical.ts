@@ -89,6 +89,20 @@ export const WC2014_EXPECTATIONS: HistoricalPackExpectations = {
   confederationCounts: { UEFA: 13, CONMEBOL: 6, CONCACAF: 4, CAF: 5, AFC: 4, OFC: 0 },
 };
 
+export const WC2010_EXPECTATIONS: HistoricalPackExpectations = {
+  teamCount: 32,
+  groupCount: 8,
+  teamsPerGroup: 4,
+  matchCount: 64,
+  groupMatchCount: 48,
+  knockoutMatchCount: 16,
+  expectedTournamentYear: 2010,
+  expectedHostId: "south-africa",
+  expectedHostName: "South Africa",
+  expectedHostConfederation: "CAF",
+  confederationCounts: { UEFA: 13, CONMEBOL: 5, CONCACAF: 3, CAF: 6, AFC: 4, OFC: 1 },
+};
+
 /** Parse an ISO instant; returns NaN-bearing flag for unparseable input. */
 const instant = (iso: string): number => new Date(iso).getTime();
 
