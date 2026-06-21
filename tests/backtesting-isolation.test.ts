@@ -123,3 +123,47 @@ describe("backtesting harness avoids 2026 / production-data imports (Phase 1.18C
     }
   });
 });
+
+/**
+ * Phase 1.18C-4: the pure prediction core (`lib/model/prediction-core.ts`) must be
+ * importable WITHOUT pulling in 2026 `data/model-inputs`. It may import only the
+ * model `config` constants, the Poisson engine, `lib/utils`, and type-only modules;
+ * the provenance status resolver is INJECTED by callers. It must never import
+ * `data/model-inputs`, feature builders, historical snapshots, backtesting code,
+ * any 2026 snapshot, or app/UI. (The backtesting harness does NOT yet import the
+ * core — that migration is a separate future PR — so the harness guard above is
+ * unchanged and still forbids `lib/model/predict`.)
+ */
+describe("pure prediction core is data/model-inputs-free (Phase 1.18C-4)", () => {
+  const root = process.cwd();
+  const importSpecifiers = (src: string): string[] => {
+    const out: string[] = [];
+    const re = /(?:from|import|require)\s*\(?\s*["']([^"']+)["']/g;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(src))) out.push(m[1]!);
+    return out;
+  };
+  // Anything that would couple the core to 2026 data, feature building, the
+  // historical layer, the backtesting harness, or the UI/app.
+  const FORBIDDEN = [
+    /data\/model-inputs/,
+    /lib\/model\/features/,
+    /lib\/model\/predict/,
+    /lib\/backtesting/,
+    /data\/historical/,
+    /data\/official/,
+    /lib\/data["']/,
+    /2026/,
+    /^@\/app\//,
+    /^@\/components\//,
+  ];
+
+  it("lib/model/prediction-core.ts imports no forbidden / 2026 / data-input module", () => {
+    const src = readFileSync(join(root, "lib", "model", "prediction-core.ts"), "utf8");
+    const specs = importSpecifiers(src);
+    expect(specs.length).toBeGreaterThan(0);
+    for (const s of specs) {
+      expect({ s, bad: FORBIDDEN.some((re) => re.test(s)) }).toEqual({ s, bad: false });
+    }
+  });
+});

@@ -1,11 +1,19 @@
-# Production / Backtesting Parity Audit (Phase 1.18C-2)
+# Production / Backtesting Parity Audit (Phase 1.18C-2; core extracted 1.18C-4)
 
-> **Audit / documentation only.** No code, calibration, replay, tuning, or prediction-core extraction
-> is performed here. This document records how the isolated historical backtesting evaluator relates to
-> the production 2026 prediction path, what is shared vs duplicated vs omitted, and what must be proven
-> before any calibration. **Parity is reasoned here, NOT test-proven.** The only *identified* prediction
-> -output difference today is production's 4-decimal rounding, but **full numerical parity remains
-> unproven** until a pure-core extraction + parity test exists (see §6). Calibration remains **NO-GO**.
+> **Audit / documentation.** This document records how the isolated historical backtesting evaluator
+> relates to the production 2026 prediction path, what is shared vs duplicated vs omitted, and what must
+> be proven before any calibration.
+>
+> **Update (Phase 1.18C-4):** the pure, `data/model-inputs`-free prediction core
+> (`lib/model/prediction-core.ts`) now exists; production `lib/model/predict.ts` **delegates** to it and
+> **production output parity is test-proven** by golden tests (`tests/prediction-core-parity.test.ts`)
+> that pin pre-refactor `predictFromFeatures` / `computeDrivers` / `explainDrivers` /
+> `expectedGoalsFromAdvantage` output as byte-identical literals. There are now **two** model-internal
+> rounding points: the **1-decimal net-advantage** rounding inside `explainDrivers` (model behaviour) and
+> the **4-decimal W/D/L** (plus 2-dp xG) display rounding in the production wrapper. **The backtesting
+> harness has NOT yet migrated to the core** — its harness↔production numerical parity remains a separate
+> future PR (1.18C-5) and is not asserted here. **Historical diagnostic metrics are unchanged** by this
+> phase. Calibration remains **NO-GO**.
 
 ## 1. Purpose & scope
 The historical evaluator deliberately re-implements a small slice of production-style prediction so it
@@ -76,40 +84,48 @@ features being neutral and equal between teams (so those drivers contribute 0 to
 advantage as well). This is **reasoned, not test-proven.**
 
 **Not good enough for calibration.**
-1. **Parity is not test-proven** — `predict.ts` cannot be imported in isolation (it pulls in 2026
-   `data/model-inputs`), so no test currently asserts harness == production on identical inputs. The
-   only *identified* output difference is production's 4-dp rounding; other differences cannot be ruled
-   out until a parity test exists.
+1. **Harness↔production parity is still not test-proven.** As of Phase 1.18C-4 the production path is
+   test-proven against the extracted core (golden tests), but the **backtesting harness has not yet
+   migrated to the core** — it still runs its own duplicated math, so no test yet asserts harness ==
+   production on identical inputs. That requires the 1.18C-5 harness migration. (Note: the harness uses
+   the **raw** net advantage and no display rounding, whereas production rounds net advantage to 1 dp and
+   W/D/L to 4 dp — so exact harness↔production agreement is a property to engineer in 1.18C-5, not assume.)
 2. **The diagnostic variants are a 4-driver subset**, not the production 10-driver model — calibrating
    the subset would not directly calibrate production.
 3. **Historical packs lack production-equivalent features** (squad / climate / structural /
    tournamentContext / manager), so a "production-equivalent" variant cannot be evaluated historically.
 4. **Target is 90-minute W/D/L only** — no advancement, replay, or champion calibration.
 
-**Must be proven before calibration:** a numerical-parity test showing the harness path and the
-production **stateless core** yield identical W/D/L (within rounding) for identical feature sets — which
-in practice requires a pure prediction core importable without `data/model-inputs`.
+**Proven so far / still to prove:** production now provably delegates to a pure, `data/model-inputs`-free
+core (golden tests). What remains before calibration is a **harness-vs-core** numerical-parity test
+(1.18C-5) showing the backtesting path and the core yield identical W/D/L for identical feature sets.
 
-## 6. Pure prediction-core extraction — feasibility / design (NOT implemented here)
-- **Shape:** a pure `lib/model/prediction-core.ts` exporting e.g.
-  `predictCoreFromFeatures(a, b, weights, capPolicy?) → { drivers, netAdvantage, expectedGoals, wdl }`,
-  with `computeDrivers` / `expectedGoalsFromAdvantage` relocated into it.
-- **Inputs:** two already-built `TeamFeatureSet`s, `ModelWeights`, and an **injected** cap/status policy
-  (e.g. a family→status map or a cap resolver) so the core never imports `getFeatureStatus`. **Outputs:**
-  drivers, net advantage, expected goals, and **unrounded** W/D/L (rounding stays in the production wrapper).
-- **Callers:** production `predict.ts` calls the core with the real status map (sourced from
-  `data/model-inputs` in the wrapper, not the core) and applies its 4-dp rounding; the backtesting
-  evaluator calls the core with a "no extra drivers / uncapped active set" policy and drops its
-  duplicated math.
-- **Avoiding 2026 imports:** the core imports only `config` + `poisson` + types; status/caps are
-  parameters. The isolation guard would be updated to permit `lib/backtesting → lib/model/prediction-core`
-  while still forbidding `data/model-inputs` / `predict` / `features`.
-- **Proving no drift:** a golden test snapshots current `predictFromFeatures` outputs over a battery of
-  feature pairs and asserts they are byte-identical after the refactor; plus a harness-vs-core parity
-  test on neutral-excluded historical features (equal within 4-dp rounding).
-- **Likely files (future PR):** add `lib/model/prediction-core.ts`; refactor `lib/model/predict.ts` to
-  delegate (behaviour-preserving); optionally later refactor `match-evaluator.ts` to delegate; update the
-  isolation guard. **Excluded:** any weight / probability / behaviour change, calibration, new drivers.
+## 6. Pure prediction-core extraction — IMPLEMENTED (Phase 1.18C-4)
+- **Shape (as built):** `lib/model/prediction-core.ts` exports `computePredictionCore(a, b, options)`
+  plus the relocated pure functions `computeDrivers(a, b, weights, statusResolver)`,
+  `applyInputStatusAndCaps`, `contributionCapFor`, `explainDrivers`, `expectedGoalsFromAdvantage`.
+- **Inputs:** two already-built `TeamFeatureSet`s, `ModelWeights` (optional; defaults to `MODEL_WEIGHTS`),
+  and an **injected** `statusResolver: (family) => ModelInputStatus | undefined` so the core never imports
+  `getFeatureStatus`. **Outputs:** drivers (capped + status-tagged), `explanation` (incl. the 1-dp net
+  advantage), `expectedGoals`, the scoreline matrix, top scorelines, and **unrounded** W/D/L `outcome`.
+- **Callers:** production `predict.ts` is now a thin **wrapper** — it builds features, injects the real
+  `getFeatureStatus`, calls `computePredictionCore`, and applies the existing 4-dp/2-dp display rounding;
+  it re-exports `computeDrivers`/`explainDrivers`/`expectedGoalsFromAdvantage` for back-compat (the public
+  `computeDrivers(a, b, weights?)` 3-arg signature is preserved). The backtesting evaluator **still uses
+  its own duplicated math** — its migration to the core is deferred to 1.18C-5.
+- **Avoiding 2026 imports:** the core imports only `config` + `poisson` + `lib/utils` + types; status/caps
+  are parameters. A new isolation guard (`tests/backtesting-isolation.test.ts`) asserts the core imports no
+  `data/model-inputs` / `features` / `predict` / backtesting / historical / 2026 / app path. The
+  backtesting harness guard is **unchanged** (it does not yet import the core).
+- **Proving no drift:** `tests/prediction-core-parity.test.ts` pins pre-refactor `predictFromFeatures` /
+  `computeDrivers` / `explanation` / `expectedGoalsFromAdvantage` output (captured from `origin/main`) as
+  byte-identical golden literals over a battery of synthetic feature pairs (balanced, large Elo/FIFA gaps,
+  FIFA cap, host-only, regional-only, placeholder single + pooled caps, climate cap, tournamentContext
+  cap, manager, structural, mixed, neutral) plus a real-team production-side check. **Harness-vs-core
+  parity is NOT part of this PR.**
+- **Files (this PR):** added `lib/model/prediction-core.ts`; refactored `lib/model/predict.ts` to delegate
+  (behaviour-preserving); added the core isolation guard + golden parity tests. **Excluded:** any weight /
+  probability / behaviour change, calibration, new drivers, backtesting migration.
 
 ## 7. Calibration implications
 - Calibration is **NO-GO today**: parity is unproven, the diagnostic variants are not the production
@@ -124,11 +140,13 @@ in practice requires a pure prediction core importable without `data/model-input
   own file, reversible, documented); production weights are never changed silently.
 
 ## 8. Staged path
-1. **Parity audit** (this document) — reasoned audit + extraction plan. *(Phase 1.18C-2.)*
-2. **Pure prediction-core extraction + parity tests** — behaviour-preserving; establishes test-proven
-   numerical parity without 2026 imports. *(Separate, later.)*
-3. **Leave-one-tournament-out (LOTO) diagnostics** — descriptive only, no tuning. *(Separate, later.)*
-4. **Calibration** — only if separately approved, temperature/probability scaling preferred. *(Later.)*
+1. **Parity audit** (this document) — reasoned audit + extraction plan. *(Phase 1.18C-2 — done.)*
+2. **Pure prediction-core extraction + production parity tests** — behaviour-preserving; production output
+   parity test-proven without 2026 imports in the core. *(Phase 1.18C-4 — done.)*
+3. **Backtesting harness migration to the core** — harness calls the core; historical metrics unchanged
+   or any change documented + re-approved. *(Phase 1.18C-5 — separate, later.)*
+4. **Leave-one-tournament-out (LOTO) diagnostics** — descriptive only, no tuning. *(Separate, later.)*
+5. **Calibration** — only if separately approved, temperature/probability scaling preferred. *(Later.)*
 
 ## 9. GO / NO-GO ladder
 - **A. Parity audit docs — GO now:** documentation only; no code/model risk; existing tests untouched.
