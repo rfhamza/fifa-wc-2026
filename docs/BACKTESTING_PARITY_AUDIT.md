@@ -24,6 +24,12 @@
 > cappable driver is zero on neutral historical features). **Historical metric pins and the four-tournament
 > macro-average are unchanged** — a harness parity migration, not a model improvement. Calibration remains
 > **NO-GO**.
+>
+> **Update (Phase 1.18C-10):** the calibration decision is recorded in
+> `docs/BACKTESTING_CALIBRATION_GOVERNANCE.md` — **DO NOT CALIBRATE YET; calibration remains NO-GO.** The
+> diagnostic ladder is a **4-of-10-driver subset**, so even with proven harness↔core parity it would not
+> defensibly calibrate the production model; see that governance doc for the objective/family options,
+> validation design, decision ladder, and universal NO-GO list.
 
 ## 1. Purpose & scope
 The historical evaluator deliberately re-implements a small slice of production-style prediction so it

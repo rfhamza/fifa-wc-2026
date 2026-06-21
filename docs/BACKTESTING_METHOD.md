@@ -63,6 +63,15 @@ no weights, no temperature, no parameters; held-out values equal the existing pe
 reference set is a **descriptive comparator, not a training set**. It is a **future calibration-governance
 input, not calibration itself**; **calibration remains NO-GO**.
 
+## Calibration governance (Phase 1.18C-10) — DECISION RECORD
+The formal decision following the four-tournament and LOTO diagnostics is recorded in
+`docs/BACKTESTING_CALIBRATION_GOVERNANCE.md`: **DO NOT CALIBRATE YET — calibration remains NO-GO.** That
+document locks the boundary before any calibration experiment, stretch ingestion, or tournament replay —
+it captures the objective options, the calibration-family options, the required LOTO validation design,
+the six-stage decision ladder (production probabilities may change only in a separately approved stage-6
+adoption PR), the risk table, and the universal NO-GO list. It is documentation only (no code, no
+parameters, no production change).
+
 ## Scope
 Primary: **2010, 2014, 2018, 2022**; stretch: **1998, 2002, 2006**. **2026 excluded** (target;
 also 48-team format - historical 32-team backtests validate the **match-level engine + driver

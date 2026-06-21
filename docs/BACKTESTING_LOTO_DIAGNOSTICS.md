@@ -161,3 +161,6 @@ basis to change any weight.
   method**, a decision on **group-stage vs all-64** as the objective, a decision on **probability/
   temperature scaling vs feature-weight tuning**, explicit **overfitting controls**, and documented
   **uncertainty** — none of which exist yet.
+- **Governance decision (Phase 1.18C-10):** `docs/BACKTESTING_CALIBRATION_GOVERNANCE.md` records the
+  formal decision — **DO NOT CALIBRATE YET; calibration remains NO-GO** — and locks the boundary
+  (objective/family options, validation design, decision ladder, universal NO-GO list).

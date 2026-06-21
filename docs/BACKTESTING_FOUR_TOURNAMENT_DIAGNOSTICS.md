@@ -112,3 +112,6 @@ samples (48 group matches/tournament). Do not over-interpret.
    `docs/BACKTESTING_LOTO_DIAGNOSTICS.md`, Phase 1.18C-8 — fits nothing; calibration still NO-GO.)*
 3. If calibration is later approved, prefer **probability/temperature scaling** over feature-weight
    tuning; keep it reversible, documented, and separate from the source-backed snapshots.
+4. **Calibration governance** (Phase 1.18C-10) records the formal decision in
+   `docs/BACKTESTING_CALIBRATION_GOVERNANCE.md`: **DO NOT CALIBRATE YET; calibration remains NO-GO** (the
+   diagnostic ladder is a 4-of-10-driver subset, not the production model).
