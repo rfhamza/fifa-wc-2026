@@ -52,6 +52,17 @@ The production/backtesting parity audit is recorded in `docs/BACKTESTING_PARITY_
 Remaining staged path: **(3) LOTO diagnostics → (4) calibration only if separately approved.** Calibration
 remains **NO-GO** today; no production weights/probabilities changed and no new historical features were added.
 
+## LOTO diagnostics (Phase 1.18C-8) — DIAGNOSTIC ONLY
+Leave-One-Tournament-Out diagnostics are recorded in `docs/BACKTESTING_LOTO_DIAGNOSTICS.md`, produced by
+the pure helper `lib/backtesting/loto.ts` (`computeLotoDiagnostics`) and pinned by
+`tests/backtesting-loto.test.ts`. Four folds (hold out one of 2010/2014/2018/2022; reference = the other
+three as equal-weight units) report each held-out tournament's metrics vs the reference macro-average, the
+delta, and cross-fold stability (mean / stdDev / range), plus best-variant counts and a host/regional
+vs Elo+FIFA comparison per held-out year. **LOTO fits nothing** — it is **descriptive only**: no tuning,
+no weights, no temperature, no parameters; held-out values equal the existing per-tournament pins, and the
+reference set is a **descriptive comparator, not a training set**. It is a **future calibration-governance
+input, not calibration itself**; **calibration remains NO-GO**.
+
 ## Scope
 Primary: **2010, 2014, 2018, 2022**; stretch: **1998, 2002, 2006**. **2026 excluded** (target;
 also 48-team format - historical 32-team backtests validate the **match-level engine + driver

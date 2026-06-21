@@ -106,7 +106,9 @@ samples (48 group matches/tournament). Do not over-interpret.
 
 ## Next steps (all separate, none in this report)
 1. **Production/backtesting parity audit** before any calibration (verify the harness reproduces the
-   production stateless prediction core; ideally extract a `data/model-inputs`-free core).
-2. **Leave-one-tournament-out (LOTO) diagnostics** designed before any tuning.
+   production stateless prediction core; ideally extract a `data/model-inputs`-free core). *(Done:
+   `docs/BACKTESTING_PARITY_AUDIT.md`; core extracted 1.18C-4, harness migrated 1.18C-6.)*
+2. **Leave-one-tournament-out (LOTO) diagnostics** designed before any tuning. *(Done, descriptive only:
+   `docs/BACKTESTING_LOTO_DIAGNOSTICS.md`, Phase 1.18C-8 — fits nothing; calibration still NO-GO.)*
 3. If calibration is later approved, prefer **probability/temperature scaling** over feature-weight
    tuning; keep it reversible, documented, and separate from the source-backed snapshots.

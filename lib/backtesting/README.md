@@ -30,6 +30,15 @@ never pooled (completing the four does not begin calibration).
   (DIAGNOSTIC ONLY). **Calibration stays out of scope** — NO-GO until a production/backtesting parity
   audit, a defined objective, and a LOTO validation design exist; if later approved, temperature/
   probability scaling is preferred over feature-weight tuning.
+- `loto.ts` — **Phase 1.18C-8** Leave-One-Tournament-Out diagnostics (`computeLotoDiagnostics`):
+  pack-agnostic, pure, **descriptive only**. Four folds (hold out one tournament; reference = the other
+  three as equal-weight units) → per-variant held-out vs reference macro-average + delta, cross-fold
+  stability (mean / stdDev / range), best-variant counts, and host/regional-vs-Elo+FIFA per held-out
+  year. Reuses `consolidateDiagnostics` (no duplicated metric math); pinned by
+  `tests/backtesting-loto.test.ts`; report in `docs/BACKTESTING_LOTO_DIAGNOSTICS.md`. **LOTO fits
+  nothing** — no tuning/weights/temperature/parameters; held-out values equal the existing per-tournament
+  pins; the reference set is a **descriptive comparator, not a training set**. A future
+  calibration-governance input, **not** calibration; **calibration remains NO-GO**.
 
 ### Parity vs production (see `docs/BACKTESTING_PARITY_AUDIT.md`)
 **Phase 1.18C-6:** the evaluator now **calls the shared pure prediction core**
