@@ -30,6 +30,15 @@ never pooled (completing the four does not begin calibration).
   (DIAGNOSTIC ONLY). **Calibration stays out of scope** — NO-GO until a production/backtesting parity
   audit, a defined objective, and a LOTO validation design exist; if later approved, temperature/
   probability scaling is preferred over feature-weight tuning.
+
+### Parity vs production (see `docs/BACKTESTING_PARITY_AUDIT.md`)
+The evaluator mirrors only the active **Elo/FIFA/host/regional** driver math and **shares** the Poisson
+W/D/L step + `config` constants; it does not import `lib/model/predict.ts` (that would pull in 2026
+`data/model-inputs`). Production uses the full **10-driver** path. **Numerical parity is reasoned, NOT
+yet test-proven** — the only identified prediction-output difference today is production's 4-decimal
+rounding; full parity stays unproven until a pure-core extraction + parity test. Staged path: parity
+audit → pure-core extraction → LOTO diagnostics → calibration (only if separately approved). Calibration
+is **NO-GO** today.
 - `types.ts` — source-pack contract.
 - `validate-historical.ts` — `validateHistoricalPack()`: coverage (32 teams / 8×4 groups / 64
   matches = 48+16), team-mapping resolution, result consistency, leakage (Elo/FIFA dated strictly
