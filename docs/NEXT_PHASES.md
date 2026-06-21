@@ -265,6 +265,31 @@ A roadmap from the foundation to a richer product. Each item lists the
   Elo/FIFA remain source-backed anchors. New `validateClimateSnapshot` + climate
   snapshot/score tests; forecast + sensitivity audits regenerated.
 
+## Done in phase 1.18B-0 (backtesting scaffold + data contract - no ingestion)
+
+- Added the **historical backtesting scaffold + source contract** (no data, no calibration, no
+  replay, no production change): `lib/backtesting/types.ts` (per-tournament `HistoricalSourcePack`
+  contract - identity, results, pre-tournament Elo/FIFA, lagged macro, recent-form, optional
+  managers/squads; standalone, no imports), `lib/backtesting/README.md`, header-only templates
+  under `data/historical/templates/`, and docs `BACKTESTING_SOURCE_AUDIT.md`,
+  `BACKTESTING_METHOD.md`, `BACKTESTING_DATA_CONTRACT.md`.
+- **Isolation guard test** (`tests/backtesting-isolation.test.ts`): no production module imports
+  `lib/backtesting`/`data/historical`; contract types are import-free; templates are header-only;
+  no historical snapshots committed.
+- Scope locked: primary 2010/2014/2018/2022, stretch 1998-2006, 2026 excluded; match-level first
+  (RPS/log-loss/calibration), replay later; LOTO validation; baseline ladder; any production
+  weight/probability change is a separate approved phase after the ablation study. Raw source
+  files never committed; proprietary ratings/market values forbidden.
+
+## Phase 1.18 roadmap (planning-gated)
+- **1.18B-0 (done):** scaffold + contract + docs + guard tests.
+- **1.18B:** historical data ingestion foundation (snapshots + validators + provenance), unwired.
+- **1.18C:** match-level backtesting harness + metrics + baseline ladder.
+- **1.18D:** tournament replay harness (2010-2022, then 1998-2022).
+- **1.18E:** calibration + ablation study (LOTO).
+- **1.18F:** promote/demote/cap decisions (recentForm, tournamentContext cap, squadQuality,
+  structural/climate) - production changes only via a later approved phase.
+
 ## Done in phase 1.17B (squad roster foundation - standalone, UNWIRED, leakage-risk)
 
 - Added a **source-backed final-squad roster snapshot**
