@@ -75,6 +75,20 @@ export const WC2018_EXPECTATIONS: HistoricalPackExpectations = {
   expectedHostConfederation: "UEFA",
 };
 
+export const WC2014_EXPECTATIONS: HistoricalPackExpectations = {
+  teamCount: 32,
+  groupCount: 8,
+  teamsPerGroup: 4,
+  matchCount: 64,
+  groupMatchCount: 48,
+  knockoutMatchCount: 16,
+  expectedTournamentYear: 2014,
+  expectedHostId: "brazil",
+  expectedHostName: "Brazil",
+  expectedHostConfederation: "CONMEBOL",
+  confederationCounts: { UEFA: 13, CONMEBOL: 6, CONCACAF: 4, CAF: 5, AFC: 4, OFC: 0 },
+};
+
 /** Parse an ISO instant; returns NaN-bearing flag for unparseable input. */
 const instant = (iso: string): number => new Date(iso).getTime();
 

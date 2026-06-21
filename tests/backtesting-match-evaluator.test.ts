@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { TeamFeatureSet } from "@/lib/types";
 import { WC2022_PACK } from "@/data/historical/snapshots/wc-2022";
 import { WC2018_PACK } from "@/data/historical/snapshots/wc-2018";
+import { WC2014_PACK } from "@/data/historical/snapshots/wc-2014";
 import { buildHistoricalFeatures } from "@/lib/backtesting/feature-adapter";
 import {
   BASELINE_LADDER,
@@ -242,6 +243,79 @@ describe("WC-2018 evaluator: counts, host/regional (Russia/UEFA), and pinned met
   );
   const allById = Object.fromEntries(
     evaluateLadder(WC2018_PACK, BASELINE_LADDER, "all").map((r) => [r.modelVariant, r]),
+  );
+
+  for (const [id, exp] of Object.entries(groupExpected)) {
+    it(`${id} matches pinned group-stage metrics (48 matches)`, () => {
+      const r = groupById[id]!;
+      expect(r.matchCount).toBe(48);
+      expect(round6(r.metrics.rps)).toBe(exp.rps);
+      expect(round6(r.metrics.logLoss)).toBe(exp.logLoss);
+      expect(round6(r.metrics.brier)).toBe(exp.brier);
+      expect(round6(r.metrics.accuracy)).toBe(exp.accuracy);
+    });
+  }
+  for (const [id, exp] of Object.entries(allExpected)) {
+    it(`${id} matches pinned all-64 metrics`, () => {
+      const r = allById[id]!;
+      expect(r.matchCount).toBe(64);
+      expect(round6(r.metrics.rps)).toBe(exp.rps);
+      expect(round6(r.metrics.logLoss)).toBe(exp.logLoss);
+      expect(round6(r.metrics.brier)).toBe(exp.brier);
+      expect(round6(r.metrics.accuracy)).toBe(exp.accuracy);
+    });
+  }
+});
+
+describe("WC-2014 evaluator: counts, host/regional (Brazil/CONMEBOL), and pinned metrics", () => {
+  it("group mode scores exactly 48 matches; all mode exactly 64 (stage-tagged)", () => {
+    const g = evaluateVariant(WC2014_PACK, ELO_FIFA, "group");
+    expect(g.matchCount).toBe(48);
+    expect(g.includedStages).toEqual(["group"]);
+    const a = evaluateVariant(WC2014_PACK, ELO_FIFA, "all");
+    expect(a.matchCount).toBe(64);
+    expect(a.perMatch.filter((m) => m.stage === "group")).toHaveLength(48);
+    expect(a.perMatch.filter((m) => m.stage !== "group")).toHaveLength(16);
+  });
+
+  it("host/regional are relative to Brazil / CONMEBOL", () => {
+    const features = buildHistoricalFeatures(WC2014_PACK);
+    expect(features.get("brazil")?.isHost).toBe(true);
+    expect(features.get("brazil")?.isRegional).toBe(false);
+    // a CONMEBOL non-host gets regional advantage
+    expect(features.get("argentina")?.isHost).toBe(false);
+    expect(features.get("argentina")?.isRegional).toBe(true);
+    // a non-CONMEBOL team gets neither
+    expect(features.get("germany")?.isHost).toBe(false);
+    expect(features.get("germany")?.isRegional).toBe(false);
+  });
+
+  it("every predicted triple is valid and sums to 1", () => {
+    const r = evaluateVariant(WC2014_PACK, ELO_FIFA_HOST_REGIONAL, "all");
+    for (const m of r.perMatch) {
+      expect(() => validateProbabilityTriple({ pA: m.pA, pD: m.pD, pB: m.pB })).not.toThrow();
+      expect(m.pA + m.pD + m.pB).toBeCloseTo(1, 9);
+    }
+  });
+
+  const groupExpected: Record<string, { rps: number; logLoss: number; brier: number; accuracy: number }> = {
+    "elo-only": { rps: 0.189773, logLoss: 0.908006, brier: 0.536186, accuracy: 0.604167 },
+    "fifa-only": { rps: 0.226187, logLoss: 1.017085, brier: 0.610345, accuracy: 0.645833 },
+    "elo-fifa": { rps: 0.183794, logLoss: 0.888234, brier: 0.523563, accuracy: 0.645833 },
+    "elo-fifa-host-regional": { rps: 0.182562, logLoss: 0.884112, brier: 0.521259, accuracy: 0.666667 },
+  };
+  const allExpected: Record<string, { rps: number; logLoss: number; brier: number; accuracy: number }> = {
+    "elo-only": { rps: 0.19067, logLoss: 0.966312, brier: 0.579339, accuracy: 0.546875 },
+    "fifa-only": { rps: 0.219121, logLoss: 1.051875, brier: 0.633173, accuracy: 0.578125 },
+    "elo-fifa": { rps: 0.186371, logLoss: 0.952269, brier: 0.570727, accuracy: 0.578125 },
+    "elo-fifa-host-regional": { rps: 0.18745, logLoss: 0.955101, brier: 0.573118, accuracy: 0.59375 },
+  };
+
+  const groupById = Object.fromEntries(
+    evaluateLadder(WC2014_PACK, BASELINE_LADDER, "group").map((r) => [r.modelVariant, r]),
+  );
+  const allById = Object.fromEntries(
+    evaluateLadder(WC2014_PACK, BASELINE_LADDER, "all").map((r) => [r.modelVariant, r]),
   );
 
   for (const [id, exp] of Object.entries(groupExpected)) {
