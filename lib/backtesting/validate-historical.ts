@@ -103,6 +103,27 @@ export const WC2010_EXPECTATIONS: HistoricalPackExpectations = {
   confederationCounts: { UEFA: 13, CONMEBOL: 5, CONCACAF: 3, CAF: 6, AFC: 4, OFC: 1 },
 };
 
+/**
+ * WC-2006 (Germany) - STRETCH historical pack (Phase 1.19B). Additive stretch evidence
+ * only: it does NOT change the primary four-tournament (2010/2014/2018/2022) diagnostic
+ * headline, does not recompute LOTO, and does not approve calibration. Australia is the
+ * sole OFC entrant (source-pack qualification/allocation convention; OFC:1). Adds
+ * WC2006_EXPECTATIONS only; the validator engine is unchanged in this PR.
+ */
+export const WC2006_EXPECTATIONS: HistoricalPackExpectations = {
+  teamCount: 32,
+  groupCount: 8,
+  teamsPerGroup: 4,
+  matchCount: 64,
+  groupMatchCount: 48,
+  knockoutMatchCount: 16,
+  expectedTournamentYear: 2006,
+  expectedHostId: "germany",
+  expectedHostName: "Germany",
+  expectedHostConfederation: "UEFA",
+  confederationCounts: { UEFA: 14, CONMEBOL: 4, CONCACAF: 4, CAF: 5, AFC: 4, OFC: 1 },
+};
+
 /** Parse an ISO instant; returns NaN-bearing flag for unparseable input. */
 const instant = (iso: string): number => new Date(iso).getTime();
 

@@ -26,6 +26,16 @@ not yet approved):** validate the four-tournament diagnostic pattern, then decid
 shared-generator refactor and/or a pooled (LOTO) diagnostic report is warranted **before** any
 calibration. Still **no calibration, no replay, no weight tuning, no production/probability change.**
 
+### Stretch pack: WC-2006 (Phase 1.19B, stretch-only)
+A fifth pack — **WC-2006** (Germany/UEFA) — is ingested **additively as stretch evidence only**
+(`scripts/generate-historical-2006.mjs`, `data/historical/snapshots/wc-2006.ts`, `WC2006_EXPECTATIONS`;
+Australia recorded as **OFC** per the source-pack qualification/allocation convention; Serbia and
+Montenegro as the historical-only `serbia-and-montenegro` slug). It **does not** change the primary
+four-tournament diagnostic headline, **does not** recompute LOTO or add stretch consolidation, and
+**does not** approve calibration (**calibration remains NO-GO**). The validator engine is unchanged
+(only `WC2006_EXPECTATIONS` added); no co-host validation is added (deferred to a future 2002 PR). See
+`docs/BACKTESTING_WC2006_SNAPSHOT.md`.
+
 ## Four-tournament consolidation (Phase 1.18C-1)
 The primary historical source scope is complete and the four-tournament diagnostics are consolidated
 in `docs/BACKTESTING_FOUR_TOURNAMENT_DIAGNOSTICS.md` (DIAGNOSTIC ONLY), produced by the pure helper
