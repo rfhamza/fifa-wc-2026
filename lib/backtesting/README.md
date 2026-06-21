@@ -12,15 +12,29 @@ Phase 1.18 historical test bench. **Isolated from the production 2026 forecast.*
 - **No production weight/probability changes** come from backtesting code; calibration only ever
   *recommends* changes for a separate, explicitly approved phase.
 
-## Status (Phase 1.18B-2)
-Contract + **one ingested pilot pack** (WC-2022). Still **no match-level harness, no tournament
-replay, no calibration, no production/probability change.**
+## Status (Phase 1.18C-1)
+Contract + one ingested pilot pack (WC-2022) + **the first match-level evaluator**. Still **no
+tournament replay, no calibration, no weight tuning, no production/probability change.**
 - `types.ts` — source-pack contract.
 - `validate-historical.ts` — `validateHistoricalPack()`: coverage (32 teams / 8×4 groups / 64
   matches = 48+16), team-mapping resolution, result consistency, leakage (Elo/FIFA dated strictly
   before the opening kickoff), and a forbidden-field guard.
 - `data/historical/snapshots/wc-2022.ts` — derived WC-2022 snapshot (generated; raw not committed).
   See `docs/BACKTESTING_WC2022_SNAPSHOT.md`.
+- `metrics.ts` — pure RPS / log loss / Brier / accuracy / calibration + `validateProbabilityTriple`.
+- `feature-adapter.ts` — builds `TeamFeatureSet`s directly from the pack (host/regional relative to
+  the pack's host; excluded features neutral).
+- `model-variants.ts` — diagnostic baseline ladder (Elo-only, FIFA-only, Elo+FIFA, Elo+FIFA+host/regional).
+- `match-evaluator.ts` — 90-minute W/D/L scoring; group-stage headline (48), all-64 behind a flag.
+  Pinned by `tests/backtesting-match-evaluator.test.ts`; summary in `docs/BACKTESTING_WC2022_BASELINE_RESULTS.md`.
+
+### Safe-import rule (harness isolation)
+`lib/backtesting/*` may reuse only **import-safe** production pieces: `@/lib/model/config`
+(constants; no imports) and `@/lib/simulation/poisson` (types-only import), plus type-only
+`@/lib/types`. It must **never** import `@/lib/model/predict` or `@/lib/model/features` (they pull
+in `@/data/model-inputs` → 2026 data), nor `@/data/model-inputs`, `@/data/official`, `@/lib/data`,
+or any 2026 snapshot. The 90-minute W/D/L conversion is reused from `poisson.ts`; the small
+`netAdvantage → expected goals` formula mirrors `predict.ts` using the shared config constants.
 
 ## Contract
 `types.ts` defines the per-tournament `HistoricalSourcePack` (identity, results, pre-tournament

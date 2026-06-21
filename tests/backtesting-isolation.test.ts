@@ -73,3 +73,53 @@ describe("backtesting layer is isolated from production (Phase 1.18B-0)", () => 
     }
   });
 });
+
+/**
+ * Phase 1.18C-1: the match-level harness (`lib/backtesting/*`) must build features
+ * directly from the historical snapshot and may reuse only IMPORT-SAFE production
+ * pieces (`lib/model/config`, `lib/simulation/poisson`, type-only `lib/types`). It
+ * must NOT import anything that transitively pulls in 2026 data: `data/model-inputs`,
+ * `lib/model/features`, `lib/model/predict`, `data/official`, `lib/data`, or any 2026
+ * snapshot.
+ */
+describe("backtesting harness avoids 2026 / production-data imports (Phase 1.18C-1)", () => {
+  const root = process.cwd();
+  const collect = (dir: string): string[] => {
+    if (!existsSync(dir)) return [];
+    const out: string[] = [];
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      const p = join(dir, e.name);
+      if (e.isDirectory()) out.push(...collect(p));
+      else if (/\.ts$/.test(e.name)) out.push(p);
+    }
+    return out;
+  };
+  // Modules whose import would drag 2026 production data into the historical harness.
+  const FORBIDDEN = [
+    /data\/model-inputs/,
+    /lib\/model\/features/,
+    /lib\/model\/predict/,
+    /data\/official/,
+    /lib\/data["']/,
+    /2026/,
+  ];
+
+  // Extract module specifiers from import/from/require statements (not comments).
+  const importSpecifiers = (src: string): string[] => {
+    const out: string[] = [];
+    const re = /(?:from|import|require)\s*\(?\s*["']([^"']+)["']/g;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(src))) out.push(m[1]!);
+    return out;
+  };
+
+  it("lib/backtesting/* imports no forbidden production/2026 module", () => {
+    const files = collect(join(root, "lib", "backtesting"));
+    expect(files.length).toBeGreaterThan(0);
+    for (const file of files) {
+      const specs = importSpecifiers(readFileSync(file, "utf8"));
+      const bad = specs.find((s) => FORBIDDEN.some((re) => re.test(s)));
+      expect({ file, forbidden: bad ?? null }).toEqual({ file, forbidden: null });
+    }
+  });
+});
