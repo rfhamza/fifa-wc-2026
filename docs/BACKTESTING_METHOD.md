@@ -1,7 +1,18 @@
-# Backtesting Methodology (Phase 1.18B-0)
+# Backtesting Methodology (Phase 1.18B-0; harness landed in 1.18C-1)
 
-How the historical test bench will evaluate and (later) calibrate the model. Design recorded now;
-**no harness, no calibration, no production change in this phase.**
+How the historical test bench will evaluate and (later) calibrate the model. Design recorded in
+1.18B-0; the **first match-level harness landed in Phase 1.18C-1** (WC-2022 only). Still **no
+calibration, no weight tuning, no tournament replay, and no production/probability change.**
+
+## Status (Phase 1.18C-1)
+The first match-level evaluator scores the **WC-2022** snapshot at 90-minute W/D/L for a fixed
+**diagnostic baseline ladder** (Elo-only, FIFA-only, Elo+FIFA, Elo+FIFA+host/regional). Headline
+metrics are the **48 group matches**; an **all-64** mode (90-minute W/D/L, stage-tagged) is
+available behind a flag. It is isolated (`lib/backtesting/*` imports only the import-safe
+`lib/model/config` + `lib/simulation/poisson` + type-only `lib/types`, never `lib/model/predict`,
+`lib/model/features`, or `data/model-inputs`). Results are deterministic and pinned by Vitest
+(`tests/backtesting-match-evaluator.test.ts`); see `docs/BACKTESTING_WC2022_BASELINE_RESULTS.md`
+(diagnostic-only). Modules: `lib/backtesting/{metrics,feature-adapter,model-variants,match-evaluator}.ts`.
 
 ## Scope
 Primary: **2010, 2014, 2018, 2022**; stretch: **1998, 2002, 2006**. **2026 excluded** (target;
