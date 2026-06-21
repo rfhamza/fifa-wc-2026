@@ -95,10 +95,12 @@ describe("backtesting harness avoids 2026 / production-data imports (Phase 1.18C
     return out;
   };
   // Modules whose import would drag 2026 production data into the historical harness.
+  // NOTE: `predict\b` forbids `lib/model/predict` (which pulls in data/model-inputs)
+  // while still PERMITTING the import-safe `lib/model/prediction-core` (Phase 1.18C-6).
   const FORBIDDEN = [
     /data\/model-inputs/,
     /lib\/model\/features/,
-    /lib\/model\/predict/,
+    /lib\/model\/predict\b/,
     /data\/official/,
     /lib\/data["']/,
     /2026/,
@@ -162,6 +164,50 @@ describe("pure prediction core is data/model-inputs-free (Phase 1.18C-4)", () =>
     const src = readFileSync(join(root, "lib", "model", "prediction-core.ts"), "utf8");
     const specs = importSpecifiers(src);
     expect(specs.length).toBeGreaterThan(0);
+    for (const s of specs) {
+      expect({ s, bad: FORBIDDEN.some((re) => re.test(s)) }).toEqual({ s, bad: false });
+    }
+  });
+});
+
+/**
+ * Phase 1.18C-6: the backtesting evaluator now DELEGATES its prediction math to the
+ * shared pure core (`lib/model/prediction-core.ts`). This locks in the new seam: the
+ * evaluator must import the core (positive assertion), the harness must STILL avoid
+ * every forbidden 2026/production-data module (the existing guard above is unchanged
+ * and still forbids `lib/model/predict` / `lib/model/features` / `data/model-inputs`),
+ * and `lib/utils` - now reachable transitively via the core - must itself stay free
+ * of any 2026 / data-input coupling.
+ */
+describe("backtesting evaluator delegates to the pure core (Phase 1.18C-6)", () => {
+  const root = process.cwd();
+  const importSpecifiers = (src: string): string[] => {
+    const out: string[] = [];
+    const re = /(?:from|import|require)\s*\(?\s*["']([^"']+)["']/g;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(src))) out.push(m[1]!);
+    return out;
+  };
+  const FORBIDDEN = [
+    /data\/model-inputs/,
+    /lib\/model\/features/,
+    /lib\/model\/predict\b/,
+    /data\/official/,
+    /lib\/data["']/,
+    /2026/,
+    /^@\/app\//,
+    /^@\/components\//,
+  ];
+
+  it("match-evaluator.ts imports the pure prediction core", () => {
+    const src = readFileSync(join(root, "lib", "backtesting", "match-evaluator.ts"), "utf8");
+    const specs = importSpecifiers(src);
+    expect(specs).toContain("@/lib/model/prediction-core");
+  });
+
+  it("lib/utils stays import-safe (reachable transitively via the core)", () => {
+    const src = readFileSync(join(root, "lib", "utils.ts"), "utf8");
+    const specs = importSpecifiers(src);
     for (const s of specs) {
       expect({ s, bad: FORBIDDEN.some((re) => re.test(s)) }).toEqual({ s, bad: false });
     }

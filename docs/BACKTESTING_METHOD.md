@@ -38,14 +38,19 @@ stateless prediction core; (2) a **calibration objective** is defined up front; 
 approved, **probability/temperature scaling is preferred over feature-weight tuning**, must be
 reversible/documented, and must live separately from the source-backed snapshots.
 
-## Parity audit & staged path to calibration (Phase 1.18C-2)
-The production/backtesting parity audit is recorded in `docs/BACKTESTING_PARITY_AUDIT.md`. Key point:
-the harness shares the Poisson W/D/L step and `config` constants and mirrors the active Elo/FIFA/host/
-regional driver math, but **production/backtesting numerical parity has NOT yet been test-proven** —
-the only *identified* prediction-output difference today is production's 4-decimal rounding, and full
-parity stays unproven until a pure-core extraction + parity test exists. Staged path: **(1) parity
-audit → (2) pure prediction-core extraction + parity tests → (3) LOTO diagnostics → (4) calibration
-only if separately approved.** Calibration remains **NO-GO** today.
+## Parity audit & staged path to calibration (Phase 1.18C-2 → 1.18C-6)
+The production/backtesting parity audit is recorded in `docs/BACKTESTING_PARITY_AUDIT.md`.
+- **Phase 1.18C-4** extracted a pure, `data/model-inputs`-free prediction core
+  (`lib/model/prediction-core.ts`); production `predict.ts` delegates to it (golden-proven, byte-identical).
+- **Phase 1.18C-6** migrated the **backtesting evaluator** to that same core: it calls
+  `computePredictionCore` (variants expressed as zeroed-weight `ModelWeights`; a deterministic historical
+  status resolver), so production and backtesting now **share one scoring path** for the diagnostic
+  drivers. Parity is **test-proven** by `tests/backtesting-core-parity.test.ts` (old-vs-core, byte-identical
+  probabilities + metrics across all four packs / four variants / both modes). **Historical metric pins and
+  the four-tournament macro-average are unchanged** — a harness parity migration, not a model improvement.
+
+Remaining staged path: **(3) LOTO diagnostics → (4) calibration only if separately approved.** Calibration
+remains **NO-GO** today; no production weights/probabilities changed and no new historical features were added.
 
 ## Scope
 Primary: **2010, 2014, 2018, 2022**; stretch: **1998, 2002, 2006**. **2026 excluded** (target;
@@ -85,7 +90,10 @@ is available.
   ablation study; backtesting only *recommends*.
 
 ## Isolation
-Harness calls the **stateless** `predictFromFeatures(a, b, weights)` / `computeDrivers`
-(`lib/model/predict.ts`) with `TeamFeatureSet`s built from historical snapshots, **bypassing**
-`buildFeatureSet` and production `data/model-inputs/*`. Production 2026 forecast code and inputs
-remain untouched; historical data never imports into production paths (guard test).
+Harness calls the **shared pure prediction core** `computePredictionCore`
+(`lib/model/prediction-core.ts`, Phase 1.18C-6) with `TeamFeatureSet`s built from historical snapshots,
+**bypassing** `buildFeatureSet`, `predict.ts` and production `data/model-inputs/*`. The core is
+import-safe (config + poisson + `lib/utils` + types only); the isolation guard permits
+`lib/model/prediction-core` while still forbidding `lib/model/predict` / `lib/model/features` /
+`data/model-inputs`. Production 2026 forecast code and inputs remain untouched; historical data never
+imports into production paths (guard test).

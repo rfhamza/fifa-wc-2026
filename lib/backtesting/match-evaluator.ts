@@ -1,27 +1,43 @@
 /**
  * Phase 1.18C-1 - match-level backtest evaluator (backtesting layer).
+ * Phase 1.18C-6 - now delegates the prediction math to the shared PURE CORE.
  * -----------------------------------------------------------------
  * Scores a `HistoricalSourcePack` at the 90-minute W/D/L level for a diagnostic
- * model variant. Pure + deterministic + ISOLATED: reuses only import-safe production
- * pieces - `MODEL_WEIGHTS` / `SCORELINE_CONFIG` (config.ts, no imports) and the
- * Poisson W/D/L conversion (poisson.ts, types-only import). It does NOT import
- * `lib/model/predict.ts` or `lib/model/features.ts` (which would transitively pull in
- * `data/model-inputs` / 2026 data), so no 2026 data and no probability change leak in.
+ * model variant. Pure + deterministic + ISOLATED.
  *
- * Pipeline (mirrors production's stateless seam using the same constants):
- *   active driver differences -> netAdvantage (Elo points)
- *     -> expectedGoals (SCORELINE_CONFIG) -> Poisson scoreline matrix -> W/D/L.
+ * The driver math, net-advantage sum, expected-goals conversion and Poisson W/D/L
+ * step are no longer re-implemented here: the evaluator calls `computePredictionCore`
+ * (`lib/model/prediction-core.ts`) - the SAME `data/model-inputs`-free core that
+ * production delegates to - so there is one shared scoring path. The core is import
+ * -safe (config + poisson + lib/utils + types only); the evaluator still does NOT
+ * import `lib/model/predict.ts`, `lib/model/features.ts` or `data/model-inputs`, so
+ * no 2026 data and no probability change leak in.
+ *
+ * Diagnostic variants are expressed as `variantWeights(variant)` (production
+ * `MODEL_WEIGHTS` with inactive diagnostic drivers zeroed; `fifaRankingCap`
+ * preserved). Provenance status is injected via a deterministic HISTORICAL resolver
+ * that returns `undefined` for every family: the four active drivers
+ * (Elo/FIFA/host/regional) are uncapped in production cap logic, and every other
+ * (cappable) driver is zero on the neutral historical features, so caps stay inert.
  *
  * Prediction TARGET is strictly the 90-minute result (`resultAt90`); extra-time and
  * penalty advancement are never used. Headline scope is the 48 group matches;
  * `mode: "all"` additionally scores the 16 knockout matches at 90' (stage-tagged).
  */
-import { MODEL_WEIGHTS, SCORELINE_CONFIG } from "@/lib/model/config";
-import { outcomeProbabilities, scorelineMatrix } from "@/lib/simulation/poisson";
+import {
+  computeDrivers as coreComputeDrivers,
+  computePredictionCore,
+  type FeatureStatusResolver,
+} from "@/lib/model/prediction-core";
 import type { TeamFeatureSet } from "@/lib/types";
 import type { HistoricalSourcePack, MatchStage } from "./types";
 import { buildHistoricalFeatures } from "./feature-adapter";
-import type { DriverKey, ModelVariant } from "./model-variants";
+import {
+  variantWeights,
+  weightsForActiveDrivers,
+  type DriverKey,
+  type ModelVariant,
+} from "./model-variants";
 import {
   calibrationBuckets,
   summarizeMetrics,
@@ -35,60 +51,53 @@ import {
 
 export type StageMode = "group" | "all";
 
-const clamp = (x: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, x));
+/**
+ * Deterministic provenance resolver for historical diagnostics: every feature
+ * family is `undefined` (no provenance assumption). The active diagnostic drivers
+ * are uncapped in production cap logic, and every cappable driver is zero on the
+ * neutral historical features, so this keeps placeholder / climate / tournament
+ * -context caps inert. Imports no `data/model-inputs`, no feature builders, no 2026
+ * data. The old-vs-core parity test proves this policy reproduces the prior outputs.
+ */
+export const historicalStatusResolver: FeatureStatusResolver = () => undefined;
 
 /**
  * Net Elo-point advantage of A over B from the variant's ACTIVE drivers only.
- * Mirrors the production driver math (predict.ts) for these four drivers, using the
- * shared MODEL_WEIGHTS constants. Inactive drivers contribute nothing.
+ * Delegates to the shared core's `computeDrivers` (single source of truth for the
+ * driver math) with the variant weights, then sums the raw contributions. Inactive
+ * drivers are zeroed by weight and contribute nothing. Diagnostic helper used by
+ * the sign-direction tests; the scoring path uses `predictTriple` / the core.
  */
 export function netAdvantage(
   a: TeamFeatureSet,
   b: TeamFeatureSet,
   active: DriverKey[],
 ): number {
-  const on = new Set(active);
-  let net = 0;
-  if (on.has("elo")) net += (a.elo - b.elo) * MODEL_WEIGHTS.elo;
-  if (on.has("fifa")) {
-    net += clamp(
-      (b.fifaRanking - a.fifaRanking) * MODEL_WEIGHTS.fifaRankingPerPlace,
-      -MODEL_WEIGHTS.fifaRankingCap,
-      MODEL_WEIGHTS.fifaRankingCap,
-    );
-  }
-  if (on.has("host")) net += ((a.isHost ? 1 : 0) - (b.isHost ? 1 : 0)) * MODEL_WEIGHTS.host;
-  if (on.has("regional")) {
-    net += ((a.isRegional ? 1 : 0) - (b.isRegional ? 1 : 0)) * MODEL_WEIGHTS.regional;
-  }
-  return net;
+  const drivers = coreComputeDrivers(
+    a,
+    b,
+    weightsForActiveDrivers(active),
+    historicalStatusResolver,
+  );
+  return drivers.reduce((sum, d) => sum + d.contribution, 0);
 }
 
 /**
- * Convert a net Elo-point advantage into expected goals for each side. Replicated
- * from `expectedGoalsFromAdvantage` (lib/model/predict.ts) using the SAME
- * SCORELINE_CONFIG constants so values stay faithful to production.
+ * Predict a 90-minute W/D/L triple [pA, pD, pB] for A (home slot) vs B via the
+ * shared pure prediction core, using the variant's weights and the historical
+ * status resolver. The core returns unrounded probabilities, which the metrics
+ * consume directly.
  */
-export function expectedGoals(netAdv: number): { home: number; away: number } {
-  const { baseTotalGoals, supremacyPerGoal, minExpectedGoals } = SCORELINE_CONFIG;
-  const supremacy = netAdv / supremacyPerGoal;
-  const half = baseTotalGoals / 2;
-  return {
-    home: Math.max(minExpectedGoals, half + supremacy / 2),
-    away: Math.max(minExpectedGoals, half - supremacy / 2),
-  };
-}
-
-/** Predict a 90-minute W/D/L triple [pA, pD, pB] for A (home slot) vs B. */
 export function predictTriple(
   a: TeamFeatureSet,
   b: TeamFeatureSet,
   variant: ModelVariant,
 ): ProbTriple {
-  const xg = expectedGoals(netAdvantage(a, b, variant.activeDrivers));
-  const matrix = scorelineMatrix(xg.home, xg.away, SCORELINE_CONFIG.maxGoalsPerSide);
-  const o = outcomeProbabilities(matrix);
-  return { pA: o.homeWin, pD: o.draw, pB: o.awayWin };
+  const core = computePredictionCore(a, b, {
+    weights: variantWeights(variant),
+    statusResolver: historicalStatusResolver,
+  });
+  return { pA: core.outcome.homeWin, pD: core.outcome.draw, pB: core.outcome.awayWin };
 }
 
 export interface FeatureSummary {
