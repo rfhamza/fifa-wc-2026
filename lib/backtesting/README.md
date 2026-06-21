@@ -39,6 +39,12 @@ never pooled (completing the four does not begin calibration).
   nothing** — no tuning/weights/temperature/parameters; held-out values equal the existing per-tournament
   pins; the reference set is a **descriptive comparator, not a training set**. A future
   calibration-governance input, **not** calibration; **calibration remains NO-GO**.
+- **Calibration governance (Phase 1.18C-10):** the formal decision is recorded in
+  `docs/BACKTESTING_CALIBRATION_GOVERNANCE.md` — **DO NOT CALIBRATE YET; calibration remains NO-GO.** It
+  locks the boundary (objective options, calibration-family options, required LOTO validation design,
+  six-stage decision ladder, universal NO-GO list) before any calibration experiment, stretch ingestion,
+  or tournament replay. The diagnostic ladder is a **4-of-10-driver subset**, not the production model.
+  Documentation only — no parameters, no production change.
 
 ### Parity vs production (see `docs/BACKTESTING_PARITY_AUDIT.md`)
 **Phase 1.18C-6:** the evaluator now **calls the shared pure prediction core**
