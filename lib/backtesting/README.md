@@ -4,11 +4,11 @@ Phase 1.18 historical test bench. **Isolated from the production 2026 forecast.*
 
 - This layer is **never imported by the production app** (`app/`, `components/`, `lib/model/*`,
   `lib/simulation/*`, `lib/data/*`, `data/model-inputs/*`). A guard test enforces this.
-- It will read **historical source packs** from `data/historical/` (a later phase) and evaluate
-  the model against past tournaments. It must call the model through the **stateless seams**
-  (`predictFromFeatures(a, b, weights)` / `computeDrivers` in `lib/model/predict.ts`) by building
-  `TeamFeatureSet`s directly from historical snapshots — **bypassing** `buildFeatureSet` and the
-  production `data/model-inputs/*` so 2026 inputs and probabilities are untouched.
+- It reads **historical source packs** from `data/historical/` and evaluates the model against past
+  tournaments. It calls the model through the **shared pure prediction core**
+  (`computePredictionCore` in `lib/model/prediction-core.ts`, Phase 1.18C-6) by building
+  `TeamFeatureSet`s directly from historical snapshots — **bypassing** `buildFeatureSet`, `predict.ts`
+  and the production `data/model-inputs/*` so 2026 inputs and probabilities are untouched.
 - **No production weight/probability changes** come from backtesting code; calibration only ever
   *recommends* changes for a separate, explicitly approved phase.
 
@@ -32,17 +32,24 @@ never pooled (completing the four does not begin calibration).
   probability scaling is preferred over feature-weight tuning.
 
 ### Parity vs production (see `docs/BACKTESTING_PARITY_AUDIT.md`)
-The evaluator mirrors only the active **Elo/FIFA/host/regional** driver math and **shares** the Poisson
-W/D/L step + `config` constants; it does not import `lib/model/predict.ts` or `lib/model/prediction-core.ts`
-(it still runs its own duplicated math). Production uses the full **10-driver** path.
+**Phase 1.18C-6:** the evaluator now **calls the shared pure prediction core**
+(`lib/model/prediction-core.ts`, the same `data/model-inputs`-free core production delegates to) instead
+of re-implementing the driver / expected-goals / Poisson math. Diagnostic variants are expressed as
+`variantWeights(variant)` (production `MODEL_WEIGHTS` with inactive diagnostic drivers zeroed,
+`fifaRankingCap` preserved), and provenance status is injected via a deterministic historical resolver
+returning `undefined` (the active Elo/FIFA/host/regional drivers are uncapped in production cap logic and
+every cappable driver is zero on the neutral historical features, so caps stay inert). It still does not
+import `lib/model/predict.ts` / `lib/model/features.ts` / `data/model-inputs`.
 
-**Phase 1.18C-4:** a pure, `data/model-inputs`-free prediction core (`lib/model/prediction-core.ts`) now
-exists and production `lib/model/predict.ts` **delegates** to it; **production output parity is
-test-proven** by golden tests (`tests/prediction-core-parity.test.ts`). **The backtesting harness has NOT
-yet migrated to the core** — harness↔production numerical parity is a **separate future PR (1.18C-5)** and
-is not yet asserted. **Historical diagnostic metrics are unchanged** by 1.18C-4. Staged path: parity audit
-→ **pure-core extraction (done, production-side)** → harness migration to the core → LOTO diagnostics →
-calibration (only if separately approved). Calibration is **NO-GO** today.
+**Parity is now test-proven for the current historical diagnostic path:**
+`tests/backtesting-core-parity.test.ts` reconstructs the pre-migration evaluator inline and proves
+byte-identical probabilities **and** metrics across all four packs, all four variants, and both stage
+modes (group=48, all=64). **Historical metric pins and the four-tournament macro-average are unchanged.**
+This is a **harness parity migration, not a model improvement**: no production code, weights or
+probabilities changed, no historical snapshots/generators changed, and no new historical features were
+added. Production uses the full **10-driver** path; the harness drives the same core with the four-driver
+diagnostic ladder. Remaining staged path: **LOTO diagnostics → calibration (only if separately
+approved)**. Calibration is **NO-GO** today.
 - `types.ts` — source-pack contract.
 - `validate-historical.ts` — `validateHistoricalPack()`: coverage (32 teams / 8×4 groups / 64
   matches = 48+16), team-mapping resolution, result consistency, leakage (Elo/FIFA dated strictly
@@ -52,17 +59,24 @@ calibration (only if separately approved). Calibration is **NO-GO** today.
 - `metrics.ts` — pure RPS / log loss / Brier / accuracy / calibration + `validateProbabilityTriple`.
 - `feature-adapter.ts` — builds `TeamFeatureSet`s directly from the pack (host/regional relative to
   the pack's host; excluded features neutral).
-- `model-variants.ts` — diagnostic baseline ladder (Elo-only, FIFA-only, Elo+FIFA, Elo+FIFA+host/regional).
+- `model-variants.ts` — diagnostic baseline ladder (Elo-only, FIFA-only, Elo+FIFA, Elo+FIFA+host/regional)
+  plus `variantWeights(variant)` / `weightsForActiveDrivers(active)` (Phase 1.18C-6) that re-express a
+  variant as a `ModelWeights` object for the shared core (inactive drivers zeroed; `fifaRankingCap` kept).
 - `match-evaluator.ts` — 90-minute W/D/L scoring; group-stage headline (48), all-64 behind a flag.
-  Pinned by `tests/backtesting-match-evaluator.test.ts`; summary in `docs/BACKTESTING_WC2022_BASELINE_RESULTS.md`.
+  **Phase 1.18C-6:** delegates the prediction math to `computePredictionCore` (no duplicated math); pins
+  unchanged. Pinned by `tests/backtesting-match-evaluator.test.ts`; old-vs-core parity proven by
+  `tests/backtesting-core-parity.test.ts`; summary in `docs/BACKTESTING_WC2022_BASELINE_RESULTS.md`.
 
 ### Safe-import rule (harness isolation)
 `lib/backtesting/*` may reuse only **import-safe** production pieces: `@/lib/model/config`
-(constants; no imports) and `@/lib/simulation/poisson` (types-only import), plus type-only
-`@/lib/types`. It must **never** import `@/lib/model/predict` or `@/lib/model/features` (they pull
-in `@/data/model-inputs` → 2026 data), nor `@/data/model-inputs`, `@/data/official`, `@/lib/data`,
-or any 2026 snapshot. The 90-minute W/D/L conversion is reused from `poisson.ts`; the small
-`netAdvantage → expected goals` formula mirrors `predict.ts` using the shared config constants.
+(constants; no imports), `@/lib/simulation/poisson` (types-only import), the pure
+`@/lib/model/prediction-core` (config + poisson + `@/lib/utils` + types only; **Phase 1.18C-6**), plus
+type-only `@/lib/types`. It must **never** import `@/lib/model/predict` or `@/lib/model/features` (they
+pull in `@/data/model-inputs` → 2026 data), nor `@/data/model-inputs`, `@/data/official`, `@/lib/data`,
+or any 2026 snapshot. The driver math, `netAdvantage → expected goals` conversion and 90-minute W/D/L
+step are all taken from the shared core (which mirrors production exactly) — the harness no longer keeps
+its own copy. The isolation guard's `predict\b` rule forbids `lib/model/predict` while permitting
+`lib/model/prediction-core`.
 
 ## Contract
 `types.ts` defines the per-tournament `HistoricalSourcePack` (identity, results, pre-tournament
