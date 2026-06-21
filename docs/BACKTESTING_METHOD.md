@@ -38,6 +38,15 @@ stateless prediction core; (2) a **calibration objective** is defined up front; 
 approved, **probability/temperature scaling is preferred over feature-weight tuning**, must be
 reversible/documented, and must live separately from the source-backed snapshots.
 
+## Parity audit & staged path to calibration (Phase 1.18C-2)
+The production/backtesting parity audit is recorded in `docs/BACKTESTING_PARITY_AUDIT.md`. Key point:
+the harness shares the Poisson W/D/L step and `config` constants and mirrors the active Elo/FIFA/host/
+regional driver math, but **production/backtesting numerical parity has NOT yet been test-proven** —
+the only *identified* prediction-output difference today is production's 4-decimal rounding, and full
+parity stays unproven until a pure-core extraction + parity test exists. Staged path: **(1) parity
+audit → (2) pure prediction-core extraction + parity tests → (3) LOTO diagnostics → (4) calibration
+only if separately approved.** Calibration remains **NO-GO** today.
+
 ## Scope
 Primary: **2010, 2014, 2018, 2022**; stretch: **1998, 2002, 2006**. **2026 excluded** (target;
 also 48-team format - historical 32-team backtests validate the **match-level engine + driver
