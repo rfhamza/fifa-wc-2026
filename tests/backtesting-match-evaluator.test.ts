@@ -3,6 +3,7 @@ import type { TeamFeatureSet } from "@/lib/types";
 import { WC2022_PACK } from "@/data/historical/snapshots/wc-2022";
 import { WC2018_PACK } from "@/data/historical/snapshots/wc-2018";
 import { WC2014_PACK } from "@/data/historical/snapshots/wc-2014";
+import { WC2010_PACK } from "@/data/historical/snapshots/wc-2010";
 import { buildHistoricalFeatures } from "@/lib/backtesting/feature-adapter";
 import {
   BASELINE_LADDER,
@@ -316,6 +317,80 @@ describe("WC-2014 evaluator: counts, host/regional (Brazil/CONMEBOL), and pinned
   );
   const allById = Object.fromEntries(
     evaluateLadder(WC2014_PACK, BASELINE_LADDER, "all").map((r) => [r.modelVariant, r]),
+  );
+
+  for (const [id, exp] of Object.entries(groupExpected)) {
+    it(`${id} matches pinned group-stage metrics (48 matches)`, () => {
+      const r = groupById[id]!;
+      expect(r.matchCount).toBe(48);
+      expect(round6(r.metrics.rps)).toBe(exp.rps);
+      expect(round6(r.metrics.logLoss)).toBe(exp.logLoss);
+      expect(round6(r.metrics.brier)).toBe(exp.brier);
+      expect(round6(r.metrics.accuracy)).toBe(exp.accuracy);
+    });
+  }
+  for (const [id, exp] of Object.entries(allExpected)) {
+    it(`${id} matches pinned all-64 metrics`, () => {
+      const r = allById[id]!;
+      expect(r.matchCount).toBe(64);
+      expect(round6(r.metrics.rps)).toBe(exp.rps);
+      expect(round6(r.metrics.logLoss)).toBe(exp.logLoss);
+      expect(round6(r.metrics.brier)).toBe(exp.brier);
+      expect(round6(r.metrics.accuracy)).toBe(exp.accuracy);
+    });
+  }
+});
+
+describe("WC-2010 evaluator: counts, host/regional (South Africa/CAF), OFC, and pinned metrics", () => {
+  it("group mode scores exactly 48 matches; all mode exactly 64 (stage-tagged)", () => {
+    const g = evaluateVariant(WC2010_PACK, ELO_FIFA, "group");
+    expect(g.matchCount).toBe(48);
+    expect(g.includedStages).toEqual(["group"]);
+    const a = evaluateVariant(WC2010_PACK, ELO_FIFA, "all");
+    expect(a.matchCount).toBe(64);
+    expect(a.perMatch.filter((m) => m.stage === "group")).toHaveLength(48);
+    expect(a.perMatch.filter((m) => m.stage !== "group")).toHaveLength(16);
+  });
+
+  it("host/regional are relative to South Africa / CAF; New Zealand (OFC) gets neither", () => {
+    const features = buildHistoricalFeatures(WC2010_PACK);
+    expect(features.get("south-africa")?.isHost).toBe(true);
+    expect(features.get("south-africa")?.isRegional).toBe(false);
+    // a CAF non-host gets regional advantage
+    expect(features.get("ghana")?.isHost).toBe(false);
+    expect(features.get("ghana")?.isRegional).toBe(true);
+    // New Zealand (OFC) and a UEFA team get neither
+    expect(features.get("new-zealand")?.isHost).toBe(false);
+    expect(features.get("new-zealand")?.isRegional).toBe(false);
+    expect(features.get("spain")?.isRegional).toBe(false);
+  });
+
+  it("every predicted triple is valid and sums to 1", () => {
+    const r = evaluateVariant(WC2010_PACK, ELO_FIFA_HOST_REGIONAL, "all");
+    for (const m of r.perMatch) {
+      expect(() => validateProbabilityTriple({ pA: m.pA, pD: m.pD, pB: m.pB })).not.toThrow();
+      expect(m.pA + m.pD + m.pB).toBeCloseTo(1, 9);
+    }
+  });
+
+  const groupExpected: Record<string, { rps: number; logLoss: number; brier: number; accuracy: number }> = {
+    "elo-only": { rps: 0.196084, logLoss: 0.997914, brier: 0.601816, accuracy: 0.520833 },
+    "fifa-only": { rps: 0.220927, logLoss: 1.074604, brier: 0.649351, accuracy: 0.479167 },
+    "elo-fifa": { rps: 0.202127, logLoss: 1.018394, brier: 0.616182, accuracy: 0.5 },
+    "elo-fifa-host-regional": { rps: 0.20161, logLoss: 1.014471, brier: 0.614649, accuracy: 0.5 },
+  };
+  const allExpected: Record<string, { rps: number; logLoss: number; brier: number; accuracy: number }> = {
+    "elo-only": { rps: 0.188848, logLoss: 0.971146, brier: 0.580925, accuracy: 0.546875 },
+    "fifa-only": { rps: 0.22146, logLoss: 1.068904, brier: 0.645454, accuracy: 0.53125 },
+    "elo-fifa": { rps: 0.191949, logLoss: 0.981823, brier: 0.588761, accuracy: 0.53125 },
+    "elo-fifa-host-regional": { rps: 0.191403, logLoss: 0.978522, brier: 0.58716, accuracy: 0.53125 },
+  };
+
+  const groupById = Object.fromEntries(
+    evaluateLadder(WC2010_PACK, BASELINE_LADDER, "group").map((r) => [r.modelVariant, r]),
+  );
+  const allById = Object.fromEntries(
+    evaluateLadder(WC2010_PACK, BASELINE_LADDER, "all").map((r) => [r.modelVariant, r]),
   );
 
   for (const [id, exp] of Object.entries(groupExpected)) {
