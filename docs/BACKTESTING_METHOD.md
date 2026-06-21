@@ -4,15 +4,23 @@ How the historical test bench will evaluate and (later) calibrate the model. Des
 1.18B-0; the **first match-level harness landed in Phase 1.18C-1** (WC-2022 only). Still **no
 calibration, no weight tuning, no tournament replay, and no production/probability change.**
 
-## Status (Phase 1.18C-1)
-The first match-level evaluator scores the **WC-2022** snapshot at 90-minute W/D/L for a fixed
-**diagnostic baseline ladder** (Elo-only, FIFA-only, Elo+FIFA, Elo+FIFA+host/regional). Headline
-metrics are the **48 group matches**; an **all-64** mode (90-minute W/D/L, stage-tagged) is
-available behind a flag. It is isolated (`lib/backtesting/*` imports only the import-safe
-`lib/model/config` + `lib/simulation/poisson` + type-only `lib/types`, never `lib/model/predict`,
-`lib/model/features`, or `data/model-inputs`). Results are deterministic and pinned by Vitest
-(`tests/backtesting-match-evaluator.test.ts`); see `docs/BACKTESTING_WC2022_BASELINE_RESULTS.md`
-(diagnostic-only). Modules: `lib/backtesting/{metrics,feature-adapter,model-variants,match-evaluator}.ts`.
+## Status (Phase 1.18C-1; 2018 pack added in 1.18B-4)
+The match-level evaluator scores historical snapshots at 90-minute W/D/L for a fixed **diagnostic
+baseline ladder** (Elo-only, FIFA-only, Elo+FIFA, Elo+FIFA+host/regional). Headline metrics are the
+**48 group matches**; an **all-64** mode (90-minute W/D/L, stage-tagged) is available behind a flag.
+It is isolated (`lib/backtesting/*` imports only the import-safe `lib/model/config` +
+`lib/simulation/poisson` + type-only `lib/types`, never `lib/model/predict`, `lib/model/features`, or
+`data/model-inputs`). Results are deterministic and pinned by Vitest
+(`tests/backtesting-match-evaluator.test.ts`). Modules:
+`lib/backtesting/{metrics,feature-adapter,model-variants,match-evaluator}.ts`.
+
+**Ingested packs:** **WC-2022** (1.18B-2) and **WC-2018** (1.18B-4) — both validated, with diagnostic
+results in `docs/BACKTESTING_WC2022_BASELINE_RESULTS.md` and `docs/BACKTESTING_WC2018_BASELINE_RESULTS.md`
+(diagnostic-only; per-tournament, never pooled). The validator host check is parameterized via
+`HistoricalPackExpectations` (`WC2022_EXPECTATIONS` = Qatar/AFC, `WC2018_EXPECTATIONS` = Russia/UEFA).
+Each tournament uses a dedicated generator (`scripts/generate-historical-<year>.mjs`); a shared
+generator is deferred until 2014 (N=3). Still **no calibration, no replay, no weight tuning, no
+production/probability change.**
 
 ## Scope
 Primary: **2010, 2014, 2018, 2022**; stretch: **1998, 2002, 2006**. **2026 excluded** (target;

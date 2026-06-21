@@ -39,6 +39,14 @@ export interface HistoricalPackExpectations {
   knockoutMatchCount: number;
   /** Optional declared per-confederation entrant counts to cross-check. */
   confederationCounts?: Record<string, number>;
+  /** Optional tournament identity expectations (parameterize the host check). */
+  expectedTournamentYear?: number;
+  /** Host team id that must be present in the team list (e.g. "qatar", "russia"). */
+  expectedHostId?: string;
+  /** Host country name that must appear in hostCountries (case-insensitive). */
+  expectedHostName?: string;
+  /** Confederation the host must belong to (e.g. "AFC", "UEFA"). */
+  expectedHostConfederation?: string;
 }
 
 export const WC2022_EXPECTATIONS: HistoricalPackExpectations = {
@@ -48,6 +56,23 @@ export const WC2022_EXPECTATIONS: HistoricalPackExpectations = {
   matchCount: 64,
   groupMatchCount: 48,
   knockoutMatchCount: 16,
+  expectedTournamentYear: 2022,
+  expectedHostId: "qatar",
+  expectedHostName: "Qatar",
+  expectedHostConfederation: "AFC",
+};
+
+export const WC2018_EXPECTATIONS: HistoricalPackExpectations = {
+  teamCount: 32,
+  groupCount: 8,
+  teamsPerGroup: 4,
+  matchCount: 64,
+  groupMatchCount: 48,
+  knockoutMatchCount: 16,
+  expectedTournamentYear: 2018,
+  expectedHostId: "russia",
+  expectedHostName: "Russia",
+  expectedHostConfederation: "UEFA",
 };
 
 /** Parse an ISO instant; returns NaN-bearing flag for unparseable input. */
@@ -117,9 +142,23 @@ export function validateHistoricalPack(
       warnings.push(`host "${host}" did not match a teamId by slug ("${hostId}")`);
     }
   }
-  if (!teamSet.has("qatar")) err("host nation Qatar is not present in the team list");
-  if (!identity.hostCountries.some((h) => h.toLowerCase() === "qatar")) {
-    err("hostCountries does not include Qatar");
+  // Parameterized host expectations (replaces the former hardcoded Qatar check).
+  if (expected.expectedTournamentYear !== undefined &&
+      identity.tournamentYear !== expected.expectedTournamentYear) {
+    err(`expected tournamentYear ${expected.expectedTournamentYear}, got ${identity.tournamentYear}`);
+  }
+  if (expected.expectedHostId !== undefined && !teamSet.has(expected.expectedHostId)) {
+    err(`host "${expected.expectedHostId}" is not present in the team list`);
+  }
+  if (expected.expectedHostName !== undefined &&
+      !identity.hostCountries.some((h) => h.toLowerCase() === expected.expectedHostName!.toLowerCase())) {
+    err(`hostCountries does not include "${expected.expectedHostName}"`);
+  }
+  if (expected.expectedHostConfederation !== undefined && expected.expectedHostId !== undefined) {
+    const hostConf = identity.confederations[expected.expectedHostId];
+    if (hostConf !== expected.expectedHostConfederation) {
+      err(`host "${expected.expectedHostId}" confederation is "${hostConf}", expected "${expected.expectedHostConfederation}"`);
+    }
   }
   const confTally: Record<string, number> = {};
   for (const t of identity.teamIds) {
