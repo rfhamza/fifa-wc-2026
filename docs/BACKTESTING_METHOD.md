@@ -36,6 +36,18 @@ four-tournament diagnostic headline, **does not** recompute LOTO or add stretch 
 (only `WC2006_EXPECTATIONS` added); no co-host validation is added (deferred to a future 2002 PR). See
 `docs/BACKTESTING_WC2006_SNAPSHOT.md`.
 
+### Stretch pack: WC-2002 (Phase 1.19C, stretch-only)
+A sixth pack — **WC-2002** (South Korea + Japan) — is ingested **additively as stretch evidence only**
+(`scripts/generate-historical-2002.mjs`, `data/historical/snapshots/wc-2002.ts`, `WC2002_EXPECTATIONS`).
+It introduces the first **co-hosted** tournament (both hosts AFC) and the **golden-goal** era. Co-hosts
+add an **additive, backward-compatible** validator extension (`expectedHostIds?`/
+`expectedHostConfederations?`); the feature-adapter already supports multiple hosts via a host set (no
+change). Golden-goal knockouts are stored as 90-minute draws + `afterExtraTime` (no new field, no schema
+change). Slug rulings: `republic-of-ireland` (historical-only, not `ireland`), `china` (new), `turkiye`
+(reuse). It **does not** change the primary four-tournament diagnostic headline, **does not** re-baseline
+consolidation, **does not** recompute LOTO or add stretch consolidation, and **does not** approve
+calibration (**calibration remains NO-GO**). See `docs/BACKTESTING_WC2002_SNAPSHOT.md`.
+
 ## Four-tournament consolidation (Phase 1.18C-1)
 The primary historical source scope is complete and the four-tournament diagnostics are consolidated
 in `docs/BACKTESTING_FOUR_TOURNAMENT_DIAGNOSTICS.md` (DIAGNOSTIC ONLY), produced by the pure helper
