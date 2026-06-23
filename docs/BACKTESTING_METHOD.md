@@ -62,6 +62,24 @@ recompute LOTO or add stretch consolidation, and **does not** approve calibratio
 NO-GO**). With 1998/2002/2006 all merged, any cross-stretch consolidation is a separate,
 explicitly-approved future phase. See `docs/BACKTESTING_WC1998_SNAPSHOT.md`.
 
+### Historical cohorts: primary vs stretch vs all-available (Phase 1.20B)
+The merged historical packs are partitioned into three **explicit, named cohorts**
+(`lib/backtesting/historical-cohorts.ts`; pinned by `tests/backtesting-historical-cohorts.test.ts`):
+
+- **Primary diagnostic set — 2010, 2014, 2018, 2022.** The **headline benchmark** and the **only**
+  basis for four-tournament consolidation and LOTO. This is unchanged by stretch ingestion.
+- **Stretch context set — 1998, 2002, 2006.** Useful to **inspect older-era behaviour** (qualitative
+  robustness / era sensitivity). It **does not replace headline metrics** and **does not justify
+  tuning or calibration**. Older-era caveats apply: golden-goal era; older FIFA/Elo source precision;
+  a different tactical era; fewer modern model-feature equivalents available historically.
+- **All available — 1998/2002/2006/2010/2014/2018/2022.** A **supplementary** label only; there is
+  intentionally **no all-seven headline average** and it must never replace the primary headline.
+
+Phase 1.20B adds only these cohort definitions, guard tests, and documentation — **no stretch metric
+computation, no stretch/all-seven consolidation, no LOTO recomputation, no calibration** (calibration
+remains **NO-GO**). Any future stretch-metric view (a hypothetical Phase 1.20C) would be separately
+approved, clearly labelled SUPPLEMENTARY, and still outside the headline.
+
 ## Four-tournament consolidation (Phase 1.18C-1)
 The primary historical source scope is complete and the four-tournament diagnostics are consolidated
 in `docs/BACKTESTING_FOUR_TOURNAMENT_DIAGNOSTICS.md` (DIAGNOSTIC ONLY), produced by the pure helper
