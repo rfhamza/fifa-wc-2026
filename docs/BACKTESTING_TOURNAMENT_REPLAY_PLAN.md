@@ -1,11 +1,14 @@
 # Backtesting Tournament Reconstruction & Replay (Phase 1.21B) — DIAGNOSTIC / DATA-VALIDATION
 
-> **DATA / STRUCTURE VALIDATION ONLY — NOT REPLAY, NOT PROBABILITIES.** This document covers the
-> deterministic historical tournament **reconstruction** (`lib/backtesting/tournament-reconstruction.ts`)
-> and the boundary to a future Monte Carlo **replay** (not implemented). Reconstruction computes **no**
-> model probabilities, **no** Monte Carlo, **no** champion probabilities, **no** calibration, and **no**
-> LOTO. It does not affect the primary four-tournament headline, the stretch diagnostics, LOTO, or any
-> production probability. **Calibration remains NO-GO.**
+> This document covers the deterministic historical tournament **reconstruction**
+> (`lib/backtesting/tournament-reconstruction.ts`) and, since Phase 1.21F, the **primary-only Monte Carlo
+> replay** (`lib/backtesting/historical-monte-carlo-replay.ts`). **Reconstruction** computes **no** model
+> probabilities, **no** Monte Carlo, and **no** champion probabilities. **Replay** is **supplementary,
+> descriptive, and approximate** and is **primary-only** (2010/2014/2018/2022): it produces stage-reach
+> distributions but is **not** the headline, **not** calibration evidence, **not** a tuning/model-selection
+> mechanism, **not** a LOTO basis, and **not** a production probability. Neither view affects the primary
+> four-tournament headline, the stretch diagnostics, LOTO, or any production probability. **Calibration
+> remains NO-GO.**
 
 ## Three distinct things (do not conflate)
 1. **Match-level diagnostics** (`match-evaluator.ts`, `consolidate.ts`, `loto.ts`, stretch diagnostics):
@@ -81,12 +84,36 @@ probabilities, the simulator, the evaluator, prediction-core, metric math, model
 adapter, and all historical snapshots/generators are **untouched**. Reconstruction is additive,
 isolated, and descriptive.
 
-## Future: Monte Carlo replay (not implemented; separate approval required)
-A future Monte Carlo replay would reuse the seeded RNG (`lib/simulation/rng.ts`), the historical feature
-adapter (`feature-adapter.ts`, elo + fifa + host/regional), and `prediction-core`, with a **new 32-team
-orchestrator** (the 2026 simulator is 48-team/12-group/Annexe-C specific and is not reused), an
-**approximate** ET/penalty advancement model, and per-year bracket handling. It would be
-**supplementary** and governance-flagged (`supplementaryOnly`, `headlineEligible:false`,
-`calibrationEligible:false`, `tuningEligible:false`, `lotoEligible:false`, `productionEligible:false`),
-**primary-only first**, with **no all-seven headline**. It is **out of scope** here and remains NO-GO
-until separately approved. Calibration remains NO-GO regardless.
+## Monte Carlo replay (Phase 1.21F) - IMPLEMENTED, PRIMARY-ONLY, SUPPLEMENTARY/APPROXIMATE
+`lib/backtesting/historical-monte-carlo-replay.ts` (`computePrimaryHistoricalReplay`) implements the
+third view: from FROZEN pre-tournament inputs it simulates each tournament many times and reports, per
+team, the probability of reaching each knockout stage (R16 / QF / SF / final / champion) plus the
+**actual** champion's simulated win probability + rank and the actual finalists' final-reach
+probabilities. It is **descriptive only**.
+
+- **Primary-only.** It consumes **exactly** `primaryDiagnosticPacks` (2010/2014/2018/2022). It does
+  **not** include 1998/2002/2006, does **not** compute an all-seven replay, does **not** compute LOTO,
+  and emits **no** "best variant" / recommended weights / calibration advice / blended headline /
+  better-vs-worse verdict.
+- **Supplementary & governance-flagged.** Output carries `PRIMARY_REPLAY_GOVERNANCE_FLAGS`
+  (`supplementaryOnly:true`; `headlineEligible/calibrationEligible/lotoEligible/tuningEligible/
+  productionEligible:false`) and a label that states it is supplementary, approximate, and not the
+  headline / not calibration / not LOTO. It does **not** change production probabilities and does
+  **not** affect the primary match-level headline, the stretch diagnostics, or LOTO.
+- **Isolated.** It reuses only import-safe pieces (`@/lib/simulation/rng`, `@/lib/simulation/standings`,
+  `@/lib/model/prediction-core`, `model-variants`, `feature-adapter`, `historical-cohorts`). It does
+  **not** import the 2026 simulator (`lib/simulation/tournament.ts`, 48-team/Annexe-C specific and
+  forbidden by the isolation guard); the knockout / lambda helpers are reimplemented locally.
+- **Approximations (documented).** Group tiebreakers reuse the production Article-13 standings helper as
+  a deterministic **approximation** (exact historical regulations are not claimed). Knockout advancement
+  is **approximate**: Poisson 90' goals with an xG-share coin-flip draw-breaker - there is **no** exact
+  extra-time scoreline or historical penalty-shootout model. Golden-goal eras (1998/2002) are out of
+  scope because replay is primary-only.
+- **Source-backed bracket.** Per-year bracket trees (R16 slot pairings + QF/SF/final feeds) are encoded
+  from each pack's `identity.bracket` (the `roundOf16` array for 2018/2022; the match-number feed in the
+  `description` for 2010/2014) and **verified** in the tests by feeding the actual qualifiers and
+  reproducing the actual R16/QF/SF/final matchups.
+- **Deterministic.** A single base seed deterministically derives per-(year, variant) sub-seeds; the
+  same `{seed, iterations}` reproduces identical output. Tests pin a low iteration count.
+
+**Calibration remains NO-GO.** Stretch replay and all-seven replay remain out of scope.
