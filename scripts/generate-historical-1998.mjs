@@ -242,6 +242,27 @@ const results = rCsv.rows.map((f) => {
   const wentToExtraTime = bool(f[R("extraTime")]);
   const pA = num(f[R("penaltiesA")]);
   const pB = num(f[R("penaltiesB")]);
+  // Actual knockout winner (after ET/penalties), source-backed from the raw `winner`
+  // column. RECONSTRUCTION METADATA ONLY - never used for 90-minute W/D/L scoring and
+  // never drives resultAt90. Emitted on knockout matches only; group-stage rows omit it.
+  let winner;
+  if (stage !== "group") {
+    const rawWinner = f[R("winner")].trim();
+    if (rawWinner !== "") {
+      const wTeamA = id(f[R("teamA")]);
+      const wTeamB = id(f[R("teamB")]);
+      const w = id(rawWinner); // fail-fast: throws if the raw winner name is unmapped
+      const mid = f[R("matchId")].trim();
+      if (w !== wTeamA && w !== wTeamB) throw new Error(`winner "${rawWinner}" is neither teamA nor teamB in ${mid}`);
+      if (resultAt90 === "A" && w !== wTeamA) throw new Error(`winner contradicts decisive resultAt90 in ${mid}`);
+      if (resultAt90 === "B" && w !== wTeamB) throw new Error(`winner contradicts decisive resultAt90 in ${mid}`);
+      if (pA !== undefined && pB !== undefined) {
+        const penWinner = pA > pB ? wTeamA : wTeamB;
+        if (w !== penWinner) throw new Error(`winner contradicts penalty winner in ${mid}`);
+      }
+      winner = w;
+    }
+  }
   const out = {
     matchId: f[R("matchId")].trim(),
     date: f[R("date")].trim(),
@@ -254,6 +275,7 @@ const results = rCsv.rows.map((f) => {
     resultAt90,
     ...(wentToExtraTime ? { afterExtraTime: true } : {}),
     ...(pA !== undefined && pB !== undefined ? { penalties: { a: pA, b: pB } } : {}),
+    ...(winner ? { winner } : {}),
     venue: f[R("venue")].trim(),
     sourceRef: f[R("sourceRef")].trim(),
   };

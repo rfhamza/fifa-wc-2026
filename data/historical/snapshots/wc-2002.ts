@@ -939,6 +939,7 @@ export const WC2002_PACK: HistoricalSourcePack = {
       "goalsA": 1,
       "goalsB": 0,
       "resultAt90": "A",
+      "winner": "germany",
       "venue": "Jeju World Cup Stadium",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2002--south-korea-n-japan/cup_finals.txt"
     },
@@ -951,6 +952,7 @@ export const WC2002_PACK: HistoricalSourcePack = {
       "goalsA": 0,
       "goalsB": 3,
       "resultAt90": "B",
+      "winner": "england",
       "venue": "Niigata Stadium",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2002--south-korea-n-japan/cup_finals.txt"
     },
@@ -964,6 +966,7 @@ export const WC2002_PACK: HistoricalSourcePack = {
       "goalsB": 1,
       "resultAt90": "D",
       "afterExtraTime": true,
+      "winner": "senegal",
       "venue": "Oita Stadium",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2002--south-korea-n-japan/cup_finals.txt"
     },
@@ -981,6 +984,7 @@ export const WC2002_PACK: HistoricalSourcePack = {
         "a": 3,
         "b": 2
       },
+      "winner": "spain",
       "venue": "Suwon World Cup Stadium",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2002--south-korea-n-japan/cup_finals.txt"
     },
@@ -993,6 +997,7 @@ export const WC2002_PACK: HistoricalSourcePack = {
       "goalsA": 0,
       "goalsB": 2,
       "resultAt90": "B",
+      "winner": "usa",
       "venue": "Jeonju World Cup Stadium",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2002--south-korea-n-japan/cup_finals.txt"
     },
@@ -1005,6 +1010,7 @@ export const WC2002_PACK: HistoricalSourcePack = {
       "goalsA": 2,
       "goalsB": 0,
       "resultAt90": "A",
+      "winner": "brazil",
       "venue": "Kobe Wing Stadium",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2002--south-korea-n-japan/cup_finals.txt"
     },
@@ -1017,6 +1023,7 @@ export const WC2002_PACK: HistoricalSourcePack = {
       "goalsA": 0,
       "goalsB": 1,
       "resultAt90": "B",
+      "winner": "turkiye",
       "venue": "Miyagi Stadium",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2002--south-korea-n-japan/cup_finals.txt"
     },
@@ -1030,6 +1037,7 @@ export const WC2002_PACK: HistoricalSourcePack = {
       "goalsB": 1,
       "resultAt90": "D",
       "afterExtraTime": true,
+      "winner": "south-korea",
       "venue": "Daejeon World Cup Stadium",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2002--south-korea-n-japan/cup_finals.txt"
     },
@@ -1042,6 +1050,7 @@ export const WC2002_PACK: HistoricalSourcePack = {
       "goalsA": 1,
       "goalsB": 2,
       "resultAt90": "B",
+      "winner": "brazil",
       "venue": "Shizuoka Stadium Ecopa",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2002--south-korea-n-japan/cup_finals.txt"
     },
@@ -1054,6 +1063,7 @@ export const WC2002_PACK: HistoricalSourcePack = {
       "goalsA": 1,
       "goalsB": 0,
       "resultAt90": "A",
+      "winner": "germany",
       "venue": "Ulsan Munsu Football Stadium",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2002--south-korea-n-japan/cup_finals.txt"
     },
@@ -1071,6 +1081,7 @@ export const WC2002_PACK: HistoricalSourcePack = {
         "a": 3,
         "b": 5
       },
+      "winner": "south-korea",
       "venue": "Gwangju World Cup Stadium",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2002--south-korea-n-japan/cup_finals.txt"
     },
@@ -1084,6 +1095,7 @@ export const WC2002_PACK: HistoricalSourcePack = {
       "goalsB": 0,
       "resultAt90": "D",
       "afterExtraTime": true,
+      "winner": "turkiye",
       "venue": "Nagai Stadium",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2002--south-korea-n-japan/cup_finals.txt"
     },
@@ -1096,6 +1108,7 @@ export const WC2002_PACK: HistoricalSourcePack = {
       "goalsA": 1,
       "goalsB": 0,
       "resultAt90": "A",
+      "winner": "germany",
       "venue": "Seoul World Cup Stadium",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2002--south-korea-n-japan/cup_finals.txt"
     },
@@ -1108,6 +1121,7 @@ export const WC2002_PACK: HistoricalSourcePack = {
       "goalsA": 1,
       "goalsB": 0,
       "resultAt90": "A",
+      "winner": "brazil",
       "venue": "Saitama Stadium 2002",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2002--south-korea-n-japan/cup_finals.txt"
     },
@@ -1120,6 +1134,7 @@ export const WC2002_PACK: HistoricalSourcePack = {
       "goalsA": 2,
       "goalsB": 3,
       "resultAt90": "B",
+      "winner": "turkiye",
       "venue": "Daegu World Cup Stadium",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2002--south-korea-n-japan/cup_finals.txt"
     },
@@ -1132,6 +1147,7 @@ export const WC2002_PACK: HistoricalSourcePack = {
       "goalsA": 0,
       "goalsB": 2,
       "resultAt90": "B",
+      "winner": "brazil",
       "venue": "International Stadium Yokohama",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2002--south-korea-n-japan/cup_finals.txt"
     }

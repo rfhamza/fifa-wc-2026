@@ -937,6 +937,7 @@ export const WC2006_PACK: HistoricalSourcePack = {
       "goalsA": 2,
       "goalsB": 0,
       "resultAt90": "A",
+      "winner": "germany",
       "venue": "Allianz Arena",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2006--germany/cup_finals.txt"
     },
@@ -950,6 +951,7 @@ export const WC2006_PACK: HistoricalSourcePack = {
       "goalsB": 1,
       "resultAt90": "D",
       "afterExtraTime": true,
+      "winner": "argentina",
       "venue": "Zentralstadion",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2006--germany/cup_finals.txt"
     },
@@ -962,6 +964,7 @@ export const WC2006_PACK: HistoricalSourcePack = {
       "goalsA": 1,
       "goalsB": 0,
       "resultAt90": "A",
+      "winner": "england",
       "venue": "Gottlieb-Daimler-Stadion",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2006--germany/cup_finals.txt"
     },
@@ -974,6 +977,7 @@ export const WC2006_PACK: HistoricalSourcePack = {
       "goalsA": 1,
       "goalsB": 0,
       "resultAt90": "A",
+      "winner": "portugal",
       "venue": "Frankenstadion",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2006--germany/cup_finals.txt"
     },
@@ -986,6 +990,7 @@ export const WC2006_PACK: HistoricalSourcePack = {
       "goalsA": 1,
       "goalsB": 0,
       "resultAt90": "A",
+      "winner": "italy",
       "venue": "Fritz-Walter-Stadion",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2006--germany/cup_finals.txt"
     },
@@ -1003,6 +1008,7 @@ export const WC2006_PACK: HistoricalSourcePack = {
         "a": 0,
         "b": 3
       },
+      "winner": "ukraine",
       "venue": "RheinEnergieStadion",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2006--germany/cup_finals.txt"
     },
@@ -1015,6 +1021,7 @@ export const WC2006_PACK: HistoricalSourcePack = {
       "goalsA": 3,
       "goalsB": 0,
       "resultAt90": "A",
+      "winner": "brazil",
       "venue": "Signal Iduna Park",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2006--germany/cup_finals.txt"
     },
@@ -1027,6 +1034,7 @@ export const WC2006_PACK: HistoricalSourcePack = {
       "goalsA": 1,
       "goalsB": 3,
       "resultAt90": "B",
+      "winner": "france",
       "venue": "AWD-Arena",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2006--germany/cup_finals.txt"
     },
@@ -1044,6 +1052,7 @@ export const WC2006_PACK: HistoricalSourcePack = {
         "a": 4,
         "b": 2
       },
+      "winner": "germany",
       "venue": "Olympiastadion",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2006--germany/cup_finals.txt"
     },
@@ -1056,6 +1065,7 @@ export const WC2006_PACK: HistoricalSourcePack = {
       "goalsA": 3,
       "goalsB": 0,
       "resultAt90": "A",
+      "winner": "italy",
       "venue": "AOL Arena",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2006--germany/cup_finals.txt"
     },
@@ -1073,6 +1083,7 @@ export const WC2006_PACK: HistoricalSourcePack = {
         "a": 1,
         "b": 3
       },
+      "winner": "portugal",
       "venue": "Veltins-Arena",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2006--germany/cup_finals.txt"
     },
@@ -1085,6 +1096,7 @@ export const WC2006_PACK: HistoricalSourcePack = {
       "goalsA": 0,
       "goalsB": 1,
       "resultAt90": "B",
+      "winner": "france",
       "venue": "Commerzbank-Arena",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2006--germany/cup_finals.txt"
     },
@@ -1098,6 +1110,7 @@ export const WC2006_PACK: HistoricalSourcePack = {
       "goalsB": 0,
       "resultAt90": "D",
       "afterExtraTime": true,
+      "winner": "italy",
       "venue": "Signal Iduna Park",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2006--germany/cup_finals.txt"
     },
@@ -1110,6 +1123,7 @@ export const WC2006_PACK: HistoricalSourcePack = {
       "goalsA": 0,
       "goalsB": 1,
       "resultAt90": "B",
+      "winner": "france",
       "venue": "Allianz Arena",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2006--germany/cup_finals.txt"
     },
@@ -1122,6 +1136,7 @@ export const WC2006_PACK: HistoricalSourcePack = {
       "goalsA": 3,
       "goalsB": 1,
       "resultAt90": "A",
+      "winner": "germany",
       "venue": "Gottlieb-Daimler-Stadion",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2006--germany/cup_finals.txt"
     },
@@ -1139,6 +1154,7 @@ export const WC2006_PACK: HistoricalSourcePack = {
         "a": 5,
         "b": 3
       },
+      "winner": "italy",
       "venue": "Olympiastadion",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2006--germany/cup_finals.txt"
     }

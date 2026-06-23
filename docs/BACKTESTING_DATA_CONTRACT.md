@@ -15,8 +15,19 @@ groups{groupId->teamId[]}, bracket? (knockout structure if available), provenanc
 
 ## 2. Match results (`HistoricalMatchResult`)
 `matchId, date, stage (group|round-of-32|round-of-16|quarter-final|semi-final|third-place|final),
-group?, teamA, teamB, goalsA, goalsB, resultAt90? (A|D|B), afterExtraTime?, penalties?{a,b}, venue?,
-sourceRef`. Group-stage W/D/L at 90' is the core scored outcome; ET/penalties are for knockouts only.
+group?, teamA, teamB, goalsA, goalsB, resultAt90? (A|D|B), afterExtraTime?, penalties?{a,b}, winner?,
+venue?, sourceRef`. Group-stage W/D/L at 90' is the core scored outcome; ET/penalties are for
+knockouts only.
+
+**`goalsA`/`goalsB` are the 90-minute score** and `resultAt90` is the **only** match-level diagnostic
+target — unchanged. **`winner` (Phase 1.21D)** is OPTIONAL, source-backed from the raw source-pack
+`winner` column, and present on **knockout matches only** (group-stage rows omit it): it records the
+**actual** team that won/advanced after extra time / penalties (the final carries the champion; the
+third-place match carries its winner). It is **reconstruction metadata only** — never used for
+match-level probability scoring (RPS/log loss/Brier/accuracy), never used to derive `resultAt90`, and
+never used for consolidation, LOTO, stretch diagnostics, calibration, tuning, or production
+probabilities. The validator checks `winner ∈ {teamA, teamB}`, group-stage absence, and consistency
+with any decisive 90' result / shootout.
 
 ## 3. Pre-tournament Elo (`PreTournamentEloRow`)
 `teamId, rating, asOfDate (< openingKickoff), sourceRef`.

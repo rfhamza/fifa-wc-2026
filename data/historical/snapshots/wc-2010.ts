@@ -931,6 +931,7 @@ export const WC2010_PACK: HistoricalSourcePack = {
       "goalsA": 2,
       "goalsB": 1,
       "resultAt90": "A",
+      "winner": "uruguay",
       "venue": "Nelson Mandela Bay Stadium",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2010--south-africa/cup_finals.txt"
     },
@@ -944,6 +945,7 @@ export const WC2010_PACK: HistoricalSourcePack = {
       "goalsB": 1,
       "resultAt90": "D",
       "afterExtraTime": true,
+      "winner": "ghana",
       "venue": "Royal Bafokeng Stadium",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2010--south-africa/cup_finals.txt"
     },
@@ -956,6 +958,7 @@ export const WC2010_PACK: HistoricalSourcePack = {
       "goalsA": 4,
       "goalsB": 1,
       "resultAt90": "A",
+      "winner": "germany",
       "venue": "Free State Stadium",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2010--south-africa/cup_finals.txt"
     },
@@ -968,6 +971,7 @@ export const WC2010_PACK: HistoricalSourcePack = {
       "goalsA": 3,
       "goalsB": 1,
       "resultAt90": "A",
+      "winner": "argentina",
       "venue": "Soccer City",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2010--south-africa/cup_finals.txt"
     },
@@ -980,6 +984,7 @@ export const WC2010_PACK: HistoricalSourcePack = {
       "goalsA": 2,
       "goalsB": 1,
       "resultAt90": "A",
+      "winner": "netherlands",
       "venue": "Moses Mabhida Stadium",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2010--south-africa/cup_finals.txt"
     },
@@ -992,6 +997,7 @@ export const WC2010_PACK: HistoricalSourcePack = {
       "goalsA": 3,
       "goalsB": 0,
       "resultAt90": "A",
+      "winner": "brazil",
       "venue": "Ellis Park Stadium",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2010--south-africa/cup_finals.txt"
     },
@@ -1009,6 +1015,7 @@ export const WC2010_PACK: HistoricalSourcePack = {
         "a": 5,
         "b": 3
       },
+      "winner": "paraguay",
       "venue": "Loftus Versfeld Stadium",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2010--south-africa/cup_finals.txt"
     },
@@ -1021,6 +1028,7 @@ export const WC2010_PACK: HistoricalSourcePack = {
       "goalsA": 1,
       "goalsB": 0,
       "resultAt90": "A",
+      "winner": "spain",
       "venue": "Cape Town Stadium",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2010--south-africa/cup_finals.txt"
     },
@@ -1033,6 +1041,7 @@ export const WC2010_PACK: HistoricalSourcePack = {
       "goalsA": 2,
       "goalsB": 1,
       "resultAt90": "A",
+      "winner": "netherlands",
       "venue": "Nelson Mandela Bay Stadium",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2010--south-africa/cup_finals.txt"
     },
@@ -1050,6 +1059,7 @@ export const WC2010_PACK: HistoricalSourcePack = {
         "a": 4,
         "b": 2
       },
+      "winner": "uruguay",
       "venue": "Soccer City",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2010--south-africa/cup_finals.txt"
     },
@@ -1062,6 +1072,7 @@ export const WC2010_PACK: HistoricalSourcePack = {
       "goalsA": 0,
       "goalsB": 4,
       "resultAt90": "B",
+      "winner": "germany",
       "venue": "Cape Town Stadium",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2010--south-africa/cup_finals.txt"
     },
@@ -1074,6 +1085,7 @@ export const WC2010_PACK: HistoricalSourcePack = {
       "goalsA": 0,
       "goalsB": 1,
       "resultAt90": "B",
+      "winner": "spain",
       "venue": "Ellis Park Stadium",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2010--south-africa/cup_finals.txt"
     },
@@ -1086,6 +1098,7 @@ export const WC2010_PACK: HistoricalSourcePack = {
       "goalsA": 2,
       "goalsB": 3,
       "resultAt90": "B",
+      "winner": "netherlands",
       "venue": "Cape Town Stadium",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2010--south-africa/cup_finals.txt"
     },
@@ -1098,6 +1111,7 @@ export const WC2010_PACK: HistoricalSourcePack = {
       "goalsA": 0,
       "goalsB": 1,
       "resultAt90": "B",
+      "winner": "spain",
       "venue": "Moses Mabhida Stadium",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2010--south-africa/cup_finals.txt"
     },
@@ -1110,6 +1124,7 @@ export const WC2010_PACK: HistoricalSourcePack = {
       "goalsA": 2,
       "goalsB": 3,
       "resultAt90": "B",
+      "winner": "germany",
       "venue": "Nelson Mandela Bay Stadium",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2010--south-africa/cup_finals.txt"
     },
@@ -1123,6 +1138,7 @@ export const WC2010_PACK: HistoricalSourcePack = {
       "goalsB": 0,
       "resultAt90": "D",
       "afterExtraTime": true,
+      "winner": "spain",
       "venue": "Soccer City",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2010--south-africa/cup_finals.txt"
     }

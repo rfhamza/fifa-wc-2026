@@ -951,6 +951,7 @@ export const WC2018_PACK: HistoricalSourcePack = {
       "goalsA": 4,
       "goalsB": 3,
       "resultAt90": "A",
+      "winner": "france",
       "venue": "Kazan Arena",
       "sourceRef": "https://github.com/openfootball/worldcup; https://github.com/openfootball/worldcup.json; https://www.fifa.com/tournaments/mens/worldcup/2018russia; https://github.com/jfjelstul/worldcup"
     },
@@ -963,6 +964,7 @@ export const WC2018_PACK: HistoricalSourcePack = {
       "goalsA": 2,
       "goalsB": 1,
       "resultAt90": "A",
+      "winner": "uruguay",
       "venue": "Fisht Stadium",
       "sourceRef": "https://github.com/openfootball/worldcup; https://github.com/openfootball/worldcup.json; https://www.fifa.com/tournaments/mens/worldcup/2018russia; https://github.com/jfjelstul/worldcup"
     },
@@ -980,6 +982,7 @@ export const WC2018_PACK: HistoricalSourcePack = {
         "a": 3,
         "b": 4
       },
+      "winner": "russia",
       "venue": "Luzhniki Stadium",
       "sourceRef": "https://github.com/openfootball/worldcup; https://github.com/openfootball/worldcup.json; https://www.fifa.com/tournaments/mens/worldcup/2018russia; https://github.com/jfjelstul/worldcup"
     },
@@ -997,6 +1000,7 @@ export const WC2018_PACK: HistoricalSourcePack = {
         "a": 3,
         "b": 2
       },
+      "winner": "croatia",
       "venue": "Nizhny Novgorod Stadium",
       "sourceRef": "https://github.com/openfootball/worldcup; https://github.com/openfootball/worldcup.json; https://www.fifa.com/tournaments/mens/worldcup/2018russia; https://github.com/jfjelstul/worldcup"
     },
@@ -1009,6 +1013,7 @@ export const WC2018_PACK: HistoricalSourcePack = {
       "goalsA": 2,
       "goalsB": 0,
       "resultAt90": "A",
+      "winner": "brazil",
       "venue": "Samara Arena",
       "sourceRef": "https://github.com/openfootball/worldcup; https://github.com/openfootball/worldcup.json; https://www.fifa.com/tournaments/mens/worldcup/2018russia; https://github.com/jfjelstul/worldcup"
     },
@@ -1021,6 +1026,7 @@ export const WC2018_PACK: HistoricalSourcePack = {
       "goalsA": 3,
       "goalsB": 2,
       "resultAt90": "A",
+      "winner": "belgium",
       "venue": "Rostov Arena",
       "sourceRef": "https://github.com/openfootball/worldcup; https://github.com/openfootball/worldcup.json; https://www.fifa.com/tournaments/mens/worldcup/2018russia; https://github.com/jfjelstul/worldcup"
     },
@@ -1033,6 +1039,7 @@ export const WC2018_PACK: HistoricalSourcePack = {
       "goalsA": 1,
       "goalsB": 0,
       "resultAt90": "A",
+      "winner": "sweden",
       "venue": "Saint Petersburg Stadium",
       "sourceRef": "https://github.com/openfootball/worldcup; https://github.com/openfootball/worldcup.json; https://www.fifa.com/tournaments/mens/worldcup/2018russia; https://github.com/jfjelstul/worldcup"
     },
@@ -1050,6 +1057,7 @@ export const WC2018_PACK: HistoricalSourcePack = {
         "a": 3,
         "b": 4
       },
+      "winner": "england",
       "venue": "Spartak Stadium",
       "sourceRef": "https://github.com/openfootball/worldcup; https://github.com/openfootball/worldcup.json; https://www.fifa.com/tournaments/mens/worldcup/2018russia; https://github.com/jfjelstul/worldcup"
     },
@@ -1062,6 +1070,7 @@ export const WC2018_PACK: HistoricalSourcePack = {
       "goalsA": 0,
       "goalsB": 2,
       "resultAt90": "B",
+      "winner": "france",
       "venue": "Nizhny Novgorod Stadium",
       "sourceRef": "https://github.com/openfootball/worldcup; https://github.com/openfootball/worldcup.json; https://www.fifa.com/tournaments/mens/worldcup/2018russia; https://github.com/jfjelstul/worldcup"
     },
@@ -1074,6 +1083,7 @@ export const WC2018_PACK: HistoricalSourcePack = {
       "goalsA": 1,
       "goalsB": 2,
       "resultAt90": "B",
+      "winner": "belgium",
       "venue": "Kazan Arena",
       "sourceRef": "https://github.com/openfootball/worldcup; https://github.com/openfootball/worldcup.json; https://www.fifa.com/tournaments/mens/worldcup/2018russia; https://github.com/jfjelstul/worldcup"
     },
@@ -1086,6 +1096,7 @@ export const WC2018_PACK: HistoricalSourcePack = {
       "goalsA": 0,
       "goalsB": 2,
       "resultAt90": "B",
+      "winner": "england",
       "venue": "Samara Arena",
       "sourceRef": "https://github.com/openfootball/worldcup; https://github.com/openfootball/worldcup.json; https://www.fifa.com/tournaments/mens/worldcup/2018russia; https://github.com/jfjelstul/worldcup"
     },
@@ -1103,6 +1114,7 @@ export const WC2018_PACK: HistoricalSourcePack = {
         "a": 3,
         "b": 4
       },
+      "winner": "croatia",
       "venue": "Fisht Stadium",
       "sourceRef": "https://github.com/openfootball/worldcup; https://github.com/openfootball/worldcup.json; https://www.fifa.com/tournaments/mens/worldcup/2018russia; https://github.com/jfjelstul/worldcup"
     },
@@ -1115,6 +1127,7 @@ export const WC2018_PACK: HistoricalSourcePack = {
       "goalsA": 1,
       "goalsB": 0,
       "resultAt90": "A",
+      "winner": "france",
       "venue": "Saint Petersburg Stadium",
       "sourceRef": "https://github.com/openfootball/worldcup; https://github.com/openfootball/worldcup.json; https://www.fifa.com/tournaments/mens/worldcup/2018russia; https://github.com/jfjelstul/worldcup"
     },
@@ -1128,6 +1141,7 @@ export const WC2018_PACK: HistoricalSourcePack = {
       "goalsB": 1,
       "resultAt90": "D",
       "afterExtraTime": true,
+      "winner": "croatia",
       "venue": "Luzhniki Stadium",
       "sourceRef": "https://github.com/openfootball/worldcup; https://github.com/openfootball/worldcup.json; https://www.fifa.com/tournaments/mens/worldcup/2018russia; https://github.com/jfjelstul/worldcup"
     },
@@ -1140,6 +1154,7 @@ export const WC2018_PACK: HistoricalSourcePack = {
       "goalsA": 2,
       "goalsB": 0,
       "resultAt90": "A",
+      "winner": "belgium",
       "venue": "Saint Petersburg Stadium",
       "sourceRef": "https://github.com/openfootball/worldcup; https://github.com/openfootball/worldcup.json; https://www.fifa.com/tournaments/mens/worldcup/2018russia; https://github.com/jfjelstul/worldcup"
     },
@@ -1152,6 +1167,7 @@ export const WC2018_PACK: HistoricalSourcePack = {
       "goalsA": 4,
       "goalsB": 2,
       "resultAt90": "A",
+      "winner": "france",
       "venue": "Luzhniki Stadium",
       "sourceRef": "https://github.com/openfootball/worldcup; https://github.com/openfootball/worldcup.json; https://www.fifa.com/tournaments/mens/worldcup/2018russia; https://github.com/jfjelstul/worldcup"
     }

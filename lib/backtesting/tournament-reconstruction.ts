@@ -216,13 +216,23 @@ export function reconstructHistoricalTournament(
   }
 
   // --- knockout progression: derive winners round by round -----------------------------
-  const deriveWinner = (
+  /** Method label from the match facts (independent of the winner source). */
+  const methodOf = (m: HistoricalMatchResult): KnockoutMethod =>
+    m.resultAt90 === "A" || m.resultAt90 === "B"
+      ? "regulation"
+      : m.penalties
+        ? "penalties"
+        : m.afterExtraTime
+          ? "extra-time"
+          : "undetermined";
+
+  /** Fallback derivation from results only (regulation -> penalties -> ET via advancement). */
+  const deriveFallback = (
     m: HistoricalMatchResult,
     nextParticipants: Set<string> | null,
   ): { winner: string | null; method: KnockoutMethod } => {
     if (m.resultAt90 === "A") return { winner: m.teamA, method: "regulation" };
     if (m.resultAt90 === "B") return { winner: m.teamB, method: "regulation" };
-    // 90-minute draw.
     if (m.penalties) {
       return m.penalties.a > m.penalties.b
         ? { winner: m.teamA, method: "penalties" }
@@ -239,6 +249,27 @@ export function reconstructHistoricalTournament(
       return { winner: null, method: "undetermined" };
     }
     return { winner: null, method: "undetermined" };
+  };
+
+  /**
+   * Prefer the explicit, source-backed `winner` for knockout matches; fall back to the
+   * results-only derivation when it is absent. When both are available they must agree
+   * (a disagreement is a warning -> `mismatch`).
+   */
+  const deriveWinner = (
+    m: HistoricalMatchResult,
+    nextParticipants: Set<string> | null,
+  ): { winner: string | null; method: KnockoutMethod } => {
+    const fallback = deriveFallback(m, nextParticipants);
+    if (m.winner !== undefined) {
+      if (fallback.winner !== null && fallback.winner !== m.winner) {
+        warnings.push(
+          `${m.matchId}: explicit winner "${m.winner}" disagrees with results-derived winner "${fallback.winner}".`,
+        );
+      }
+      return { winner: m.winner, method: methodOf(m) };
+    }
+    return fallback;
   };
 
   const knockoutProgression: KnockoutRoundReconstruction[] = [];

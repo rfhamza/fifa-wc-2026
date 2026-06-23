@@ -38,17 +38,27 @@ model/probability code, and it does **not** assume the 2026 Article-13 tiebreake
 historically.
 
 ## Reconstruction results (all seven packs, deterministic)
-- **Champion derived (status `clean`):** 1998 France, 2002 Brazil, 2006 Italy, 2022 Argentina.
+> **Updated in Phase 1.21D:** with the source-backed `winner` field (see
+> `docs/BACKTESTING_DATA_CONTRACT.md`), the 2010 and 2014 ET finals are now derived cleanly.
+- **Champion derived (status `clean`):** 1998 France, 2002 Brazil, 2006 Italy, **2010 Spain**,
+  **2014 Germany**, 2022 Argentina. (2010/2014 finals were extra-time wins without a shootout; the
+  champion now comes from the pack's `winner` field, `method: "extra-time"` — **not** fabricated and
+  **not** from the 90' score, which remains a 0–0 draw / `resultAt90:"D"`.)
 - **Champion derived (status `clean-with-assumptions`):** 2018 France (Group H decided by a historical
   tiebreaker beyond points/GD/GF — fair play — with qualifiers confirmed from the Round of 16).
-- **Champion NOT encoded (status `clean-with-assumptions`):** 2010 and 2014. Both finals were decided in
-  **extra time without a penalty shootout**, and the packs store the **90-minute score only**, so the
-  winner is not in the data. Reconstruction records the finalists (Netherlands/Spain; Germany/Argentina),
-  marks `championDerivable: false` / `actualChampion: null` / `method: "undetermined"`, and adds an
-  explicit assumption. **Nothing is fabricated.** (The historically known champions — Spain 2010, Germany
-  2014 — are verified in tests only as *finalists*, not derived from the pack.)
 
-No tournament produced a `mismatch` or any warning.
+No tournament produced a `mismatch` or any warning. Before Phase 1.21D, 2010/2014 were
+`clean-with-assumptions` with `actualChampion: null` / `method: "undetermined"` because the 90-minute-only
+snapshots did not encode the ET winner; the `winner` field closed that gap **without** changing the
+90-minute diagnostic convention.
+
+## Source-backed `winner` field (Phase 1.21D)
+Knockout matches now carry an optional, source-backed `winner` (team id) from the raw `winner` column.
+Reconstruction **prefers** it and **falls back** to the results-only derivation (regulation → penalties →
+extra-time-via-next-round) when absent; if both are available and disagree, that is a `warning` →
+`mismatch` (never silently trusted). The field is **reconstruction-only**: `goalsA/goalsB` stay the
+90-minute score, `resultAt90` stays the sole match-level diagnostic target, and the evaluator never reads
+`winner`.
 
 ## Historical tiebreaker caveat
 Exact historical group tie-resolution rules are **not encoded** in the packs and are **not assumed** to

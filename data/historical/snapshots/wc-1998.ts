@@ -938,6 +938,7 @@ export const WC1998_PACK: HistoricalSourcePack = {
       "goalsA": 4,
       "goalsB": 1,
       "resultAt90": "A",
+      "winner": "brazil",
       "venue": "Parc des Princes",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/1998--france/cup_finals.txt"
     },
@@ -950,6 +951,7 @@ export const WC1998_PACK: HistoricalSourcePack = {
       "goalsA": 1,
       "goalsB": 0,
       "resultAt90": "A",
+      "winner": "italy",
       "venue": "Stade Vélodrome",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/1998--france/cup_finals.txt"
     },
@@ -962,6 +964,7 @@ export const WC1998_PACK: HistoricalSourcePack = {
       "goalsA": 1,
       "goalsB": 4,
       "resultAt90": "B",
+      "winner": "denmark",
       "venue": "Stade de France",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/1998--france/cup_finals.txt"
     },
@@ -975,6 +978,7 @@ export const WC1998_PACK: HistoricalSourcePack = {
       "goalsB": 0,
       "resultAt90": "D",
       "afterExtraTime": true,
+      "winner": "france",
       "venue": "Stade Félix Bollaert",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/1998--france/cup_finals.txt"
     },
@@ -987,6 +991,7 @@ export const WC1998_PACK: HistoricalSourcePack = {
       "goalsA": 2,
       "goalsB": 1,
       "resultAt90": "A",
+      "winner": "germany",
       "venue": "Stade de la Mosson",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/1998--france/cup_finals.txt"
     },
@@ -999,6 +1004,7 @@ export const WC1998_PACK: HistoricalSourcePack = {
       "goalsA": 2,
       "goalsB": 1,
       "resultAt90": "A",
+      "winner": "netherlands",
       "venue": "Stade de Toulouse",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/1998--france/cup_finals.txt"
     },
@@ -1016,6 +1022,7 @@ export const WC1998_PACK: HistoricalSourcePack = {
         "a": 4,
         "b": 3
       },
+      "winner": "argentina",
       "venue": "Stade Geoffroy-Guichard",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/1998--france/cup_finals.txt"
     },
@@ -1028,6 +1035,7 @@ export const WC1998_PACK: HistoricalSourcePack = {
       "goalsA": 0,
       "goalsB": 1,
       "resultAt90": "B",
+      "winner": "croatia",
       "venue": "Parc Lescure",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/1998--france/cup_finals.txt"
     },
@@ -1045,6 +1053,7 @@ export const WC1998_PACK: HistoricalSourcePack = {
         "a": 3,
         "b": 4
       },
+      "winner": "france",
       "venue": "Stade de France",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/1998--france/cup_finals.txt"
     },
@@ -1057,6 +1066,7 @@ export const WC1998_PACK: HistoricalSourcePack = {
       "goalsA": 3,
       "goalsB": 2,
       "resultAt90": "A",
+      "winner": "brazil",
       "venue": "Stade de la Beaujoire",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/1998--france/cup_finals.txt"
     },
@@ -1069,6 +1079,7 @@ export const WC1998_PACK: HistoricalSourcePack = {
       "goalsA": 0,
       "goalsB": 3,
       "resultAt90": "B",
+      "winner": "croatia",
       "venue": "Stade Gerland",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/1998--france/cup_finals.txt"
     },
@@ -1081,6 +1092,7 @@ export const WC1998_PACK: HistoricalSourcePack = {
       "goalsA": 2,
       "goalsB": 1,
       "resultAt90": "A",
+      "winner": "netherlands",
       "venue": "Stade Vélodrome",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/1998--france/cup_finals.txt"
     },
@@ -1098,6 +1110,7 @@ export const WC1998_PACK: HistoricalSourcePack = {
         "a": 4,
         "b": 2
       },
+      "winner": "brazil",
       "venue": "Stade Vélodrome",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/1998--france/cup_finals.txt"
     },
@@ -1110,6 +1123,7 @@ export const WC1998_PACK: HistoricalSourcePack = {
       "goalsA": 2,
       "goalsB": 1,
       "resultAt90": "A",
+      "winner": "france",
       "venue": "Stade de France",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/1998--france/cup_finals.txt"
     },
@@ -1122,6 +1136,7 @@ export const WC1998_PACK: HistoricalSourcePack = {
       "goalsA": 1,
       "goalsB": 2,
       "resultAt90": "B",
+      "winner": "croatia",
       "venue": "Parc des Princes",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/1998--france/cup_finals.txt"
     },
@@ -1134,6 +1149,7 @@ export const WC1998_PACK: HistoricalSourcePack = {
       "goalsA": 0,
       "goalsB": 3,
       "resultAt90": "B",
+      "winner": "france",
       "venue": "Stade de France",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/1998--france/cup_finals.txt"
     }

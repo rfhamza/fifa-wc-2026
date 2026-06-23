@@ -66,6 +66,15 @@ export interface HistoricalMatchResult {
   resultAt90?: Outcome90;
   afterExtraTime?: boolean;
   penalties?: { a: number; b: number };
+  /**
+   * Actual knockout WINNER (team id), after extra time / penalties — source-backed from
+   * the raw source-pack `winner` column. RECONSTRUCTION METADATA ONLY: it records who
+   * actually advanced/won (the final carries the champion; the third-place match carries
+   * its winner). It is present on knockout matches only (group-stage matches omit it) and
+   * is NEVER used for match-level probability scoring and NEVER drives `resultAt90` — the
+   * 90-minute W/D/L diagnostic target remains `resultAt90` from the 90' `goalsA`/`goalsB`.
+   */
+  winner?: string;
   venue?: string;
   sourceRef: string;
 }
