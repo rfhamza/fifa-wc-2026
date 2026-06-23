@@ -954,6 +954,7 @@ export const WC2022_PACK: HistoricalSourcePack = {
       "goalsA": 3,
       "goalsB": 1,
       "resultAt90": "A",
+      "winner": "netherlands",
       "venue": "Khalifa International Stadium",
       "sourceRef": "https://github.com/openfootball/worldcup; https://www.fifa.com/en/tournaments/mens/worldcup/qatar2022"
     },
@@ -966,6 +967,7 @@ export const WC2022_PACK: HistoricalSourcePack = {
       "goalsA": 2,
       "goalsB": 1,
       "resultAt90": "A",
+      "winner": "argentina",
       "venue": "Ahmad Bin Ali Stadium",
       "sourceRef": "https://github.com/openfootball/worldcup; https://www.fifa.com/en/tournaments/mens/worldcup/qatar2022"
     },
@@ -978,6 +980,7 @@ export const WC2022_PACK: HistoricalSourcePack = {
       "goalsA": 3,
       "goalsB": 1,
       "resultAt90": "A",
+      "winner": "france",
       "venue": "Al Thumama Stadium",
       "sourceRef": "https://github.com/openfootball/worldcup; https://www.fifa.com/en/tournaments/mens/worldcup/qatar2022"
     },
@@ -990,6 +993,7 @@ export const WC2022_PACK: HistoricalSourcePack = {
       "goalsA": 3,
       "goalsB": 0,
       "resultAt90": "A",
+      "winner": "england",
       "venue": "Al Bayt Stadium",
       "sourceRef": "https://github.com/openfootball/worldcup; https://www.fifa.com/en/tournaments/mens/worldcup/qatar2022"
     },
@@ -1007,6 +1011,7 @@ export const WC2022_PACK: HistoricalSourcePack = {
         "a": 1,
         "b": 3
       },
+      "winner": "croatia",
       "venue": "Al Janoub Stadium",
       "sourceRef": "https://github.com/openfootball/worldcup; https://www.fifa.com/en/tournaments/mens/worldcup/qatar2022"
     },
@@ -1019,6 +1024,7 @@ export const WC2022_PACK: HistoricalSourcePack = {
       "goalsA": 4,
       "goalsB": 1,
       "resultAt90": "A",
+      "winner": "brazil",
       "venue": "Stadium 974",
       "sourceRef": "https://github.com/openfootball/worldcup; https://www.fifa.com/en/tournaments/mens/worldcup/qatar2022"
     },
@@ -1036,6 +1042,7 @@ export const WC2022_PACK: HistoricalSourcePack = {
         "a": 3,
         "b": 0
       },
+      "winner": "morocco",
       "venue": "Education City Stadium",
       "sourceRef": "https://github.com/openfootball/worldcup; https://www.fifa.com/en/tournaments/mens/worldcup/qatar2022"
     },
@@ -1048,6 +1055,7 @@ export const WC2022_PACK: HistoricalSourcePack = {
       "goalsA": 6,
       "goalsB": 1,
       "resultAt90": "A",
+      "winner": "portugal",
       "venue": "Lusail Stadium",
       "sourceRef": "https://github.com/openfootball/worldcup; https://www.fifa.com/en/tournaments/mens/worldcup/qatar2022"
     },
@@ -1065,6 +1073,7 @@ export const WC2022_PACK: HistoricalSourcePack = {
         "a": 4,
         "b": 2
       },
+      "winner": "croatia",
       "venue": "Education City Stadium",
       "sourceRef": "https://github.com/openfootball/worldcup; https://www.fifa.com/en/tournaments/mens/worldcup/qatar2022"
     },
@@ -1082,6 +1091,7 @@ export const WC2022_PACK: HistoricalSourcePack = {
         "a": 3,
         "b": 4
       },
+      "winner": "argentina",
       "venue": "Lusail Stadium",
       "sourceRef": "https://github.com/openfootball/worldcup; https://www.fifa.com/en/tournaments/mens/worldcup/qatar2022"
     },
@@ -1094,6 +1104,7 @@ export const WC2022_PACK: HistoricalSourcePack = {
       "goalsA": 1,
       "goalsB": 0,
       "resultAt90": "A",
+      "winner": "morocco",
       "venue": "Al Thumama Stadium",
       "sourceRef": "https://github.com/openfootball/worldcup; https://www.fifa.com/en/tournaments/mens/worldcup/qatar2022"
     },
@@ -1106,6 +1117,7 @@ export const WC2022_PACK: HistoricalSourcePack = {
       "goalsA": 1,
       "goalsB": 2,
       "resultAt90": "B",
+      "winner": "france",
       "venue": "Al Bayt Stadium",
       "sourceRef": "https://github.com/openfootball/worldcup; https://www.fifa.com/en/tournaments/mens/worldcup/qatar2022"
     },
@@ -1118,6 +1130,7 @@ export const WC2022_PACK: HistoricalSourcePack = {
       "goalsA": 3,
       "goalsB": 0,
       "resultAt90": "A",
+      "winner": "argentina",
       "venue": "Lusail Stadium",
       "sourceRef": "https://github.com/openfootball/worldcup; https://www.fifa.com/en/tournaments/mens/worldcup/qatar2022"
     },
@@ -1130,6 +1143,7 @@ export const WC2022_PACK: HistoricalSourcePack = {
       "goalsA": 2,
       "goalsB": 0,
       "resultAt90": "A",
+      "winner": "france",
       "venue": "Al Bayt Stadium",
       "sourceRef": "https://github.com/openfootball/worldcup; https://www.fifa.com/en/tournaments/mens/worldcup/qatar2022"
     },
@@ -1142,6 +1156,7 @@ export const WC2022_PACK: HistoricalSourcePack = {
       "goalsA": 2,
       "goalsB": 1,
       "resultAt90": "A",
+      "winner": "croatia",
       "venue": "Khalifa International Stadium",
       "sourceRef": "https://github.com/openfootball/worldcup; https://www.fifa.com/en/tournaments/mens/worldcup/qatar2022"
     },
@@ -1159,6 +1174,7 @@ export const WC2022_PACK: HistoricalSourcePack = {
         "a": 4,
         "b": 2
       },
+      "winner": "argentina",
       "venue": "Lusail Stadium",
       "sourceRef": "https://github.com/openfootball/worldcup; https://www.fifa.com/en/tournaments/mens/worldcup/qatar2022"
     }

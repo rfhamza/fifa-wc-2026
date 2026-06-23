@@ -342,6 +342,21 @@ export function validateHistoricalPack(
     if (!isGroup && m.resultAt90 === "D" && !m.afterExtraTime && !m.penalties) {
       err(`${m.matchId}: knockout drawn at 90' but no extra time / penalties recorded`);
     }
+    // Optional knockout `winner` metadata (Phase 1.21D): reconstruction-only; never used
+    // for scoring. When present it must be internally consistent with the 90' result and
+    // any shootout, and must not appear on group-stage matches.
+    if (m.winner !== undefined) {
+      if (isGroup) err(`${m.matchId}: group-stage match must not carry a winner`);
+      if (m.winner !== m.teamA && m.winner !== m.teamB) {
+        err(`${m.matchId}: winner "${m.winner}" is neither teamA nor teamB`);
+      }
+      if (m.resultAt90 === "A" && m.winner !== m.teamA) err(`${m.matchId}: winner contradicts decisive 90' result`);
+      if (m.resultAt90 === "B" && m.winner !== m.teamB) err(`${m.matchId}: winner contradicts decisive 90' result`);
+      if (m.penalties) {
+        const penWinner = m.penalties.a > m.penalties.b ? m.teamA : m.teamB;
+        if (m.winner !== penWinner) err(`${m.matchId}: winner contradicts penalty winner`);
+      }
+    }
   }
   if (groupMatches !== expected.groupMatchCount) {
     err(`expected ${expected.groupMatchCount} group matches, got ${groupMatches}`);

@@ -930,6 +930,7 @@ export const WC2014_PACK: HistoricalSourcePack = {
         "a": 3,
         "b": 2
       },
+      "winner": "brazil",
       "venue": "Estádio Mineirão",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2014--brazil/cup_finals.txt"
     },
@@ -942,6 +943,7 @@ export const WC2014_PACK: HistoricalSourcePack = {
       "goalsA": 2,
       "goalsB": 0,
       "resultAt90": "A",
+      "winner": "colombia",
       "venue": "Estádio do Maracanã",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2014--brazil/cup_finals.txt"
     },
@@ -954,6 +956,7 @@ export const WC2014_PACK: HistoricalSourcePack = {
       "goalsA": 2,
       "goalsB": 1,
       "resultAt90": "A",
+      "winner": "netherlands",
       "venue": "Estádio Castelão",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2014--brazil/cup_finals.txt"
     },
@@ -971,6 +974,7 @@ export const WC2014_PACK: HistoricalSourcePack = {
         "a": 5,
         "b": 3
       },
+      "winner": "costa-rica",
       "venue": "Arena Pernambuco",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2014--brazil/cup_finals.txt"
     },
@@ -983,6 +987,7 @@ export const WC2014_PACK: HistoricalSourcePack = {
       "goalsA": 2,
       "goalsB": 0,
       "resultAt90": "A",
+      "winner": "france",
       "venue": "Estádio Nacional Mané Garrincha",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2014--brazil/cup_finals.txt"
     },
@@ -996,6 +1001,7 @@ export const WC2014_PACK: HistoricalSourcePack = {
       "goalsB": 0,
       "resultAt90": "D",
       "afterExtraTime": true,
+      "winner": "germany",
       "venue": "Estádio Beira-Rio",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2014--brazil/cup_finals.txt"
     },
@@ -1009,6 +1015,7 @@ export const WC2014_PACK: HistoricalSourcePack = {
       "goalsB": 0,
       "resultAt90": "D",
       "afterExtraTime": true,
+      "winner": "argentina",
       "venue": "Arena de São Paulo",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2014--brazil/cup_finals.txt"
     },
@@ -1022,6 +1029,7 @@ export const WC2014_PACK: HistoricalSourcePack = {
       "goalsB": 0,
       "resultAt90": "D",
       "afterExtraTime": true,
+      "winner": "belgium",
       "venue": "Arena Fonte Nova",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2014--brazil/cup_finals.txt"
     },
@@ -1034,6 +1042,7 @@ export const WC2014_PACK: HistoricalSourcePack = {
       "goalsA": 0,
       "goalsB": 1,
       "resultAt90": "B",
+      "winner": "germany",
       "venue": "Estádio do Maracanã",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2014--brazil/cup_finals.txt"
     },
@@ -1046,6 +1055,7 @@ export const WC2014_PACK: HistoricalSourcePack = {
       "goalsA": 2,
       "goalsB": 1,
       "resultAt90": "A",
+      "winner": "brazil",
       "venue": "Estádio Castelão",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2014--brazil/cup_finals.txt"
     },
@@ -1058,6 +1068,7 @@ export const WC2014_PACK: HistoricalSourcePack = {
       "goalsA": 1,
       "goalsB": 0,
       "resultAt90": "A",
+      "winner": "argentina",
       "venue": "Estádio Nacional Mané Garrincha",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2014--brazil/cup_finals.txt"
     },
@@ -1075,6 +1086,7 @@ export const WC2014_PACK: HistoricalSourcePack = {
         "a": 4,
         "b": 3
       },
+      "winner": "netherlands",
       "venue": "Arena Fonte Nova",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2014--brazil/cup_finals.txt"
     },
@@ -1087,6 +1099,7 @@ export const WC2014_PACK: HistoricalSourcePack = {
       "goalsA": 1,
       "goalsB": 7,
       "resultAt90": "B",
+      "winner": "germany",
       "venue": "Estádio Mineirão",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2014--brazil/cup_finals.txt"
     },
@@ -1104,6 +1117,7 @@ export const WC2014_PACK: HistoricalSourcePack = {
         "a": 2,
         "b": 4
       },
+      "winner": "argentina",
       "venue": "Arena de São Paulo",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2014--brazil/cup_finals.txt"
     },
@@ -1116,6 +1130,7 @@ export const WC2014_PACK: HistoricalSourcePack = {
       "goalsA": 0,
       "goalsB": 3,
       "resultAt90": "B",
+      "winner": "netherlands",
       "venue": "Estádio Nacional Mané Garrincha",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2014--brazil/cup_finals.txt"
     },
@@ -1129,6 +1144,7 @@ export const WC2014_PACK: HistoricalSourcePack = {
       "goalsB": 0,
       "resultAt90": "D",
       "afterExtraTime": true,
+      "winner": "germany",
       "venue": "Estádio do Maracanã",
       "sourceRef": "https://raw.githubusercontent.com/openfootball/worldcup/master/2014--brazil/cup_finals.txt"
     }

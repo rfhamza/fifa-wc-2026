@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   reconstructHistoricalTournament,
@@ -29,7 +31,9 @@ const KNOWN_CHAMPION: Record<number, string> = {
   1998: "france", 2002: "brazil", 2006: "italy", 2010: "spain",
   2014: "germany", 2018: "france", 2022: "argentina",
 };
-const ET_FINAL_UNENCODED = new Set([2010, 2014]); // champion not derivable from pack
+// Phase 1.21D: with the source-backed `winner` field, the 2010/2014 ET finals are now
+// derivable cleanly (previously `clean-with-assumptions` / undetermined).
+const ET_FINAL_NOW_SOURCE_BACKED = new Set([2010, 2014]);
 
 const koMatch = (r: HistoricalTournamentReconstruction, id: string): KnockoutMatchReconstruction => {
   for (const round of r.knockoutProgression) {
@@ -84,29 +88,28 @@ describe("tournament reconstruction - structure across all seven packs", () => {
   }
 });
 
-describe("tournament reconstruction - champion verification", () => {
+describe("tournament reconstruction - champion verification (all seven derivable)", () => {
   for (const year of ALL_YEARS) {
-    if (ET_FINAL_UNENCODED.has(year)) {
-      it(`${year}: ET-decided final -> champion NOT fabricated; finalists include the known champion; flagged`, () => {
-        const r = recon(year);
-        expect(r.championDerivable).toBe(false);
-        expect(r.actualChampion).toBeNull();
-        expect(r.finalKnownCheck).not.toBeNull();
-        const finalists = [r.finalKnownCheck!.teamA, r.finalKnownCheck!.teamB];
-        expect(finalists).toContain(KNOWN_CHAMPION[year]);
-        expect(r.finalKnownCheck!.method).toBe("undetermined");
-        expect(r.reconstructionStatus).toBe("clean-with-assumptions");
-        expect(r.assumptions.some((a) => a.includes("extra time"))).toBe(true);
-      });
-    } else {
-      it(`${year}: derived champion equals the known champion (${KNOWN_CHAMPION[year]})`, () => {
-        const r = recon(year);
-        expect(r.championDerivable).toBe(true);
-        expect(r.actualChampion).toBe(KNOWN_CHAMPION[year]);
-        expect(r.finalKnownCheck!.winner).toBe(KNOWN_CHAMPION[year]);
-      });
-    }
+    it(`${year}: derived champion equals the known champion (${KNOWN_CHAMPION[year]})`, () => {
+      const r = recon(year);
+      expect(r.championDerivable).toBe(true);
+      expect(r.actualChampion).toBe(KNOWN_CHAMPION[year]);
+      expect(r.finalKnownCheck!.winner).toBe(KNOWN_CHAMPION[year]);
+    });
   }
+
+  it("the 2010/2014 ET finals are now source-backed (extra-time, clean) - not undetermined", () => {
+    for (const year of ET_FINAL_NOW_SOURCE_BACKED) {
+      const r = recon(year);
+      expect(r.reconstructionStatus).toBe("clean"); // was "clean-with-assumptions" before 1.21D
+      expect(r.finalKnownCheck!.method).toBe("extra-time");
+      expect(r.finalKnownCheck!.winner).toBe(KNOWN_CHAMPION[year]);
+      // The champion is sourced from the pack's `winner` field, not fabricated.
+      const finalMatch = packByYear.get(year)!.results.find((m) => m.stage === "final")!;
+      expect(finalMatch.winner).toBe(KNOWN_CHAMPION[year]);
+      expect(finalMatch.resultAt90).toBe("D"); // still a 90' draw (diagnostic convention preserved)
+    }
+  });
 });
 
 describe("tournament reconstruction - knockout winner derivation (regulation / ET / penalties)", () => {
@@ -160,13 +163,66 @@ describe("tournament reconstruction - ambiguity / assumptions are explicit", () 
     for (const g of r.groupsReconstructed) expect(g.actualQualifiers).toHaveLength(2);
   });
 
-  it("clean tournaments (1998/2002/2006/2022) have no assumptions and derive the champion", () => {
-    for (const year of [1998, 2002, 2006, 2022]) {
+  it("clean tournaments (1998/2002/2006/2010/2014/2022) have no assumptions and derive the champion", () => {
+    for (const year of [1998, 2002, 2006, 2010, 2014, 2022]) {
       const r = recon(year);
       expect(r.reconstructionStatus).toBe("clean");
       expect(r.assumptions).toEqual([]);
       expect(r.actualChampion).toBe(KNOWN_CHAMPION[year]);
     }
+  });
+});
+
+describe("winner contract - source-backed knockout `winner` field on the packs", () => {
+  it("group-stage matches NEVER carry a winner; knockout matches always do (valid id)", () => {
+    for (const pack of allHistoricalPacks) {
+      const teamSet = new Set(pack.identity.teamIds);
+      for (const m of pack.results) {
+        if (m.stage === "group") {
+          expect(m.winner).toBeUndefined();
+        } else {
+          expect(typeof m.winner).toBe("string");
+          expect(teamSet.has(m.winner!)).toBe(true);
+          expect([m.teamA, m.teamB]).toContain(m.winner);
+        }
+      }
+    }
+  });
+
+  it("winner is consistent with decisive 90' results and with penalty shootouts", () => {
+    for (const pack of allHistoricalPacks) {
+      for (const m of pack.results) {
+        if (m.stage === "group" || m.winner === undefined) continue;
+        if (m.resultAt90 === "A") expect(m.winner).toBe(m.teamA);
+        if (m.resultAt90 === "B") expect(m.winner).toBe(m.teamB);
+        if (m.penalties) expect(m.winner).toBe(m.penalties.a > m.penalties.b ? m.teamA : m.teamB);
+      }
+    }
+  });
+
+  it("ET-only finals are source-backed: 2010 Spain, 2014 Germany", () => {
+    const final = (year: number) => packByYear.get(year)!.results.find((m) => m.stage === "final")!;
+    expect(final(2010)).toMatchObject({ teamA: "netherlands", teamB: "spain", resultAt90: "D", afterExtraTime: true, winner: "spain" });
+    expect(final(2010).penalties).toBeUndefined();
+    expect(final(2014)).toMatchObject({ teamA: "germany", teamB: "argentina", resultAt90: "D", afterExtraTime: true, winner: "germany" });
+    expect(final(2014).penalties).toBeUndefined();
+  });
+
+  it("the 90-minute diagnostic convention is preserved (winner never equals resultAt90 semantics)", () => {
+    // goalsA/goalsB remain the 90' score; winner is separate metadata. For ET wins the 90'
+    // result is a draw yet a winner exists - proving the two are independent.
+    const f = packByYear.get(2010)!.results.find((m) => m.stage === "final")!;
+    expect(f.goalsA).toBe(0);
+    expect(f.goalsB).toBe(0);
+    expect(f.resultAt90).toBe("D");
+    expect(f.winner).toBe("spain");
+  });
+});
+
+describe("winner is reconstruction-only - the evaluator must not read it", () => {
+  it("match-evaluator.ts does not reference `winner`", () => {
+    const src = readFileSync(join(process.cwd(), "lib", "backtesting", "match-evaluator.ts"), "utf8");
+    expect(src.includes("winner")).toBe(false);
   });
 });
 
