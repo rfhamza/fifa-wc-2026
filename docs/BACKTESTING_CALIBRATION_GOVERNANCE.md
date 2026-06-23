@@ -219,6 +219,7 @@ The following are **NO-GO** and must never be done implicitly or as a side effec
 - `docs/BACKTESTING_LOTO_DIAGNOSTICS.md` — Leave-One-Tournament-Out diagnostics (DIAGNOSTIC ONLY).
 - `docs/BACKTESTING_PARITY_AUDIT.md` — production/backtesting parity audit.
 - `docs/BACKTESTING_METHOD.md` — overall backtesting methodology and staged path.
+- `docs/BACKTESTING_HISTORICAL_REPLAY_INTERPRETATION.md` — how to read the primary-only Monte Carlo replay (supplementary/approximate; not calibration evidence — calibration stays NO-GO).
 - `lib/backtesting/README.md` — harness overview and isolation guarantees.
 
 ## 10. Verification (gates this PR passed)
