@@ -77,8 +77,17 @@ The merged historical packs are partitioned into three **explicit, named cohorts
 
 Phase 1.20B adds only these cohort definitions, guard tests, and documentation — **no stretch metric
 computation, no stretch/all-seven consolidation, no LOTO recomputation, no calibration** (calibration
-remains **NO-GO**). Any future stretch-metric view (a hypothetical Phase 1.20C) would be separately
-approved, clearly labelled SUPPLEMENTARY, and still outside the headline.
+remains **NO-GO**).
+
+### Supplementary stretch-context diagnostics (Phase 1.20D)
+A **supplementary** stretch-context diagnostic now exists for **1998/2002/2006** only —
+`computeStretchContextDiagnostics` in `lib/backtesting/stretch-context-diagnostics.ts` (delegates to the
+pure `consolidateDiagnostics`; pinned by `tests/backtesting-stretch-context-diagnostics.test.ts`; see
+`docs/BACKTESTING_STRETCH_DIAGNOSTICS.md`). It reports per-tournament + a **supplementary** macro-average
+(RPS / log loss / Brier / accuracy-descriptive, match count 144 group / 192 all) and carries governance
+flags `{ supplementaryOnly, headlineEligible:false, calibrationEligible:false, lotoEligible:false }`.
+**It does not replace the primary four-tournament headline metrics**, computes **no** all-seven average,
+runs **no** LOTO, and changes **no** production probability or metric math. **Calibration remains NO-GO.**
 
 ## Four-tournament consolidation (Phase 1.18C-1)
 The primary historical source scope is complete and the four-tournament diagnostics are consolidated
