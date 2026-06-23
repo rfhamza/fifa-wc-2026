@@ -48,6 +48,20 @@ change). Slug rulings: `republic-of-ireland` (historical-only, not `ireland`), `
 consolidation, **does not** recompute LOTO or add stretch consolidation, and **does not** approve
 calibration (**calibration remains NO-GO**). See `docs/BACKTESTING_WC2002_SNAPSHOT.md`.
 
+### Stretch pack: WC-1998 (Phase 1.19D, stretch-only)
+A seventh pack — **WC-1998** (France) — is ingested **additively as stretch evidence only**
+(`scripts/generate-historical-1998.mjs`, `data/historical/snapshots/wc-1998.ts`, `WC1998_EXPECTATIONS`).
+It is the first **32-team** World Cup and a golden-goal-era edition, but **single-host** (France/UEFA),
+so it reuses the existing single-host expectation pattern with **no validator engine change**. Slug
+ruling: **FR Yugoslavia → `fr-yugoslavia`** (historical-only, distinct from modern `serbia` and from
+`serbia-and-montenegro`; never remapped onto a modern successor); new clean slugs `bulgaria`/`chile`/
+`colombia`/`jamaica`/`romania`; reuse of 2026-official `scotland`/`norway`/`austria`. Golden-goal
+knockouts stored as 90-minute draws + `afterExtraTime` (no new field). It **does not** change the
+primary four-tournament diagnostic headline, **does not** re-baseline consolidation, **does not**
+recompute LOTO or add stretch consolidation, and **does not** approve calibration (**calibration remains
+NO-GO**). With 1998/2002/2006 all merged, any cross-stretch consolidation is a separate,
+explicitly-approved future phase. See `docs/BACKTESTING_WC1998_SNAPSHOT.md`.
+
 ## Four-tournament consolidation (Phase 1.18C-1)
 The primary historical source scope is complete and the four-tournament diagnostics are consolidated
 in `docs/BACKTESTING_FOUR_TOURNAMENT_DIAGNOSTICS.md` (DIAGNOSTIC ONLY), produced by the pure helper
