@@ -47,6 +47,16 @@ export interface HistoricalPackExpectations {
   expectedHostName?: string;
   /** Confederation the host must belong to (e.g. "AFC", "UEFA"). */
   expectedHostConfederation?: string;
+  /**
+   * Optional MULTI-HOST expectations (Phase 1.19C, for co-hosted tournaments such as
+   * WC-2002 South Korea + Japan). Every id must be present in the team list; every
+   * listed confederation must appear among the actual host confederations. These are
+   * additive and orthogonal to the single-host fields above, which remain valid for
+   * single-host tournaments (1998/2006/2010/2014/2018/2022).
+   */
+  expectedHostIds?: string[];
+  /** Confederations every host is expected to belong to (e.g. ["AFC"] for 2002). */
+  expectedHostConfederations?: string[];
 }
 
 export const WC2022_EXPECTATIONS: HistoricalPackExpectations = {
@@ -122,6 +132,27 @@ export const WC2006_EXPECTATIONS: HistoricalPackExpectations = {
   expectedHostName: "Germany",
   expectedHostConfederation: "UEFA",
   confederationCounts: { UEFA: 14, CONMEBOL: 4, CONCACAF: 4, CAF: 5, AFC: 4, OFC: 1 },
+};
+
+/**
+ * WC-2002 (South Korea / Japan) - STRETCH historical pack (Phase 1.19C). Additive
+ * stretch evidence only: it does NOT change the primary four-tournament
+ * (2010/2014/2018/2022) diagnostic headline, does not recompute LOTO, does not create
+ * stretch consolidation, and does not approve calibration. First CO-HOSTED pack: uses
+ * the additive multi-host expectations (both hosts AFC); the single-host fields are
+ * intentionally unset. OFC:0.
+ */
+export const WC2002_EXPECTATIONS: HistoricalPackExpectations = {
+  teamCount: 32,
+  groupCount: 8,
+  teamsPerGroup: 4,
+  matchCount: 64,
+  groupMatchCount: 48,
+  knockoutMatchCount: 16,
+  expectedTournamentYear: 2002,
+  expectedHostIds: ["south-korea", "japan"],
+  expectedHostConfederations: ["AFC"],
+  confederationCounts: { UEFA: 15, CONMEBOL: 5, CONCACAF: 3, CAF: 5, AFC: 4, OFC: 0 },
 };
 
 /** Parse an ISO instant; returns NaN-bearing flag for unparseable input. */
@@ -207,6 +238,28 @@ export function validateHistoricalPack(
     const hostConf = identity.confederations[expected.expectedHostId];
     if (hostConf !== expected.expectedHostConfederation) {
       err(`host "${expected.expectedHostId}" confederation is "${hostConf}", expected "${expected.expectedHostConfederation}"`);
+    }
+  }
+  // Multi-host expectations (Phase 1.19C, co-hosts). Additive + orthogonal to the
+  // single-host checks above; only runs when the array fields are provided.
+  if (expected.expectedHostIds !== undefined) {
+    for (const hostId of expected.expectedHostIds) {
+      if (!teamSet.has(hostId)) err(`host "${hostId}" is not present in the team list`);
+    }
+  }
+  if (expected.expectedHostConfederations !== undefined) {
+    // Actual host confederations derived from hostCountries (slugged, filtered to teams).
+    const actualHostConfs = new Set(
+      identity.hostCountries
+        .map((h) => h.toLowerCase().replace(/\s+/g, "-"))
+        .filter((s) => teamSet.has(s))
+        .map((s) => identity.confederations[s])
+        .filter((c): c is string => !!c),
+    );
+    for (const conf of expected.expectedHostConfederations) {
+      if (!actualHostConfs.has(conf)) {
+        err(`expected host confederation "${conf}" not found among actual host confederations [${[...actualHostConfs].join(", ")}]`);
+      }
     }
   }
   const confTally: Record<string, number> = {};
