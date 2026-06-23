@@ -39,6 +39,24 @@ evidence base **cannot defensibly calibrate the production model**. The reasons:
 This decision is recorded so that **stretch ingestion, tournament replay, and any calibration
 experiment are gated behind the explicit approvals in §6 and §8**, not started implicitly.
 
+### 1a. Stretch-pack status (Phase 1.20B) — context only, NO-GO unchanged
+
+The stretch context packs **WC 1998, 2002, and 2006 are now merged** (see
+`docs/BACKTESTING_STRETCH_CONTEXT.md` and the cohort definitions in
+`lib/backtesting/historical-cohorts.ts`). Their existence **does not change anything in this
+decision record**:
+
+- The **primary evidence set remains exactly 2010/2014/2018/2022** (`primaryDiagnosticPacks`); the
+  headline four-tournament consolidation and the four-fold LOTO are unchanged.
+- Stretch packs are **supplementary, qualitative robustness / era-sensitivity context only**. They
+  carry older-era caveats (golden-goal era, older FIFA/Elo source precision, different tactical era,
+  fewer modern model-feature equivalents) and are **not** calibration evidence.
+- Their availability **does not** approve calibration, **does not** approve temperature scaling,
+  **does not** approve model/weight tuning, **does not** change the decision ladder (§6) or the NO-GO
+  list (§8), and **does not** change any production probability. **Calibration remains NO-GO.**
+- There is intentionally **no all-seven headline average** and **no LOTO over stretch or all-seven
+  packs**; "more tournaments exist" is explicitly **not** a route to calibration approval.
+
 ## 2. Evidence summary
 
 All values below are verbatim from the pinned diagnostic docs; see those docs for full per-tournament
