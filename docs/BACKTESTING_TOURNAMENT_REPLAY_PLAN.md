@@ -18,9 +18,11 @@
    results*, recompute group standings and reconstruct the knockout progression; validate that the packs
    support tournament-level structure and that the actual champion/finalists/qualifiers are recoverable.
    **No probabilities.**
-3. **Monte Carlo tournament replay** *(NOT implemented; future, separately approved)*: *from
-   pre-tournament model probabilities*, simulate each tournament many times and report champion / finalist
-   / semifinalist / R16 distributions vs the actual outcome, descriptively.
+3. **Monte Carlo tournament replay** *(implemented in Phase 1.21F, primary-only, supplementary &
+   approximate)*: *from pre-tournament model probabilities*, simulate each tournament many times and report
+   champion / finalist / semifinalist / R16 distributions vs the actual outcome, descriptively. For how
+   these outputs may and may not be interpreted, see
+   `docs/BACKTESTING_HISTORICAL_REPLAY_INTERPRETATION.md`.
 
 ## What reconstruction does (Phase 1.21B)
 `reconstructHistoricalTournament(pack)` is pure and deterministic. It:
@@ -115,5 +117,9 @@ probabilities. It is **descriptive only**.
   reproducing the actual R16/QF/SF/final matchups.
 - **Deterministic.** A single base seed deterministically derives per-(year, variant) sub-seeds; the
   same `{seed, iterations}` reproduces identical output. Tests pin a low iteration count.
+
+**How to interpret replay outputs.** See `docs/BACKTESTING_HISTORICAL_REPLAY_INTERPRETATION.md` for the
+interpretation-governance rules (what replay MAY and MUST NOT be used to say, the naming/labelling policy,
+and the no-committed-numbers policy). Replay is a qualitative plausibility lens only.
 
 **Calibration remains NO-GO.** Stretch replay and all-seven replay remain out of scope.
