@@ -89,6 +89,21 @@ flags `{ supplementaryOnly, headlineEligible:false, calibrationEligible:false, l
 **It does not replace the primary four-tournament headline metrics**, computes **no** all-seven average,
 runs **no** LOTO, and changes **no** production probability or metric math. **Calibration remains NO-GO.**
 
+### Deterministic tournament reconstruction (Phase 1.21B)
+Separate from match-level diagnostics, `lib/backtesting/tournament-reconstruction.ts`
+(`reconstructHistoricalTournament`; pinned by `tests/backtesting-tournament-reconstruction.test.ts`; see
+`docs/BACKTESTING_TOURNAMENT_REPLAY_PLAN.md`) **deterministically** rebuilds each historical tournament's
+group standings and knockout progression **from the actual results** — purely to validate that the packs
+support tournament-level structure (8×4 groups, 6 matches/group, knockout stage counts, qualifier
+reconciliation, champion verification, ET/penalty winner derivation). It is **data/structure validation
+only**: it computes **no** model probabilities, **no** Monte Carlo replay, **no** champion
+probabilities, **no** calibration, and **no** LOTO; it reuses **none** of the 2026 simulator and does
+**not** assume 2026 Article-13 tiebreakers held historically. Historical group tiebreakers and the
+2010/2014 extra-time finals (winner not encoded in the 90-minute-only packs) are **flagged as
+assumptions**, never fabricated. It does not change the primary headline, stretch diagnostics, LOTO, or
+production probabilities. **Monte Carlo tournament replay is not implemented and remains separately
+gated; calibration remains NO-GO.**
+
 ## Four-tournament consolidation (Phase 1.18C-1)
 The primary historical source scope is complete and the four-tournament diagnostics are consolidated
 in `docs/BACKTESTING_FOUR_TOURNAMENT_DIAGNOSTICS.md` (DIAGNOSTIC ONLY), produced by the pure helper

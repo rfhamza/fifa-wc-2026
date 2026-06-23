@@ -8,6 +8,10 @@
 > **The supplementary stretch-context diagnostic itself (Phase 1.20D) lives in
 > `docs/BACKTESTING_STRETCH_DIAGNOSTICS.md`** (`computeStretchContextDiagnostics` over 1998/2002/2006).
 > This document remains the cohort-definition + era-caveat explainer.
+>
+> **Deterministic tournament reconstruction (Phase 1.21B)** — data/structure validation of the historical
+> packs (group standings + knockout progression from actual results; no probabilities, no replay) — is
+> documented in `docs/BACKTESTING_TOURNAMENT_REPLAY_PLAN.md`.
 
 ## The three cohorts
 Defined once in `lib/backtesting/historical-cohorts.ts` and pinned by
