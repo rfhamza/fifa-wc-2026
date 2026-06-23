@@ -4,6 +4,10 @@
 > cohorts and explains how the **stretch** packs (WC 1998/2002/2006) may and may not be used. It
 > contains **no stretch metric numbers, no all-seven average, no model ranking, no calibration
 > recommendation, and no production recommendation.** It computes nothing. **Calibration remains NO-GO.**
+>
+> **The supplementary stretch-context diagnostic itself (Phase 1.20D) lives in
+> `docs/BACKTESTING_STRETCH_DIAGNOSTICS.md`** (`computeStretchContextDiagnostics` over 1998/2002/2006).
+> This document remains the cohort-definition + era-caveat explainer.
 
 ## The three cohorts
 Defined once in `lib/backtesting/historical-cohorts.ts` and pinned by

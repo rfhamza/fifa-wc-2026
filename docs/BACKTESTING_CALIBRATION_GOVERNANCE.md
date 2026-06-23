@@ -42,7 +42,8 @@ experiment are gated behind the explicit approvals in §6 and §8**, not started
 ### 1a. Stretch-pack status (Phase 1.20B) — context only, NO-GO unchanged
 
 The stretch context packs **WC 1998, 2002, and 2006 are now merged** (see
-`docs/BACKTESTING_STRETCH_CONTEXT.md` and the cohort definitions in
+`docs/BACKTESTING_STRETCH_CONTEXT.md`, the supplementary diagnostic in
+`docs/BACKTESTING_STRETCH_DIAGNOSTICS.md`, and the cohort definitions in
 `lib/backtesting/historical-cohorts.ts`). Their existence **does not change anything in this
 decision record**:
 
