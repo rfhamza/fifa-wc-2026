@@ -135,6 +135,28 @@ export const WC2006_EXPECTATIONS: HistoricalPackExpectations = {
 };
 
 /**
+ * WC-1998 (France) - STRETCH historical pack (Phase 1.19D). Additive stretch evidence
+ * only: it does NOT change the primary four-tournament (2010/2014/2018/2022) diagnostic
+ * headline, does not recompute LOTO, does not create stretch consolidation, and does not
+ * approve calibration. First 32-team World Cup; SINGLE-HOST France/UEFA (reuses the
+ * existing single-host expectation fields - no engine change). FR Yugoslavia is a
+ * historical-only entrant. OFC:0. Adds WC1998_EXPECTATIONS only.
+ */
+export const WC1998_EXPECTATIONS: HistoricalPackExpectations = {
+  teamCount: 32,
+  groupCount: 8,
+  teamsPerGroup: 4,
+  matchCount: 64,
+  groupMatchCount: 48,
+  knockoutMatchCount: 16,
+  expectedTournamentYear: 1998,
+  expectedHostId: "france",
+  expectedHostName: "France",
+  expectedHostConfederation: "UEFA",
+  confederationCounts: { UEFA: 15, CONMEBOL: 5, CONCACAF: 3, CAF: 5, AFC: 4, OFC: 0 },
+};
+
+/**
  * WC-2002 (South Korea / Japan) - STRETCH historical pack (Phase 1.19C). Additive
  * stretch evidence only: it does NOT change the primary four-tournament
  * (2010/2014/2018/2022) diagnostic headline, does not recompute LOTO, does not create
