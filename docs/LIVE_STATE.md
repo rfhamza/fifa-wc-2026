@@ -33,6 +33,17 @@ Manual JSON/snapshot-style input is the only source this phase
 the **same** `RawLiveSnapshot` contract — no consumer changes. No API call and no
 scraping exist now; sample snapshots live under `tests/fixtures/live-state/`.
 
+**Real snapshot (Phase 1.25C):** the first real source-backed case — a manual
+current-results snapshot (48 completed group-stage matches) — is validated as a manual
+snapshot in `tests/live-state-current-snapshot.test.ts`
+(`tests/fixtures/live-state/current-results-snapshot.ts`). It keys matches by the
+official `matchNumber` (`M{n}`), keeping the provider's feed id as provenance only.
+Group standings are **derived from those results** through the live-state path and only
+**compared** against the supplied standings file
+(`current-standings-expected.ts`) for core fields — the uploaded standings are never
+treated as the source of truth, and Article-13 deep-tie differences are flagged, not
+forced.
+
 ## Pipeline: results → standings → bracket
 
 1. **Ingest** a manual snapshot (`ingestLiveSnapshot`, `lib/live-state/ingest.ts`).
