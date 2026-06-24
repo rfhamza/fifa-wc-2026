@@ -27,6 +27,10 @@ deployability (Vercel/GH Actions). **Accessible ≠ allowed.**
 
 ## Provider gating rules
 
+> The approved provider strategy is **free-first**, with per-provider status, the
+> confirmation checklist, and paid-upgrade triggers recorded in
+> `docs/LIVE_API_PROVIDER_DECISION.md` (Phase 1.27B).
+
 - Confirm **terms-of-use / licence** (including public display + redistribution)
   **before** any real adapter. No provider is wired on accessibility alone.
 - **Official FIFA feed** — *preferred* source, **only if** licensed/allowed.
