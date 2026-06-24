@@ -1,8 +1,11 @@
 # Backtesting Methodology (Phase 1.18B-0; harness landed in 1.18C-1)
 
+> **Start here:** `docs/BACKTESTING_INDEX.md` — the one-page navigation map for this workstream.
+
 How the historical test bench will evaluate and (later) calibrate the model. Design recorded in
-1.18B-0; the **first match-level harness landed in Phase 1.18C-1** (WC-2022 only). Still **no
-calibration, no weight tuning, no tournament replay, and no production/probability change.**
+1.18B-0; the **first match-level harness landed in Phase 1.18C-1** (WC-2022 only). A
+**primary-only, supplementary, approximate Monte Carlo replay** is implemented (Phase 1.21F); still
+**no calibration, no weight tuning, and no production/probability change.**
 
 ## Status (Phase 1.18C-1; 2018 pack added in 1.18B-4)
 The match-level evaluator scores historical snapshots at 90-minute W/D/L for a fixed **diagnostic
@@ -101,8 +104,9 @@ probabilities, **no** calibration, and **no** LOTO; it reuses **none** of the 20
 **not** assume 2026 Article-13 tiebreakers held historically. Historical group tiebreakers and the
 2010/2014 extra-time finals (winner not encoded in the 90-minute-only packs) are **flagged as
 assumptions**, never fabricated. It does not change the primary headline, stretch diagnostics, LOTO, or
-production probabilities. **Monte Carlo tournament replay is not implemented and remains separately
-gated; calibration remains NO-GO.**
+production probabilities. **Monte Carlo tournament replay is implemented (Phase 1.21F, primary-only,
+supplementary and approximate — see `docs/BACKTESTING_TOURNAMENT_REPLAY_PLAN.md` and
+`docs/BACKTESTING_HISTORICAL_REPLAY_INTERPRETATION.md`); calibration remains NO-GO.**
 
 ## Four-tournament consolidation (Phase 1.18C-1)
 The primary historical source scope is complete and the four-tournament diagnostics are consolidated
