@@ -1,5 +1,7 @@
 # `lib/backtesting/` — historical backtesting harness (isolated)
 
+> **Start here:** `docs/BACKTESTING_INDEX.md` — the one-page navigation map for this workstream.
+
 Phase 1.18 historical test bench. **Isolated from the production 2026 forecast.**
 
 - This layer is **never imported by the production app** (`app/`, `components/`, `lib/model/*`,
