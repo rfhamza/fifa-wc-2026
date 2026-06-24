@@ -33,6 +33,12 @@ Manual JSON/snapshot-style input is the only source this phase
 the **same** `RawLiveSnapshot` contract — no consumer changes. No API call and no
 scraping exist now; sample snapshots live under `tests/fixtures/live-state/`.
 
+**API ingestion (Phase 1.26B):** a provider-agnostic adapter boundary
+(`lib/live-ingest/*`) normalizes a provider feed into this same `RawLiveSnapshot`
+contract (matchNumber canonical; provider ids provenance-only; provider
+standings/bracket comparison-only). It is a mock-only boundary — no real API/network —
+see `docs/LIVE_API_INGESTION_PLAN.md`.
+
 **Real snapshot (Phase 1.25C):** the first real source-backed case — a manual
 current-results snapshot (48 completed group-stage matches) — is validated as a manual
 snapshot in `tests/live-state-current-snapshot.test.ts`
