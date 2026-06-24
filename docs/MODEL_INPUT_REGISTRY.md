@@ -106,6 +106,9 @@ A new or promoted feature must:
 
 ## Live 2026 ingestion runway (planned; not built)
 
+The first live state-ingestion layer (fixtures/results/standings/bracket + freshness;
+no probability refresh) is contracted in `docs/LIVE_STATE.md` (`lib/live-state/*`).
+
 Staged path, safest first. **Recommended safest first live phase: results / standings
 / bracket refresh only — NOT in-play prediction.** Re-simulate remaining matches from
 resolved + frozen state; never silently fall back; always show an "as-of" stamp.
