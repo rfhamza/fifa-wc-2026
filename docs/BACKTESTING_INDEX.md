@@ -14,6 +14,7 @@
 - **Monte Carlo replay** is **primary-only, supplementary, approximate** — not headline, not
   calibration, not LOTO, not production.
 - **No all-seven replay and no all-seven headline exist** (intentionally).
+- **Model input governance** (every model input's status/phase/source/usage) is catalogued in `docs/MODEL_INPUT_REGISTRY.md`.
 
 ## Recommended read order
 
