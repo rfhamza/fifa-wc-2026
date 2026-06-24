@@ -195,6 +195,27 @@ export default function MethodologyPage() {
         </p>
       </Section>
 
+      <Section title="How we sanity-check the model">
+        <p>
+          Historical checks are used as <strong>diagnostic guardrails</strong>.
+          We compare the model&apos;s <strong>frozen pre-tournament
+          assumptions</strong> against recent World Cups, primarily 2010, 2014,
+          2018 and 2022, to understand whether its outputs are{" "}
+          <strong>plausible</strong> in historical context.
+        </p>
+        <p>
+          These checks do not prove future accuracy. They are{" "}
+          <strong>not calibration</strong>, <strong>not tuning</strong>, and not
+          a claim that the model is <strong>optimized from past
+          tournaments</strong>. A separate tournament-path replay is used only as
+          a supplementary plausibility check. Older tournaments are kept as
+          supplementary context only.
+        </p>
+        <p>
+          Probabilities remain <strong>estimates, not guarantees</strong>.
+        </p>
+      </Section>
+
       <Card className="border-primary/30 bg-primary/5">
         <CardHeader>
           <CardTitle>Not a betting product</CardTitle>

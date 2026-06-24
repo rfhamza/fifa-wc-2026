@@ -161,3 +161,6 @@ sum logically, so it will catch gross mistakes.
 - Placeholder bracket (see above).
 - Inputs are mock placeholders, so absolute probabilities are illustrative;
   the **relative** ordering is the meaningful output in phase one.
+
+Detailed historical diagnostic and replay governance docs are indexed in
+`docs/BACKTESTING_INDEX.md`.
