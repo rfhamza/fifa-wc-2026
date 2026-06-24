@@ -163,4 +163,5 @@ sum logically, so it will catch gross mistakes.
   the **relative** ordering is the meaningful output in phase one.
 
 Detailed historical diagnostic and replay governance docs are indexed in
-`docs/BACKTESTING_INDEX.md`.
+`docs/BACKTESTING_INDEX.md`. Model input governance (every input's status, phase,
+source, freshness and usage) is catalogued in `docs/MODEL_INPUT_REGISTRY.md`.
