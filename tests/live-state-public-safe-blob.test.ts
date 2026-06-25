@@ -10,6 +10,7 @@ import {
   type PublicSafeBlobStore,
 } from "@/lib/live-state/public-safe-blob-store";
 import {
+  isPublicSafeLiveState,
   resolvePublicSafeLiveStateForServing,
   type LoadResult,
 } from "@/lib/live-state/public-safe-source";
@@ -114,7 +115,7 @@ describe("Blob adapter (mocked SDK seam)", () => {
 
 describe("serving resolver (provider-derived public-display guard)", () => {
   const fixtureResult: LoadResult = { state: FIXTURE, ok: true, fallback: false };
-  const providerState: PublicSafeLiveState = { ...FIXTURE, isProviderDerived: true, publicSourcePolicy: "provider-private-deferred" };
+  const providerState: PublicSafeLiveState = { ...FIXTURE, isProviderDerived: true, publicSourcePolicy: "provider-public-delayed" };
 
   it("default source returns the fixture", async () => {
     const r = await resolvePublicSafeLiveStateForServing(
@@ -153,6 +154,18 @@ describe("serving resolver (provider-derived public-display guard)", () => {
       { loadFixture: async () => fixtureResult, loadBlob: async () => ({ state: providerState, ok: true, fallback: false }) },
     );
     expect(r.state.isProviderDerived).toBe(true);
+    expect(r.state.publicSourcePolicy).toBe("provider-public-delayed");
+  });
+
+  it("still accepts a legacy provider-private-deferred object (backward-compat)", async () => {
+    const legacy: PublicSafeLiveState = { ...FIXTURE, isProviderDerived: true, publicSourcePolicy: "provider-private-deferred" };
+    expect(isPublicSafeLiveState(legacy)).toBe(true); // guard accepts the historical string
+    const r = await resolvePublicSafeLiveStateForServing(
+      { source: "blob", allowProviderDerivedPublic: true },
+      { loadFixture: async () => fixtureResult, loadBlob: async () => ({ state: legacy, ok: true, fallback: false }) },
+    );
+    expect(r.state.isProviderDerived).toBe(true);
+    expect(r.state.publicSourcePolicy).toBe("provider-private-deferred");
   });
 
   it("blob read failure falls back to the fixture", async () => {
@@ -187,7 +200,7 @@ describe("manual writer", () => {
     expect(logs.join("\n")).not.toContain("blob-secret");
   });
 
-  it("provider mode writes ONLY the sanitized projection (private/deferred)", async () => {
+  it("provider mode writes ONLY the sanitized projection (public-safe but delayed)", async () => {
     const store = fakeStore();
     const logs: string[] = [];
     const r = await runWritePublicSafeBlob({
@@ -199,9 +212,20 @@ describe("manual writer", () => {
     expect(r.isProviderDerived).toBe(true);
     const body = store.objects[DEFAULT_BLOB_OBJECT_PATH]!;
     const parsed = JSON.parse(body) as PublicSafeLiveState;
-    expect(parsed.publicSourcePolicy).toBe("provider-private-deferred");
+    // Phase 1.28P: public-safe-but-delayed policy; legacy private/deferred no longer emitted.
+    expect(parsed.publicSourcePolicy).toBe("provider-public-delayed");
+    expect(parsed.publicSourcePolicy).not.toBe("provider-private-deferred");
     const m1 = parsed.matches.find((m) => m.matchNumber === 1)!;
     expect([m1.teamA, m1.teamB]).toEqual(["mexico", "south-africa"]);
+    // ToU-safe public attribution: names Football-Data.org, flags delay + internal derivation,
+    // and carries NO private/deferred wording.
+    expect(parsed.attribution.sourceName).toBe("football-data.org");
+    expect(parsed.attribution.text).toContain("Football-Data.org API");
+    expect(parsed.attribution.text.toLowerCase()).toContain("may be delayed");
+    expect(parsed.attribution.text.toLowerCase()).toContain("derived internally");
+    const attribution = JSON.stringify(parsed.attribution).toLowerCase();
+    expect(attribution).not.toContain("private");
+    expect(attribution).not.toContain("deferred");
     // No provider IDs / raw fields / tokens in the stored object or logs.
     expect(/\b(769|774|1001)\b/.test(body)).toBe(false);
     for (const bad of FORBIDDEN) expect(body.includes(bad)).toBe(false);
@@ -280,7 +304,7 @@ describe("route wiring (real resolver, default env)", () => {
 
 describe("serving metadata (Phase 1.28N observability)", () => {
   const fixtureResult: LoadResult = { state: FIXTURE, ok: true, fallback: false };
-  const providerState: PublicSafeLiveState = { ...FIXTURE, isProviderDerived: true, publicSourcePolicy: "provider-private-deferred" };
+  const providerState: PublicSafeLiveState = { ...FIXTURE, isProviderDerived: true, publicSourcePolicy: "provider-public-delayed" };
   const blobOk = (state: PublicSafeLiveState): LoadResult => ({ state, ok: true, fallback: false });
   const blobErr = (error: string): LoadResult => ({ state: { ...FIXTURE, status: "unavailable" }, ok: false, fallback: true, error });
 

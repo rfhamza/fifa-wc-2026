@@ -219,6 +219,52 @@ A scheduled workflow `.github/workflows/live-state-write-blob-scheduled.yml` aut
 reads the **current** private Blob, so scheduled Blob writes are reflected **without a
 redeploy** and without ISR staleness (the route is function-backed, not static).
 
+### 3g. Public-provider release gate (Phase 1.28P)
+
+Prepares the controlled switch to publicly serving the provider-derived object. **This is
+code/labelling preparation only** - no Vercel env change is made by this phase.
+
+**Policy rename / labelling.** `PublicSourcePolicy` now includes `provider-public-delayed`
+(provider-derived, public-safe, but delayed/stale-labelled). The legacy
+`provider-private-deferred` value is **retained for backward-compat** with historical Blob
+objects but is **no longer emitted** by the writer. Provider attribution is now public/ToU
+safe: *"Football data provided by the Football-Data.org API. Group standings and the
+knockout bracket are derived internally using FIFA Article 13 rules. Data may be delayed."*
+(no "private"/"deferred" wording).
+
+**A scheduler re-run is required after merge.** The provider object already in Blob still
+carries the old `provider-private-deferred` policy and private/deferred attribution. Before
+flipping the env, re-run the scheduled writer once (`workflow_dispatch` on
+`live-state-write-blob-scheduled.yml`) so `live-state.provider.sanitized.json` is rewritten
+by the NEW code. Confirm the run log:
+`WROTE live-state.provider.sanitized.json (matches=72, isProviderDerived=true)`, exit 0, no
+token/URL/raw-payload.
+
+**Pre-env-switch verification.** Confirm (maintainer-side) the refreshed provider object has
+`publicSourcePolicy: "provider-public-delayed"` and the public attribution; confirm the
+public object `live-state.sanitized.json` is untouched (rollback target).
+
+**Vercel env values for the eventual switch (Production):**
+- `LIVE_STATE_BLOB_OBJECT_PATH = live-state.provider.sanitized.json`
+- `LIVE_STATE_ALLOW_PROVIDER_DERIVED_PUBLIC = true`
+- keep `LIVE_STATE_SOURCE = blob`
+- keep `BLOB_READ_WRITE_TOKEN`
+
+**Redeploy is required** after the env change (Vercel injects env at deploy time; dashboard
+edits do not affect running deployments).
+
+**Expected public `/api/live-state` after the switch:**
+`serving.servedFrom=blob`, `serving.sourceObjectPath=live-state.provider.sanitized.json`,
+`serving.providerDerivedBlocked=false`, `isProviderDerived=true`,
+`publicSourcePolicy=provider-public-delayed`, `matches.length=72`, `freshness=stale`,
+`status=stale`, response `Cache-Control: no-store, max-age=0`.
+
+**Rollback (env-only + redeploy):** set `LIVE_STATE_ALLOW_PROVIDER_DERIVED_PUBLIC = false`
+and/or `LIVE_STATE_BLOB_OBJECT_PATH = live-state.sanitized.json`, then redeploy. The public
+object `live-state.sanitized.json` remains untouched, and the scheduled workflow keeps
+writing **only** the provider object - so the manual snapshot is always a clean
+last-known-good.
+
 ---
 
 ## 4. Expected healthy output

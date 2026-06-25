@@ -10,7 +10,8 @@
  *   npm run live:state:write-blob -- --source football-data
  *       Fetches matches-only, derives internal state, maps to PublicSafeLiveState, and
  *       writes ONLY the sanitized projection (isProviderDerived=true,
- *       publicSourcePolicy="provider-private-deferred"). Stays PRIVATE/deferred.
+ *       publicSourcePolicy="provider-public-delayed"). Public-safe but delayed/stale-
+ *       labelled; serving it publicly is still gated by LIVE_STATE_ALLOW_PROVIDER_DERIVED_PUBLIC.
  *
  * Flags: --object-path <path> (default live-state.sanitized.json), --dry-run (validate +
  * gate, do NOT write), --allow-partial (provider mode: skip the 104-match assertion).
@@ -65,11 +66,11 @@ export interface WriteResult {
 }
 
 const FOOTBALL_DATA_ATTRIBUTION = {
-  sourceName: "football-data.org (provider-derived; private/deferred)",
+  sourceName: "football-data.org",
   sourceUrl: "https://www.football-data.org/",
   text:
-    "Provider-derived live state (football-data.org). Kept PRIVATE/deferred; standings " +
-    "and bracket are derived internally (Article 13).",
+    "Football data provided by the Football-Data.org API. Group standings and the " +
+    "knockout bracket are derived internally using FIFA Article 13 rules. Data may be delayed.",
 } as const;
 
 /** Build the sanitized projection for the chosen source (no I/O for fixture mode). */
@@ -113,7 +114,7 @@ async function buildSanitizedState(deps: WriteDeps): Promise<
   const state = toPublicSafeLiveState(res.state, {
     attribution: FOOTBALL_DATA_ATTRIBUTION,
     isProviderDerived: true,
-    publicSourcePolicy: "provider-private-deferred",
+    publicSourcePolicy: "provider-public-delayed",
   });
   return { ok: true, state };
 }
