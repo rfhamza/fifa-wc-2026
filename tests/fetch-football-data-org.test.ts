@@ -282,14 +282,25 @@ describe("script isolation / governance", () => {
     }
   });
 
-  it("no scheduled CI workflow was added", () => {
+  it("no scheduled CI workflow was added (except the sanctioned, kill-switched 1.28O writer)", () => {
+    // Phase 1.28O introduces exactly ONE sanctioned scheduled workflow: the private
+    // provider-Blob writer, which is disabled by default (LIVE_STATE_SCHEDULER_ENABLED)
+    // and writes only the private provider object. Every OTHER workflow must stay
+    // schedule/cron-free.
+    const ALLOWED_SCHEDULED = new Set(["live-state-write-blob-scheduled.yml"]);
     const wfDir = join(root, ".github", "workflows");
     if (!existsSync(wfDir)) return;
+    const scheduled: string[] = [];
     for (const f of readdirSync(wfDir)) {
       const src = readFileSync(join(wfDir, f), "utf8");
-      expect(/^\s*schedule:/m.test(src)).toBe(false);
-      expect(/cron:/.test(src)).toBe(false);
+      const hasSchedule = /^\s*schedule:/m.test(src) || /cron:/.test(src);
+      if (hasSchedule) scheduled.push(f);
+      if (hasSchedule && !ALLOWED_SCHEDULED.has(f)) {
+        expect({ f, hasSchedule: false }).toEqual({ f, hasSchedule: true }); // surfaces the offending file
+      }
     }
+    // The only scheduled workflow is the sanctioned one (catches any stray future schedule).
+    expect(scheduled).toEqual(["live-state-write-blob-scheduled.yml"]);
   });
 
   it("the output dir is git-ignored", () => {

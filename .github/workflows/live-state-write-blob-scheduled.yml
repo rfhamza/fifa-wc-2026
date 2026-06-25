@@ -1,0 +1,65 @@
+name: live-state-write-blob-scheduled
+
+# Phase 1.28O - SCHEDULED provider ingestion: provider-derived sanitized PublicSafeLiveState
+# -> PRIVATE Vercel Blob. Writes ONLY the private provider object; it never targets the
+# manual/public object. Provider-derived state stays PRIVATE (not served publicly). It
+# commits nothing, uploads no artifacts, and prints only the writer's redacted output.
+# Tokens are passed solely as step-level env vars and are never echoed or written.
+#
+# Kill-switch: scheduled runs no-op unless the repo VARIABLE LIVE_STATE_SCHEDULER_ENABLED
+# == "true". Manual workflow_dispatch always runs (for safe verification), even when the
+# variable is false. Disabled by default.
+on:
+  schedule:
+    # Every 30 minutes, offset off the hour (UTC, best-effort). Conservative Tier-2 cadence.
+    - cron: "7,37 * * * *"
+  workflow_dispatch: {}
+
+# Read-only: this workflow must never write to the repo, packages, or deployments.
+permissions:
+  contents: read
+
+# Serialize scheduled writes to the provider object; do not cancel an in-flight write.
+concurrency:
+  group: live-state-write-blob-scheduled
+  cancel-in-progress: false
+
+jobs:
+  write-provider-blob:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Enable guard (scheduled runs require LIVE_STATE_SCHEDULER_ENABLED=true)
+        id: guard
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          SCHEDULER_ENABLED: ${{ vars.LIVE_STATE_SCHEDULER_ENABLED }}
+        run: |
+          if [ "$EVENT_NAME" = "schedule" ] && [ "$SCHEDULER_ENABLED" != "true" ]; then
+            echo "Scheduler disabled: set repo variable LIVE_STATE_SCHEDULER_ENABLED=true to enable. Skipping."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Write provider-derived sanitized live-state to the PRIVATE provider object
+        if: steps.guard.outputs.run == 'true'
+        # Tokens are provided ONLY here, as env vars. They are never echoed or written.
+        # Missing required secret -> the writer fails safe (exit 1, no write).
+        env:
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+          FOOTBALL_DATA_TOKEN: ${{ secrets.FOOTBALL_DATA_TOKEN }}
+        run: |
+          echo "Running scheduled provider write to the private provider object."
+          npm run live:state:write-blob -- --source football-data --object-path live-state.provider.sanitized.json

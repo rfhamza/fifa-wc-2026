@@ -442,3 +442,82 @@ describe("manual write workflow governance", () => {
     expect(/echo[^\n]*TOKEN/.test(yml)).toBe(false);
   });
 });
+
+describe("route live-read hardening (Phase 1.28O)", () => {
+  const KEYS = ["LIVE_STATE_SOURCE", "LIVE_STATE_ALLOW_PROVIDER_DERIVED_PUBLIC", "LIVE_STATE_BLOB_OBJECT_PATH"] as const;
+  afterEach(() => {
+    for (const k of KEYS) delete process.env[k];
+  });
+
+  it("exports dynamic=force-dynamic and revalidate=0 (no static/ISR caching)", async () => {
+    const route = await import("@/app/api/live-state/route");
+    expect(route.dynamic).toBe("force-dynamic");
+    expect(route.revalidate).toBe(0);
+  });
+
+  it("sets Cache-Control: no-store, max-age=0 on the response", async () => {
+    const { GET } = await import("@/app/api/live-state/route");
+    const res = await GET();
+    expect(res.headers.get("Cache-Control")).toBe("no-store, max-age=0");
+  });
+});
+
+describe("scheduled write workflow governance (Phase 1.28O)", () => {
+  const yml = readFileSync(join(process.cwd(), ".github/workflows/live-state-write-blob-scheduled.yml"), "utf8");
+
+  it("runs on schedule (7,37) + workflow_dispatch, and no other triggers", () => {
+    expect(yml.includes("schedule:")).toBe(true);
+    expect(yml.includes('cron: "7,37 * * * *"')).toBe(true);
+    expect(yml.includes("workflow_dispatch:")).toBe(true);
+    expect(/^\s*push:/m.test(yml)).toBe(false);
+    expect(/^\s*pull_request:/m.test(yml)).toBe(false);
+    expect(/^\s*workflow_run:/m.test(yml)).toBe(false);
+  });
+
+  it("declares no workflow inputs (source/object_path are not configurable)", () => {
+    expect(yml.includes("inputs:")).toBe(false);
+    expect(/^\s*source:/m.test(yml)).toBe(false);
+    expect(/^\s*object_path:/m.test(yml)).toBe(false);
+  });
+
+  it("writes ONLY the private provider object, never the public/manual object", () => {
+    expect(yml.includes("--object-path live-state.provider.sanitized.json")).toBe(true);
+    expect(yml.includes("--source football-data")).toBe(true);
+    // The public/manual object path must not appear anywhere in the workflow file.
+    expect(yml.includes("live-state.sanitized.json")).toBe(false);
+  });
+
+  it("does not dry-run or allow partial (real, full-tournament write)", () => {
+    expect(yml.includes("--dry-run")).toBe(false);
+    expect(yml.includes("--allow-partial")).toBe(false);
+  });
+
+  it("has the LIVE_STATE_SCHEDULER_ENABLED kill-switch gating scheduled runs", () => {
+    expect(yml.includes("LIVE_STATE_SCHEDULER_ENABLED")).toBe(true);
+    // Guard skips scheduled events unless the variable is exactly "true".
+    expect(yml.includes('vars.LIVE_STATE_SCHEDULER_ENABLED')).toBe(true);
+    expect(/EVENT_NAME"?\s*=\s*"schedule"/.test(yml) || yml.includes('"$EVENT_NAME" = "schedule"')).toBe(true);
+  });
+
+  it("is read-only, uploads no artifacts, commits nothing, sets timeout + concurrency", () => {
+    expect(/permissions:\s*\n\s*contents:\s*read/.test(yml)).toBe(true);
+    expect(yml.includes("upload-artifact")).toBe(false);
+    expect(yml.includes("git commit")).toBe(false);
+    expect(yml.includes("git push")).toBe(false);
+    expect(yml.includes("timeout-minutes: 10")).toBe(true);
+    expect(yml.includes("group: live-state-write-blob-scheduled")).toBe(true);
+    expect(yml.includes("cancel-in-progress: false")).toBe(true);
+  });
+
+  it("passes secrets only as step env and never echoes a token", () => {
+    expect(yml.includes("BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}")).toBe(true);
+    expect(yml.includes("FOOTBALL_DATA_TOKEN: ${{ secrets.FOOTBALL_DATA_TOKEN }}")).toBe(true);
+    expect(/echo[^\n]*TOKEN/.test(yml)).toBe(false);
+    expect(/echo[^\n]*\$\{\{\s*secrets\./.test(yml)).toBe(false);
+  });
+
+  it("does not modify the existing manual workflow's identity", () => {
+    expect(yml.includes("name: live-state-write-blob-scheduled")).toBe(true);
+    expect(yml.includes("name: live-state-write-blob-manual")).toBe(false);
+  });
+});

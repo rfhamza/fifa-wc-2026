@@ -183,6 +183,42 @@ provider testing).
 `sourceObjectPath` is an object **pathname, never a URL**. The block carries no token,
 private Blob URL, header/account data, provider ids, or raw payloads.
 
+### 3f. Scheduled private provider ingestion (Phase 1.28O)
+
+A scheduled workflow `.github/workflows/live-state-write-blob-scheduled.yml` automates the
+**provider** write. It runs on a conservative cadence and on manual dispatch:
+
+- **Cadence:** `cron: "7,37 * * * *"` (every 30 min, UTC, best-effort). 1-5 min cadence is
+  NOT implemented (future Tier 3, gated).
+- **Provider object only:** it always runs
+  `npm run live:state:write-blob -- --source football-data --object-path live-state.provider.sanitized.json`
+  (path + source are hard-coded, not inputs). It **never** writes the public/manual object
+  `live-state.sanitized.json`.
+- **Disabled by default:** scheduled runs **no-op** unless the repo **Variable**
+  `LIVE_STATE_SCHEDULER_ENABLED == "true"`. `workflow_dispatch` always runs (for
+  verification), even when the variable is false.
+- **Enable:** repo Settings -> Secrets and variables -> Actions -> Variables -> set
+  `LIVE_STATE_SCHEDULER_ENABLED = true`.
+- **Disable / rollback:** set `LIVE_STATE_SCHEDULER_ENABLED = false` (or unset); or Actions
+  UI -> the workflow -> "Disable workflow"; or revert the PR. Disabling does not affect the
+  public endpoint - the provider object just stops updating and keeps last-known-good.
+- **Provider-derived stays private:** this phase does **not** serve provider-derived state
+  publicly. `LIVE_STATE_ALLOW_PROVIDER_DERIVED_PUBLIC` stays `false`; the public endpoint
+  keeps serving the manual snapshot.
+- **Verify after merge:** trigger the scheduled workflow via `workflow_dispatch` (UI or
+  `gh workflow run live-state-write-blob-scheduled.yml`); confirm the run log shows
+  `WROTE live-state.provider.sanitized.json (... isProviderDerived=true)` and exit 0 with
+  no token/URL/raw-payload output; then confirm the public `/api/live-state` is unchanged
+  (`isProviderDerived=false`, `servedFrom=blob`, `sourceObjectPath=live-state.sanitized.json`).
+- Hygiene matches the manual workflow: `permissions: contents: read`, no schedule on
+  push/PR, no artifact upload, no commit, tokens only as step env (never echoed),
+  `timeout-minutes: 10`, concurrency `cancel-in-progress: false`.
+
+**Route hardening (Phase 1.28O):** `/api/live-state` is now `dynamic = "force-dynamic"`,
+`revalidate = 0`, and responds with `Cache-Control: no-store, max-age=0`. Each request
+reads the **current** private Blob, so scheduled Blob writes are reflected **without a
+redeploy** and without ISR staleness (the route is function-backed, not static).
+
 ---
 
 ## 4. Expected healthy output
