@@ -12,7 +12,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "backtest:2022": "vitest run tests/backtesting-match-evaluator.test.ts",
-    "scan:unicode": "node scripts/scan-unicode.mjs"
+    "scan:unicode": "node scripts/scan-unicode.mjs",
+    "live:football-data:check": "vite-node --config vitest.config.ts scripts/football-data-org/run.ts"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.0",

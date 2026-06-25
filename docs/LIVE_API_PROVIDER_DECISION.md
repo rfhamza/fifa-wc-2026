@@ -155,3 +155,27 @@ committed raw provider JSON**. Notes locked in by tests:
   fixture; a **live 2026 penalty sample remains pending**.
 - Real fetch, scheduled automation, storage, UI, and probability refresh remain out
   of scope. No raw provider JSON is committed.
+
+## 9. Phase 1.28C — local-only fetch script + validation report
+
+A **maintainer-run, local-only** fetch boundary now exists under
+`scripts/football-data-org/` (`live-state-fetch.ts` core + `run.ts` CLI), runnable via
+`npm run live:football-data:check` (uses `vite-node`; **never runs in CI**). It:
+
+- reads the token **only** from `process.env.FOOTBALL_DATA_TOKEN` (regenerate it — it
+  was previously exposed), sends it **only** in the `X-Auth-Token` header, and
+  **never logs/commits/returns** it;
+- fetches WC matches (and, rate-limit permitting, standings), inspects
+  `X-RequestsAvailable`/`X-RequestCounter-Reset`/`X-API-Version` (account-identifying
+  headers are not echoed), and **fails closed** on auth/tier/429/5xx/invalid-JSON/
+  non-WC/normalize/validate problems;
+- normalizes via the existing pure adapter and validates/derives via
+  `ingestLiveSnapshot` — **provider standings stay comparison-only**, Article 13
+  standings stay internally derived, provider ids stay provenance-only;
+- writes raw/normalized artifacts **only** to the git-ignored `artifacts/football-data-org/`
+  (added to `.gitignore`); **no provider payloads are committed**.
+
+Tests use a **mock fetch only** (no network, no token). Scheduled automation,
+storage, Vercel runtime, UI, probability refresh, and public committed snapshots all
+remain out of scope. Visible attribution will still be required when a UI eventually
+consumes the data.
