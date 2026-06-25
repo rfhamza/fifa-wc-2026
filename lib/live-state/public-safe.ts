@@ -28,11 +28,18 @@ import type {
 export const PUBLIC_SAFE_SCHEMA_VERSION = "1.0.0";
 
 /**
- * Where the projected data ultimately came from, for honest public labelling. We do NOT
- * publish football-data.org-derived state publicly yet, so provider-derived projections
- * are tagged `provider-private-deferred` (kept private until the ToU/publication phase).
+ * Where the projected data ultimately came from, for honest public labelling:
+ *   - `manual-snapshot`           = manual/FIFA snapshot (the public default).
+ *   - `provider-private-deferred` = LEGACY: provider-derived object kept private/deferred
+ *     (Phase 1.28M). Retained for backward-compat with historical Blob objects; the writer
+ *     no longer emits it.
+ *   - `provider-public-delayed`   = provider-derived object considered public-safe but
+ *     delayed/stale-labelled (Phase 1.28P). `freshness`/`status` still carry the staleness.
  */
-export type PublicSourcePolicy = "manual-snapshot" | "provider-private-deferred";
+export type PublicSourcePolicy =
+  | "manual-snapshot"
+  | "provider-private-deferred"
+  | "provider-public-delayed";
 
 /** Coarse availability for a consumer (never leaks internal section detail). */
 export type PublicSafeStatus = "ok" | "stale" | "unavailable";
