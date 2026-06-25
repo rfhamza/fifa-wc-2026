@@ -179,3 +179,6 @@ Tests use a **mock fetch only** (no network, no token). Scheduled automation,
 storage, Vercel runtime, UI, probability refresh, and public committed snapshots all
 remain out of scope. Visible attribution will still be required when a UI eventually
 consumes the data.
+
+Operator runbook for running this local check safely:
+[`FOOTBALL_DATA_LOCAL_RUNBOOK.md`](./FOOTBALL_DATA_LOCAL_RUNBOOK.md) (Phase 1.28E).
