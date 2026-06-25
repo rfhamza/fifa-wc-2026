@@ -294,6 +294,8 @@ The approved sequence (do not skip ahead):
   provider-agnostic flow.
 - [`LIVE_API_PROVIDER_DECISION.md`](./LIVE_API_PROVIDER_DECISION.md) — approved provider
   strategy (see §9 for the Phase 1.28C local-fetch note).
+- [`LIVE_DATA_STORAGE_AND_SCHEDULER_DECISION.md`](./LIVE_DATA_STORAGE_AND_SCHEDULER_DECISION.md)
+  — storage / runner / publication ADR (Phase 1.28L).
 - Script: `scripts/football-data-org/run.ts` (CLI) and
   `scripts/football-data-org/live-state-fetch.ts` (core); package script
   `live:football-data:check`.

@@ -182,3 +182,8 @@ consumes the data.
 
 Operator runbook for running this local check safely:
 [`FOOTBALL_DATA_LOCAL_RUNBOOK.md`](./FOOTBALL_DATA_LOCAL_RUNBOOK.md) (Phase 1.28E).
+
+Storage / scheduler / publication-posture decisions (before any scheduled automation) are
+recorded in
+[`LIVE_DATA_STORAGE_AND_SCHEDULER_DECISION.md`](./LIVE_DATA_STORAGE_AND_SCHEDULER_DECISION.md)
+(Phase 1.28L): provider-derived state stays private/cache-side; public display deferred.
