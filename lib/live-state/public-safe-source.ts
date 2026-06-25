@@ -15,6 +15,9 @@ import {
   PUBLIC_SAFE_SCHEMA_VERSION,
   type PublicSafeLiveState,
 } from "./public-safe";
+// Default blob loader for the serving resolver. Safe function-level (non-init) cycle:
+// the blob store imports only fallback/guard helpers from this module, used at call time.
+import { getPublicSafeLiveStateFromBlob } from "./public-safe-blob-store";
 
 /** A source returns the raw sanitized JSON (fixture now, storage later) or throws. */
 export type PublicSafeSource = () => Promise<unknown>;
@@ -84,4 +87,56 @@ export async function loadPublicSafeLiveState(
     const error = e instanceof Error ? e.message : "unknown";
     return { state: fallbackPublicSafeState("source read failed"), ok: false, fallback: true, error };
   }
+}
+
+/* ----------------------------------------------------------------------------
+ * Phase 1.28M - serving resolver (source selection + provider-derived guard).
+ *
+ * PURE w.r.t. env/network: it takes a plain config object and (optionally) injected
+ * loaders. The route is the only place that reads server env and wires these. By default
+ * the route serves the local fixture; private-Blob serving is opt-in via config, and
+ * provider-derived state is NEVER served publicly unless explicitly allowed.
+ * -------------------------------------------------------------------------- */
+
+export type LiveStateServeSource = "fixture" | "blob";
+
+export interface ServeConfig {
+  /** Where to read from. Default behaviour (anything but "blob") is the fixture. */
+  source: LiveStateServeSource;
+  /** Gate for provider-derived state. Must be explicitly true to serve it publicly. */
+  allowProviderDerivedPublic: boolean;
+  /** Private Blob object path override. */
+  objectPath?: string;
+}
+
+export interface ServeDeps {
+  loadFixture?: () => Promise<LoadResult>;
+  loadBlob?: (opts: { objectPath?: string }) => Promise<LoadResult>;
+}
+
+/**
+ * Resolve the sanitized state to serve from `/api/live-state`, honouring the source
+ * selection and the provider-derived public-display gate. Falls back to the fixture on
+ * any blob failure, and refuses to return provider-derived state unless explicitly
+ * allowed. Never throws.
+ */
+export async function resolvePublicSafeLiveStateForServing(
+  config: ServeConfig,
+  deps: ServeDeps = {},
+): Promise<LoadResult> {
+  const loadFixture = deps.loadFixture ?? (() => loadPublicSafeLiveState());
+
+  if (config.source !== "blob") return loadFixture();
+
+  // Default to the private-Blob loader (lazy SDK import lives in the blob store module).
+  const loadBlob = deps.loadBlob ?? ((o: { objectPath?: string }) => getPublicSafeLiveStateFromBlob(o));
+
+  const blob = await loadBlob({ objectPath: config.objectPath });
+  // Blob read failed -> safe fixture fallback.
+  if (!blob.ok) return loadFixture();
+  // Provider-derived state stays PRIVATE unless explicitly approved -> fixture fallback.
+  if (blob.state.isProviderDerived && !config.allowProviderDerivedPublic) {
+    return loadFixture();
+  }
+  return blob;
 }

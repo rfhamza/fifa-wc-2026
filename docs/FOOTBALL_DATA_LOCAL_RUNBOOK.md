@@ -126,6 +126,41 @@ from the **manual FIFA snapshot, not football-data.org** (`isProviderDerived: fa
 `publicSourcePolicy: "manual-snapshot"`); provider-derived state stays private until the
 publication/ToU phase. No scheduler, storage vendor, network, or token is involved.
 
+### 3d. Manual private-Blob write-path spike (Phase 1.28M)
+
+A **manual-only** writer persists the sanitized `PublicSafeLiveState` to a **private**
+Vercel Blob object via the adapter `lib/live-state/public-safe-blob-store.ts`
+(`putPublicSafeLiveStateToBlob` / `getPublicSafeLiveStateFromBlob`, default object
+`live-state.sanitized.json`, `access: "private"`). The adapter is a mockable seam; the
+real Vercel Blob SDK (`@vercel/blob`) is loaded lazily, server-side only.
+
+Run (maintainer/CI; **never scheduled**):
+
+```bash
+# Mode 1 - write the manual/FIFA fixture (no provider data):
+BLOB_READ_WRITE_TOKEN=*** npm run live:state:write-blob -- --source fixture
+# Validate + gate only (no write):
+BLOB_READ_WRITE_TOKEN=*** npm run live:state:write-blob -- --source fixture --dry-run
+# Mode 2 - provider-derived sanitized write (stays PRIVATE/deferred):
+FOOTBALL_DATA_TOKEN=*** BLOB_READ_WRITE_TOKEN=*** \
+  npm run live:state:write-blob -- --source football-data
+```
+
+**Governance / security:** raw football-data.org payloads are **never** written to Blob
+(provider mode fetches in `--dry-run` mode so raw stays ephemeral in memory) and never
+committed. Validation gates the write (provider mode blocks on fetch failure, unmapped/
+unknown teams, or validation warnings). Tokens (`BLOB_READ_WRITE_TOKEN`,
+`FOOTBALL_DATA_TOKEN`) are read from env only, never logged, never written; private Blob
+URLs are never printed. The manual GitHub workflow is
+`.github/workflows/live-state-write-blob-manual.yml` (`workflow_dispatch` only,
+`permissions: contents: read`, no schedule, no artifact upload, default `source=fixture`).
+
+**App read path:** `/api/live-state` can be repointed to the private Blob via server env
+`LIVE_STATE_SOURCE=blob` (default `fixture`). **Provider-derived state is never served
+publicly by default:** if the Blob holds `isProviderDerived: true` and
+`LIVE_STATE_ALLOW_PROVIDER_DERIVED_PUBLIC` is not `true`, the route returns the manual
+fixture fallback. Blob read failures also fall back to the fixture.
+
 ---
 
 ## 4. Expected healthy output
