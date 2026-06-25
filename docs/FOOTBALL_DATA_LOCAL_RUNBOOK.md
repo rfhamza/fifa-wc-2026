@@ -234,6 +234,11 @@ The approved sequence (do not skip ahead):
 2. **Docs / runbook PR** — this document.
 3. **Optional later manual GitHub Actions `workflow_dispatch` dry-run** — only after
    **explicit approval** to store `FOOTBALL_DATA_TOKEN` as a GitHub Secret.
+   **Implemented (Phase 1.28F):** `.github/workflows/live-football-data-dryrun.yml` —
+   manual `workflow_dispatch` only, runs `--summary-only --no-standings` by default,
+   uses the repository secret `FOOTBALL_DATA_TOKEN`, `permissions: contents: read`,
+   uploads no artifacts and commits nothing. It still **requires the secret** to be set
+   and never runs on schedule/push/PR.
 4. **Scheduled automation** — only after the manual CI dry-run is stable.
 5. **Storage / cache and UI / probability refresh** — only after the
    provider-publication and artifact policy is settled.
