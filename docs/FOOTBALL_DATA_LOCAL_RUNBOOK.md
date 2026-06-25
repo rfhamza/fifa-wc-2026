@@ -117,12 +117,13 @@ counts as **examples that change as the tournament progresses** — do not hardc
 
 | Signal | Interpretation | Class |
 |---|---|---|
-| `unresolved-knockout: 32` | Future knockout fixtures exist but participants are not resolved yet; the adapter excludes them from `M{n}` and reports the count. | **Expected** while knockout teams are unresolved |
+| `unresolved-knockout: N` | Knockout fixtures with **both** sides undetermined; the adapter excludes them from `M{n}` and reports the count. | **Expected** while knockout teams are unresolved |
+| `partially-resolved-knockout: N` | Knockout fixtures with **one** side determined and the other still a null-id TBD placeholder (groups finishing at different times); excluded as a shell, **not** an unknown team. | **Expected** while knockout teams are partially resolved (added in Phase 1.28G) |
 | `X-RequestsAvailable: null` | The free tier did not return the budget header; the standings rate-limit skip is inert when this is null. | **Non-blocking; monitor.** Script must handle the missing optional header. |
 | `freshnessOverall: stale` | The free/delayed feed lags real time. | **Expected**; not a blocker for delayed snapshots. **Do not call this true live.** |
 | provider standings rows `48` | Single overall 48-team table (`group: null`). | **Expected**; comparison-only |
 | `TIMED` future fixtures | Scheduled matches not yet played. | **Expected**; maps to scheduled |
-| `unmapped > 0` | A team/match could not be mapped to canonical `M{n}`. | **Investigate / potential blocker** |
+| `unmapped > 0` (e.g. `unknown-team`) | A team/match could not be mapped to canonical `M{n}`. After Phase 1.28G, `unknown-team` means a side with a **real provider id** whose name needs an alias (a true TBD slot is reported as `partially-resolved-knockout` instead). If you see `unknown-team`, share the minimized sanitized match objects (id/utcDate/status/stage/group/home+awayTeam id+name+shortName+tla) so an alias can be added — never the token, headers, or full payload. | **Investigate / potential blocker** |
 | validation warnings / errors `> 0` | Internal ingestion flagged something. | **Investigate / potential blocker** |
 | `resultSet.count` != `104` | Feed is not the full tournament. | **Blocker** for full-tournament validation (use `--partial` only when intentionally checking a partial feed) |
 

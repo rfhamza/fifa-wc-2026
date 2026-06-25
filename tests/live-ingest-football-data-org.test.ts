@@ -21,6 +21,7 @@ import {
   finishedGroupDraw,
   scheduledMatch,
   unresolvedKnockout,
+  partiallyResolvedKnockout,
   syntheticPenaltyKnockout,
   SYNTHETIC_PENALTY_KO_MAP,
   groupStageSample,
@@ -232,6 +233,84 @@ describe("E. match-number mapping", () => {
     const r = normalizeFootballDataMatches(syntheticPenaltyKnockout, opt); // no knockoutMatchIdMap
     expect(r.snapshot.matches).toHaveLength(0);
     expect(r.errors.some((e) => e.code === "knockout-mapping-unavailable")).toBe(true);
+  });
+});
+
+describe("E2. knockout shell resolution states (1.28G)", () => {
+  it("both teams undetermined -> unresolved-knockout (never unknown-team)", () => {
+    const r = normalizeFootballDataMatches(unresolvedKnockout, opt);
+    expect(r.snapshot.matches).toHaveLength(0);
+    expect(r.errors.map((e) => e.code)).toEqual(["unresolved-knockout"]);
+    expect(r.errors.some((e) => e.code === "unknown-team")).toBe(false);
+  });
+
+  it("one side determined, other side a TBD placeholder -> partially-resolved-knockout (never unknown-team)", () => {
+    const r = normalizeFootballDataMatches(partiallyResolvedKnockout, opt);
+    expect(r.snapshot.matches).toHaveLength(0);
+    expect(r.errors.map((e) => e.code)).toEqual(["partially-resolved-knockout"]);
+    expect(r.errors.some((e) => e.code === "unknown-team")).toBe(false);
+  });
+
+  it("away side TBD (home determined) is also a partial shell, not unknown-team", () => {
+    const awayTbd = wc([
+      {
+        ...partiallyResolvedKnockout.matches[0]!,
+        id: 9003,
+        homeTeam: { id: 759, name: "Germany", shortName: "Germany", tla: "GER" },
+        awayTeam: { id: null, name: null, shortName: null, tla: null },
+      },
+    ]);
+    const r = normalizeFootballDataMatches(awayTbd, opt);
+    expect(r.errors.map((e) => e.code)).toEqual(["partially-resolved-knockout"]);
+  });
+
+  it("a knockout side with a REAL provider id but unmappable name still fails closed as unknown-team", () => {
+    const realButUnknown = wc([
+      {
+        ...partiallyResolvedKnockout.matches[0]!,
+        id: 9004,
+        homeTeam: { id: 99999, name: "Atlantis", shortName: "Atlantis", tla: "ATL" },
+        awayTeam: { id: 759, name: "Germany", shortName: "Germany", tla: "GER" },
+      },
+    ]);
+    const r = normalizeFootballDataMatches(realButUnknown, opt);
+    expect(r.snapshot.matches).toHaveLength(0);
+    expect(r.errors.some((e) => e.code === "unknown-team")).toBe(true);
+    expect(r.errors.some((e) => e.code === "partially-resolved-knockout")).toBe(false);
+  });
+
+  it("a fully-resolved knockout with real aliases + mapping maps cleanly (no shell/unknown errors)", () => {
+    const r = normalizeFootballDataMatches(syntheticPenaltyKnockout, {
+      ...opt,
+      knockoutMatchIdMap: SYNTHETIC_PENALTY_KO_MAP,
+    });
+    expect(byId(r).get("M89")!.winner).toBe("germany");
+    for (const c of ["unresolved-knockout", "partially-resolved-knockout", "unknown-team"]) {
+      expect(r.errors.some((e) => e.code === c)).toBe(false);
+    }
+  });
+
+  it("summary counts separate shells from genuine unknowns in a mixed payload", () => {
+    const mixed = wc([
+      ...finishedGroupWin.matches, // -> M1 (mapped)
+      ...unresolvedKnockout.matches, // -> unresolved-knockout
+      ...partiallyResolvedKnockout.matches, // -> partially-resolved-knockout
+      {
+        ...partiallyResolvedKnockout.matches[0]!,
+        id: 9005,
+        homeTeam: { id: 99999, name: "Atlantis", shortName: "Atlantis", tla: "ATL" },
+        awayTeam: { id: 764, name: "Brazil", shortName: "Brazil", tla: "BRA" },
+      }, // -> unknown-team (real id, unmappable name)
+    ]);
+    const r = normalizeFootballDataMatches(mixed, opt);
+    const tally: Record<string, number> = {};
+    for (const e of r.errors) tally[e.code] = (tally[e.code] ?? 0) + 1;
+    expect(r.snapshot.matches).toHaveLength(1); // only the mapped group win
+    expect(tally).toEqual({
+      "unresolved-knockout": 1,
+      "partially-resolved-knockout": 1,
+      "unknown-team": 1,
+    });
   });
 });
 

@@ -104,11 +104,22 @@ export function normalizeFootballDataMatches(
     const status = resolveFdStatus(fd.status);
     const knockout = stage !== "group";
 
-    // Unresolved future knockout shell (null teams) -> excluded (cannot represent).
+    // Knockout fixtures whose participants are not yet determined are excluded as
+    // SHELLS, never as "unknown team". football-data.org leaves an undetermined side
+    // as a null-id team (`{ id: null, name: null, ... }`), so a null provider id is
+    // the reliable "this slot is still a TBD placeholder" signal:
+    //   - both sides undetermined  -> unresolved-knockout (as before)
+    //   - exactly one side undetermined -> partially-resolved-knockout (new)
+    // A side that DOES carry a real provider id but whose NAME we cannot map is a
+    // genuine unknown-team and still fails closed below (alias gap, not a TBD slot).
     const homeUnresolved = !fd.homeTeam || fd.homeTeam.id == null;
     const awayUnresolved = !fd.awayTeam || fd.awayTeam.id == null;
-    if (knockout && homeUnresolved && awayUnresolved) {
-      issue("unresolved-knockout", `Knockout ${pid} has unresolved teams; excluded from live results.`);
+    if (knockout && (homeUnresolved || awayUnresolved)) {
+      if (homeUnresolved && awayUnresolved) {
+        issue("unresolved-knockout", `Knockout ${pid} has both teams undetermined; excluded from live results.`);
+      } else {
+        issue("partially-resolved-knockout", `Knockout ${pid} has one undetermined side (TBD placeholder); excluded until both teams are known.`);
+      }
       continue;
     }
 

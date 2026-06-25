@@ -88,6 +88,29 @@ export const unresolvedKnockout: FdMatchesResponse = {
 };
 
 /**
+ * 4b) PARTIALLY-resolved knockout shell (TIMED): one side determined (a real team),
+ * the other still a null-id TBD placeholder. Provider does this as group stages finish
+ * at different times. Must be excluded as a knockout shell ("partially-resolved-knockout"),
+ * NOT misread as an unknown-team. The known side carries a real provider id.
+ */
+export const partiallyResolvedKnockout: FdMatchesResponse = {
+  competition: { ...WC },
+  matches: [
+    {
+      id: 9002,
+      utcDate: "2026-06-28T19:00:00Z",
+      status: "TIMED",
+      stage: "LAST_32",
+      group: null,
+      lastUpdated: UPDATED,
+      homeTeam: { id: 759, name: "Germany", shortName: "Germany", tla: "GER" },
+      awayTeam: { id: null, name: null, shortName: null, tla: null },
+      score: { winner: null, duration: "REGULAR", fullTime: { home: null, away: null } },
+    },
+  ],
+};
+
+/**
  * 5) SYNTHETIC / doc-shaped knockout decided on penalties (Germany beat Brazil on pens).
  * No live 2026 shootout exists yet; this fixture proves optional regularTime/extraTime/
  * penalties are handled. Paired with knockoutMatchIdMap { "9100": 89 } -> official M89.
