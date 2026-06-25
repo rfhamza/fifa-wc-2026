@@ -1,0 +1,75 @@
+name: live-state-write-blob-manual
+
+# Phase 1.28M - MANUAL-ONLY writer: sanitized PublicSafeLiveState -> PRIVATE Vercel Blob.
+# Runs `npm run live:state:write-blob` on manual dispatch ONLY. It NEVER runs on
+# schedule/push/pull_request, commits nothing, uploads no artifacts, and prints only the
+# script's redacted output. Tokens are passed solely as step-level env vars and are never
+# echoed, logged, or written. Default source is the manual/FIFA fixture (no provider data).
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: "fixture (manual/FIFA snapshot) or football-data (provider-derived, stays PRIVATE)"
+        type: choice
+        options:
+          - fixture
+          - football-data
+        default: fixture
+      object_path:
+        description: Private Blob object path
+        type: string
+        default: live-state.sanitized.json
+      dry_run:
+        description: Validate + gate only; do not write to Blob
+        type: boolean
+        default: false
+      allow_partial:
+        description: "football-data mode: skip the full 104-match assertion"
+        type: boolean
+        default: false
+
+# Read-only: this workflow must never write to the repo, packages, or deployments.
+permissions:
+  contents: read
+
+# Serialize writes to the single Blob object; do not cancel an in-flight write.
+concurrency:
+  group: live-state-write-blob-manual
+  cancel-in-progress: false
+
+jobs:
+  write-blob:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Write sanitized public-safe live-state to private Blob
+        # Tokens are provided ONLY here, as env vars. They are never echoed or written.
+        # Missing required secret -> the script fails safe (exit 1, no write).
+        env:
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+          FOOTBALL_DATA_TOKEN: ${{ secrets.FOOTBALL_DATA_TOKEN }}
+          SOURCE: ${{ inputs.source }}
+          OBJECT_PATH: ${{ inputs.object_path }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          ALLOW_PARTIAL: ${{ inputs.allow_partial }}
+        run: |
+          flags="--source $SOURCE --object-path $OBJECT_PATH"
+          if [ "$DRY_RUN" = "true" ]; then
+            flags="$flags --dry-run"
+          fi
+          if [ "$ALLOW_PARTIAL" = "true" ]; then
+            flags="$flags --allow-partial"
+          fi
+          echo "Running: npm run live:state:write-blob -- $flags"
+          npm run live:state:write-blob -- $flags

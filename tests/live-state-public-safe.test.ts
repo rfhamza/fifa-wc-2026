@@ -188,14 +188,33 @@ describe("module isolation", () => {
   const srcSrc = readFileSync(join(root, "lib", "live-state", "public-safe-source.ts"), "utf8");
   const routeSrc = readFileSync(join(root, "app", "api", "live-state", "route.ts"), "utf8");
 
-  it("projection + read path do no env/network/provider work", () => {
-    for (const s of [projSrc, srcSrc, routeSrc]) {
+  it("the pure projection + source modules do no env/network work", () => {
+    // public-safe.ts (pure mapper) and public-safe-source.ts (fixture seam + resolver)
+    // must remain free of env reads and network calls. Phase 1.28M intentionally moved
+    // server-env source selection into the route only (asserted separately below).
+    for (const s of [projSrc, srcSrc]) {
       expect(/\bprocess\.env\b/.test(s)).toBe(false);
       expect(/\bfetch\s*\(/.test(s)).toBe(false);
     }
+  });
+
+  it("no projection/read-path module does its own provider work", () => {
+    // None of the three may import the provider adapter or read the provider token.
     for (const s of [projSrc, srcSrc, routeSrc]) {
+      expect(/\bfetch\s*\(/.test(s)).toBe(false); // no direct network anywhere
       expect(s.includes("football-data-org")).toBe(false);
       expect(s.includes("FOOTBALL_DATA_TOKEN")).toBe(false);
     }
+  });
+
+  it("the route reads ONLY public-safe LIVE_STATE_* server env (no provider/blob token)", () => {
+    // Phase 1.28M: the route is the composition root and may read server env for source
+    // selection, but only the non-sensitive LIVE_STATE_* flags - never a token.
+    const envReads = routeSrc.match(/process\.env\.([A-Z0-9_]+)/g) ?? [];
+    for (const read of envReads) {
+      expect(read.startsWith("process.env.LIVE_STATE_")).toBe(true);
+    }
+    expect(routeSrc.includes("BLOB_READ_WRITE_TOKEN")).toBe(false);
+    expect(routeSrc.includes("FOOTBALL_DATA_TOKEN")).toBe(false);
   });
 });

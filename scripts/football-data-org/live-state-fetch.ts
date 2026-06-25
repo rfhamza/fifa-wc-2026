@@ -18,7 +18,7 @@
  */
 import { normalizeFootballDataMatches, extractFootballDataStandings } from "@/lib/live-ingest/football-data-org/normalize";
 import { buildOfficialReference, ingestLiveSnapshot } from "@/lib/live-state/ingest";
-import type { LiveStateReference } from "@/lib/live-state/types";
+import type { LiveStateReference, LiveTournamentState } from "@/lib/live-state/types";
 import type { FdMatchesResponse, FdStandingsResponse } from "@/lib/live-ingest/football-data-org/types";
 
 export const FOOTBALL_DATA_BASE = "https://api.football-data.org/v4";
@@ -93,6 +93,12 @@ export interface RunResult {
   exitCode: number;
   summary?: FetchSummary;
   error?: string;
+  /**
+   * The internally derived `LiveTournamentState` (validated, Article-13 standings +
+   * bracket). Returned IN MEMORY so callers (e.g. the sanitized-projection writer) can
+   * map it without persisting raw provider payloads to disk. Set only on success.
+   */
+  state?: LiveTournamentState;
 }
 
 export const DEFAULT_OPTIONS: FetchOptions = {
@@ -312,7 +318,7 @@ export async function runFetchLiveState(deps: FetchDeps): Promise<RunResult> {
 
   writeIf("summary.json", JSON.stringify(summary, null, 2));
   log(formatSummary(summary));
-  return { exitCode: 0, summary };
+  return { exitCode: 0, summary, state };
 }
 
 /** Render a concise, redacted console summary (no token/account/raw payload). */
