@@ -278,6 +278,146 @@ describe("route wiring (real resolver, default env)", () => {
   });
 });
 
+describe("serving metadata (Phase 1.28N observability)", () => {
+  const fixtureResult: LoadResult = { state: FIXTURE, ok: true, fallback: false };
+  const providerState: PublicSafeLiveState = { ...FIXTURE, isProviderDerived: true, publicSourcePolicy: "provider-private-deferred" };
+  const blobOk = (state: PublicSafeLiveState): LoadResult => ({ state, ok: true, fallback: false });
+  const blobErr = (error: string): LoadResult => ({ state: { ...FIXTURE, status: "unavailable" }, ok: false, fallback: true, error });
+
+  it("fixture source -> servedFrom=fixture, no fallbackReason, no sourceObjectPath", async () => {
+    const r = await resolvePublicSafeLiveStateForServing(
+      { source: "fixture", allowProviderDerivedPublic: false },
+      { loadFixture: async () => fixtureResult, loadBlob: async () => { throw new Error("should not read blob"); } },
+    );
+    expect(r.serving.servedFrom).toBe("fixture");
+    expect(r.serving.providerDerivedBlocked).toBe(false);
+    expect(r.serving.fallbackReason).toBeUndefined();
+    expect(r.serving.sourceObjectPath).toBeUndefined();
+  });
+
+  it("blob source with manual snapshot -> servedFrom=blob + echoed object path", async () => {
+    const r = await resolvePublicSafeLiveStateForServing(
+      { source: "blob", allowProviderDerivedPublic: false, objectPath: "live-state.sanitized.json" },
+      { loadFixture: async () => fixtureResult, loadBlob: async () => blobOk(FIXTURE) },
+    );
+    expect(r.serving.servedFrom).toBe("blob");
+    expect(r.serving.sourceObjectPath).toBe("live-state.sanitized.json");
+    expect(r.serving.providerDerivedBlocked).toBe(false);
+    expect(r.state.isProviderDerived).toBe(false);
+  });
+
+  it("provider-derived + allow=false -> fixture-fallback, blocked, served state stays non-provider", async () => {
+    const r = await resolvePublicSafeLiveStateForServing(
+      { source: "blob", allowProviderDerivedPublic: false, objectPath: "live-state.provider.sanitized.json" },
+      { loadFixture: async () => fixtureResult, loadBlob: async () => blobOk(providerState) },
+    );
+    expect(r.serving.servedFrom).toBe("fixture-fallback");
+    expect(r.serving.fallbackReason).toBe("provider-derived-public-blocked");
+    expect(r.serving.providerDerivedBlocked).toBe(true);
+    expect(r.serving.sourceObjectPath).toBe("live-state.provider.sanitized.json");
+    expect(r.state.isProviderDerived).toBe(false);
+  });
+
+  it("provider-derived + allow=true -> servedFrom=blob with provider-derived state", async () => {
+    const r = await resolvePublicSafeLiveStateForServing(
+      { source: "blob", allowProviderDerivedPublic: true },
+      { loadFixture: async () => fixtureResult, loadBlob: async () => blobOk(providerState) },
+    );
+    expect(r.serving.servedFrom).toBe("blob");
+    expect(r.state.isProviderDerived).toBe(true);
+  });
+
+  it("maps blob error codes to the fixed fallbackReason enum", async () => {
+    const cases: Array<[string, string]> = [
+      ["missing-blob-token", "missing-blob-token"],
+      ["invalid-shape", "invalid-blob-state"],
+      ["not-found", "blob-read-failed"],
+      ["blob-read-error", "blob-read-failed"],
+    ];
+    for (const [error, expected] of cases) {
+      const r = await resolvePublicSafeLiveStateForServing(
+        { source: "blob", allowProviderDerivedPublic: false },
+        { loadFixture: async () => fixtureResult, loadBlob: async () => blobErr(error) },
+      );
+      expect(r.serving.servedFrom).toBe("fixture-fallback");
+      expect(r.serving.fallbackReason).toBe(expected);
+      expect(r.state.matches).toHaveLength(54); // safe fixture content
+    }
+  });
+
+  it("default object path is echoed when blob is attempted (no explicit objectPath)", async () => {
+    const r = await resolvePublicSafeLiveStateForServing(
+      { source: "blob", allowProviderDerivedPublic: false },
+      { loadFixture: async () => fixtureResult, loadBlob: async () => blobErr("not-found") },
+    );
+    expect(r.serving.sourceObjectPath).toBe("live-state.sanitized.json");
+  });
+
+  it("the serving block leaks no URL / token / raw error (strict)", async () => {
+    const variants = await Promise.all([
+      resolvePublicSafeLiveStateForServing({ source: "fixture", allowProviderDerivedPublic: false }, { loadFixture: async () => fixtureResult }),
+      resolvePublicSafeLiveStateForServing({ source: "blob", allowProviderDerivedPublic: false, objectPath: "live-state.provider.sanitized.json" }, { loadFixture: async () => fixtureResult, loadBlob: async () => blobOk(providerState) }),
+      resolvePublicSafeLiveStateForServing({ source: "blob", allowProviderDerivedPublic: false }, { loadFixture: async () => fixtureResult, loadBlob: async () => blobErr("blob-read-error") }),
+    ]);
+    const ALLOWED_KEYS = new Set(["servedFrom", "providerDerivedBlocked", "fallbackReason", "sourceObjectPath"]);
+    for (const v of variants) {
+      const serialized = JSON.stringify(v.serving);
+      for (const bad of ["https://", "http://", "://", "vercel-storage", "token", "Authorization"]) {
+        expect(serialized.includes(bad)).toBe(false);
+      }
+      for (const k of Object.keys(v.serving)) expect(ALLOWED_KEYS.has(k)).toBe(true);
+    }
+  });
+});
+
+describe("route serving metadata (real resolver, env set+restore)", () => {
+  const KEYS = ["LIVE_STATE_SOURCE", "LIVE_STATE_ALLOW_PROVIDER_DERIVED_PUBLIC", "LIVE_STATE_BLOB_OBJECT_PATH"] as const;
+  afterEach(() => {
+    for (const k of KEYS) delete process.env[k];
+  });
+
+  // Narrow no-leak set: safe public attribution URLs (FIFA / football-data sourceUrl) are
+  // permitted, so we do NOT ban https:// globally - only specific sensitive substrings.
+  const FORBIDDEN_RESPONSE = [
+    "BLOB_READ_WRITE_TOKEN", "FOOTBALL_DATA_TOKEN", "X-Auth-Token", "X-Authenticated-Client",
+    "Authorization", "providerId", "providerMatchId", "providerTeamId", "blob.vercel-storage.com",
+    "vercel-storage", "blob-read-error", "not-found",
+  ];
+
+  it("default env -> serving.servedFrom=fixture, body.matches=54", async () => {
+    const { GET } = await import("@/app/api/live-state/route");
+    const res = await GET();
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.serving.servedFrom).toBe("fixture");
+    expect(body.matches).toHaveLength(54);
+  });
+
+  it("source=blob + custom object path + no token -> safe fixture fallback, path echoed", async () => {
+    process.env.LIVE_STATE_SOURCE = "blob";
+    process.env.LIVE_STATE_BLOB_OBJECT_PATH = "live-state.provider.sanitized.json";
+    delete process.env.BLOB_READ_WRITE_TOKEN;
+    const { GET } = await import("@/app/api/live-state/route");
+    const res = await GET();
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.serving.servedFrom).toBe("fixture-fallback");
+    expect(body.serving.fallbackReason).toBe("missing-blob-token");
+    expect(body.serving.sourceObjectPath).toBe("live-state.provider.sanitized.json");
+    expect(body.isProviderDerived).toBe(false);
+    expect(body.matches).toHaveLength(54);
+  });
+
+  it("the full serialized response leaks no token / blob URL / header / raw error / provider id", async () => {
+    process.env.LIVE_STATE_SOURCE = "blob";
+    process.env.LIVE_STATE_BLOB_OBJECT_PATH = "live-state.provider.sanitized.json";
+    const { GET } = await import("@/app/api/live-state/route");
+    const res = await GET();
+    const serialized = JSON.stringify(await res.json());
+    for (const bad of FORBIDDEN_RESPONSE) expect(serialized.includes(bad)).toBe(false);
+  });
+});
+
 describe("manual write workflow governance", () => {
   const yml = readFileSync(join(process.cwd(), ".github/workflows/live-state-write-blob-manual.yml"), "utf8");
 
