@@ -48,11 +48,37 @@ describe("live-state is isolated FROM production (no one imports it)", () => {
     join("data", "mock"),
   ];
 
-  it("no production module imports lib/live-state", () => {
+  // Phase 1.28K: the ONLY sanctioned production consumer of the live-state layer is the
+  // sanitized public-safe read-path scaffold. It imports only the pure public-safe
+  // projection/source (which import the live-state contract type-only) - never the
+  // derivation engine, model, simulator, or provider adapter. Model/simulator/data/UI
+  // pages stay fully isolated.
+  const ALLOWED_LIVE_STATE_IMPORTERS = new Set([
+    join(root, "app", "api", "live-state", "route.ts"),
+  ]);
+
+  it("no production module imports lib/live-state (except the sanctioned public-safe read-path)", () => {
+    const importers: string[] = [];
     for (const dir of PROD_DIRS) {
       for (const file of collect(join(root, dir))) {
-        expect({ file, imports: importsLiveState(readFileSync(file, "utf8")) }).toEqual({ file, imports: false });
+        if (importsLiveState(readFileSync(file, "utf8")) && !ALLOWED_LIVE_STATE_IMPORTERS.has(file)) {
+          importers.push(file);
+        }
       }
+    }
+    expect(importers).toEqual([]);
+  });
+
+  it("the only production live-state importer is the public-safe read-path scaffold, and it pulls in only the public-safe modules", () => {
+    const routeFile = join(root, "app", "api", "live-state", "route.ts");
+    const specs = importSpecifiers(readFileSync(routeFile, "utf8")).filter((s) => s.includes("live-state"));
+    // route -> public-safe-source only; never ingest/derive/validate directly.
+    expect(specs).toEqual(["@/lib/live-state/public-safe-source"]);
+    // The public-safe modules import no derivation engine / provider adapter (by import).
+    const bannedImport = /live-state\/(ingest|derive|validate)|football-data-org/;
+    for (const f of ["public-safe.ts", "public-safe-source.ts"]) {
+      const specsF = importSpecifiers(readFileSync(join(root, "lib", "live-state", f), "utf8"));
+      expect({ f, bad: specsF.find((s) => bannedImport.test(s)) ?? null }).toEqual({ f, bad: null });
     }
   });
 

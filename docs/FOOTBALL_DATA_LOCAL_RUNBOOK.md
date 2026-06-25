@@ -110,6 +110,22 @@ the FD artifacts, or `reconcile-summary.json` (all under the git-ignored
 `artifacts/football-data-org/`). Provider/CSV standings stay **comparison-only**; the
 internal derivation is authoritative.
 
+### 3c. Public-safe live-state projection + read-path spike (Phase 1.28K)
+
+A sanitized **public-safe** projection of the internal `LiveTournamentState` lives in
+`lib/live-state/public-safe.ts` (`toPublicSafeLiveState`, types `PublicSafeLiveState`
+etc.). It carries only canonical `M{n}`/app-team-id data + derived standings/bracket +
+attribution/freshness/validation metadata, and **excludes** provider ids, raw
+payloads/headers, account identity, provider standings, odds/referees/events, and crests.
+
+The read path (`lib/live-state/public-safe-source.ts` + the isolated scaffold route
+`app/api/live-state/route.ts`) reads the **committed app-safe fixture**
+`data/live/public-safe-sample.json` through a repointable `PublicSafeSource` seam (swap
+to private storage later) with a safe fallback. **Governance:** that fixture is derived
+from the **manual FIFA snapshot, not football-data.org** (`isProviderDerived: false`,
+`publicSourcePolicy: "manual-snapshot"`); provider-derived state stays private until the
+publication/ToU phase. No scheduler, storage vendor, network, or token is involved.
+
 ---
 
 ## 4. Expected healthy output
