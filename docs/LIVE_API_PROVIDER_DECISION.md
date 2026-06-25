@@ -131,3 +131,27 @@ no probability refresh; no model changes; no calibration/tuning; no scraping; no
 client-side provider calls; no changes to `lib/live-state/*`, `lib/live-ingest/*`,
 `lib/model/*`, the simulator, official fixtures/bracket, snapshots, generators, app
 routes, UI, CI workflows, or package scripts.
+
+## 8. Phase 1.28A — first WC 2026 payload gate passed (mock adapter scaffold)
+
+football-data.org cleared the first WC 2026 payload gate (locally verified): the
+`/v4/competitions/WC/matches?season=2026` endpoint returned **HTTP 200**,
+`resultSet.count: 104`, `matches.length: 104`; the standings endpoint is accessible
+but is a single overall 48-team table (`group: null`) — **comparison-only**, never
+Article-13 source of truth.
+
+A **provider-specific mock adapter scaffold** now exists under
+`lib/live-ingest/football-data-org/` (types + mapping + pure `normalize`), exercised
+only by **minimized/sanitized** fixtures and tests — **no real fetch, no token, no
+committed raw provider JSON**. Notes locked in by tests:
+
+- `TIMED` maps to internal **scheduled**; `FINISHED` → complete; `LIVE`/`IN_PLAY`/
+  `PAUSED` → in-progress.
+- Canonical `matchNumber`/`M{n}` is resolved from the app's official fixtures by
+  (group + unordered team pair); provider match ids stay **provenance-only**.
+- Future **unresolved knockout** shells (null teams) are excluded; resolved knockouts
+  need a small provider-id→`matchNumber` map (full mapping is future work).
+- Extra-time/penalty handling is supported and proven by a **synthetic/doc-shaped**
+  fixture; a **live 2026 penalty sample remains pending**.
+- Real fetch, scheduled automation, storage, UI, and probability refresh remain out
+  of scope. No raw provider JSON is committed.
