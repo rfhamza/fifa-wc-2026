@@ -92,6 +92,13 @@ Reuses the live-state freshness model (`fresh / stale / fallback / missing / inv
   latency is needed; later Supabase/Postgres for richer history. No client-side
   provider calls, ever.
 
+> **Superseded for provider-derived state (Phase 1.28L):** the "commit a validated JSON
+> snapshot" first-automation suggestion above is **disfavoured** for provider-derived
+> scheduled state. See
+> [`LIVE_DATA_STORAGE_AND_SCHEDULER_DECISION.md`](./LIVE_DATA_STORAGE_AND_SCHEDULER_DECISION.md)
+> — the ADR prefers a **Vercel Blob private store** for sanitized state and keeps
+> provider-derived state private until an explicit publication/ToU review.
+
 ## Security & secrets principles
 
 - API keys live in **server-only** env / **CI secrets**; never `NEXT_PUBLIC_*`.
