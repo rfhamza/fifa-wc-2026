@@ -13,7 +13,8 @@
     "test:watch": "vitest",
     "backtest:2022": "vitest run tests/backtesting-match-evaluator.test.ts",
     "scan:unicode": "node scripts/scan-unicode.mjs",
-    "live:football-data:check": "vite-node --config vitest.config.ts scripts/football-data-org/run.ts"
+    "live:football-data:check": "vite-node --config vitest.config.ts scripts/football-data-org/run.ts",
+    "live:football-data:reconcile": "vite-node --config vitest.config.ts scripts/football-data-org/reconcile-run.ts"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.0",

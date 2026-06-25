@@ -85,6 +85,31 @@ npm run live:football-data:check -- --no-standings
 If `FOOTBALL_DATA_TOKEN` is unset, the script fails safe (exit code 1) and makes **no
 network call**.
 
+### 3b. Local reconciliation reporter (Phase 1.28I)
+
+A separate **local-only** reporter cross-checks a user-supplied current-results CSV
+against the internal Article 13 derivation, audits Round-of-32 bracket activation
+(e.g. **M73 = 2A vs 2B → South Africa vs Canada**), and can optionally compare against a
+football-data.org live-state artifact or a local `--fetch`:
+
+```bash
+# CSV-only reconciliation (no network, no token):
+npm run live:football-data:reconcile -- \
+  --results-csv ./wc2026-current-results.csv \
+  --standings-csv ./wc2026-current-group-standings.csv --summary-only
+
+# also compare against an existing local fetch artifact:
+npm run live:football-data:reconcile -- --results-csv ./results.csv \
+  --fd-artifact artifacts/football-data-org/live-state.json
+```
+
+Flags: `--results-csv <path>` (required), `--standings-csv <path>`, `--fd-artifact <path>`,
+`--fetch` (local-only, reuses `FOOTBALL_DATA_TOKEN`), `--out <ignored-dir>`,
+`--summary-only`. The CSVs are **local reconciliation inputs only** — never commit them,
+the FD artifacts, or `reconcile-summary.json` (all under the git-ignored
+`artifacts/football-data-org/`). Provider/CSV standings stay **comparison-only**; the
+internal derivation is authoritative.
+
 ---
 
 ## 4. Expected healthy output
