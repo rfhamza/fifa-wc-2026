@@ -35,5 +35,7 @@ export async function GET(): Promise<NextResponse> {
   });
 
   const status = result.state.status === "unavailable" ? 503 : 200;
-  return NextResponse.json(result.state, { status });
+  // Additive only: existing PublicSafeLiveState fields stay top-level; `serving` is the
+  // safe observability block (fixed enums / object pathnames only - no secrets or URLs).
+  return NextResponse.json({ ...result.state, serving: result.serving }, { status });
 }

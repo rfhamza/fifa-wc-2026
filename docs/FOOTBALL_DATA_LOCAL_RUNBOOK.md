@@ -159,7 +159,29 @@ URLs are never printed. The manual GitHub workflow is
 `LIVE_STATE_SOURCE=blob` (default `fixture`). **Provider-derived state is never served
 publicly by default:** if the Blob holds `isProviderDerived: true` and
 `LIVE_STATE_ALLOW_PROVIDER_DERIVED_PUBLIC` is not `true`, the route returns the manual
-fixture fallback. Blob read failures also fall back to the fixture.
+fixture fallback. Blob read failures also fall back to the fixture. The private Blob
+object path is configurable via `LIVE_STATE_BLOB_OBJECT_PATH` (default
+`live-state.sanitized.json`; e.g. `live-state.provider.sanitized.json` for private
+provider testing).
+
+### 3e. Read-source observability metadata (Phase 1.28N)
+
+`/api/live-state` adds an **additive** top-level `serving` block (all existing
+`PublicSafeLiveState` fields are unchanged) so you can verify the read source safely:
+
+```jsonc
+"serving": {
+  "servedFrom": "blob" | "fixture" | "fixture-fallback",
+  "providerDerivedBlocked": false,
+  "fallbackReason": "blob-read-failed" | "provider-derived-public-blocked"
+                  | "invalid-blob-state" | "missing-blob-token", // only on a fixture-fallback
+  "sourceObjectPath": "live-state.sanitized.json"  // object pathname only; present when Blob was attempted
+}
+```
+
+`fallbackReason` is a **fixed enum** (raw Blob SDK errors are never surfaced) and
+`sourceObjectPath` is an object **pathname, never a URL**. The block carries no token,
+private Blob URL, header/account data, provider ids, or raw payloads.
 
 ---
 
