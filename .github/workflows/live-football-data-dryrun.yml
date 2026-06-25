@@ -1,0 +1,62 @@
+name: live-football-data-dryrun
+
+# Manual-only football-data.org live-data validation dry-run (Phase 1.28F).
+# Runs the existing local check (npm run live:football-data:check) in summary-only
+# mode using the GitHub Actions secret FOOTBALL_DATA_TOKEN. It NEVER runs on
+# schedule/push/pull_request, commits nothing, uploads no artifacts, and prints only
+# the script's redacted summary. The token is passed solely as a step-level env var
+# and is never echoed, logged, or written.
+on:
+  workflow_dispatch:
+    inputs:
+      include_standings:
+        description: Also fetch provider standings comparison data (comparison-only)
+        type: boolean
+        default: false
+      allow_partial:
+        description: Do not assert the full 104-match tournament feed
+        type: boolean
+        default: false
+
+# Read-only: this workflow must never write to the repo, packages, or deployments.
+permissions:
+  contents: read
+
+# Avoid overlapping provider checks; do not cancel an in-flight run.
+concurrency:
+  group: live-football-data-dryrun
+  cancel-in-progress: false
+
+jobs:
+  dry-run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run football-data.org dry-run (summary-only)
+        # Token is provided ONLY here, as an env var. It is never echoed or written.
+        # Missing secret -> the script fails safe (exit 1, missing-token) with no fetch.
+        env:
+          FOOTBALL_DATA_TOKEN: ${{ secrets.FOOTBALL_DATA_TOKEN }}
+          INCLUDE_STANDINGS: ${{ inputs.include_standings }}
+          ALLOW_PARTIAL: ${{ inputs.allow_partial }}
+        run: |
+          flags="--summary-only"
+          if [ "$INCLUDE_STANDINGS" != "true" ]; then
+            flags="$flags --no-standings"
+          fi
+          if [ "$ALLOW_PARTIAL" = "true" ]; then
+            flags="$flags --partial"
+          fi
+          echo "Running: npm run live:football-data:check -- $flags"
+          npm run live:football-data:check -- $flags
