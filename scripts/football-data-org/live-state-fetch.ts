@@ -80,6 +80,8 @@ export interface FetchSummary {
   unresolvedKnockoutCount: number;
   unmappedCount: number;
   normalizationErrorCodes: Record<string, number>;
+  /** Non-blocking knockout-shell advisories (future/scheduled shells), for transparency. */
+  knockoutShellAdvisories: Record<string, number>;
   validationWarnings: number;
   derivedStandingsSource: "results";
   providerStandingsComparisonOnly: boolean;
@@ -161,12 +163,23 @@ export function summariseMatchesPayload(payload: FdMatchesResponse): {
   };
 }
 
+// Codes that are genuine BLOCKERS (a real mapping risk that must stop a write).
+// NOTE: `knockout-shell-unmapped` is deliberately NOT here - it is an advisory for
+// scheduled/future knockout shells the app does not need (the bracket is derived
+// internally), so it must never count toward `unmappedCount`.
 const UNMAPPED_CODES = new Set([
   "unknown-team",
   "unmapped-match",
   "knockout-mapping-unavailable",
   "unknown-stage",
   "unknown-group",
+]);
+
+// Non-blocking knockout-shell advisories (future/scheduled shells, excluded from results).
+const KNOCKOUT_ADVISORY_CODES = new Set([
+  "unresolved-knockout",
+  "partially-resolved-knockout",
+  "knockout-shell-unmapped",
 ]);
 
 function tallyCodes(codes: string[]): Record<string, number> {
@@ -307,6 +320,7 @@ export async function runFetchLiveState(deps: FetchDeps): Promise<RunResult> {
     unresolvedKnockoutCount: errorCodes.filter((c) => c === "unresolved-knockout").length,
     unmappedCount: errorCodes.filter((c) => UNMAPPED_CODES.has(c)).length,
     normalizationErrorCodes: tallyCodes(errorCodes),
+    knockoutShellAdvisories: tallyCodes(errorCodes.filter((c) => KNOCKOUT_ADVISORY_CODES.has(c))),
     validationWarnings: state.warnings.length,
     derivedStandingsSource: "results",
     providerStandingsComparisonOnly: true,
@@ -338,8 +352,9 @@ export function formatSummary(s: FetchSummary): string {
     `  statusCounts:        ${JSON.stringify(s.statusCounts)}`,
     `  stageCounts:         ${JSON.stringify(s.stageCounts)}`,
     `  mapped -> M{n}:      ${s.mappedCount}`,
-    `  unresolved knockout: ${s.unresolvedKnockoutCount}`,
-    `  unmapped/unknown:    ${s.unmappedCount} ${JSON.stringify(s.normalizationErrorCodes)}`,
+    `  unmapped/unknown blockers: ${s.unmappedCount}`,
+    `  knockout shell advisories: ${JSON.stringify(s.knockoutShellAdvisories)}`,
+    `  normalization codes: ${JSON.stringify(s.normalizationErrorCodes)}`,
     `  validation warnings: ${s.validationWarnings}`,
     `  standings derived:   from ${s.derivedStandingsSource} (internal Article 13)`,
     `  provider standings:  comparison-only=${s.providerStandingsComparisonOnly}, fetched=${s.standingsFetched}, rows=${s.standingsComparisonRows}${s.standingsSkippedReason ? `, skipped: ${s.standingsSkippedReason}` : ""}`,

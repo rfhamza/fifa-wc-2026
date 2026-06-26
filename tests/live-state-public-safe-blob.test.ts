@@ -273,6 +273,60 @@ describe("manual writer", () => {
     expect(r.action).toBe("blocked");
     expect(r.reason).toBe("missing-blob-token");
   });
+
+  // Phase 1.28P-Hotfix: scheduled/future knockout shells must NOT block group writes.
+  const scheduledKnockoutShell = {
+    id: 9500, utcDate: "2026-06-30T19:00:00Z", status: "TIMED", stage: "LAST_32", group: null,
+    lastUpdated: "2026-06-24T14:09:06Z",
+    homeTeam: { id: 759, name: "Germany", shortName: "Germany", tla: "GER" },
+    awayTeam: { id: 764, name: "Brazil", shortName: "Brazil", tla: "BRA" },
+    score: { winner: null, duration: "REGULAR", fullTime: { home: null, away: null } },
+  };
+
+  it("WRITES when only knockout-shell advisories are present (no blockers)", async () => {
+    const payload = { competition: { code: "WC" }, matches: [...finishedGroupWin.matches, scheduledKnockoutShell] };
+    const store = fakeStore();
+    const logs: string[] = [];
+    const r = await runWritePublicSafeBlob({
+      ...baseDeps, source: "football-data", dryRun: false, allowPartial: true, store,
+      blobToken: "blob-secret", providerToken: "fd-secret",
+      fetchImpl: matchesFetch(payload), log: (l) => logs.push(l),
+    });
+    expect(r.action).toBe("wrote");
+    expect(r.isProviderDerived).toBe(true);
+    const parsed = JSON.parse(store.objects[DEFAULT_BLOB_OBJECT_PATH]!) as PublicSafeLiveState;
+    expect(parsed.publicSourcePolicy).toBe("provider-public-delayed");
+    expect(parsed.matches).toHaveLength(1); // M1 only; the scheduled shell is excluded
+    // Summary log distinguishes blockers (0) from knockout-shell advisories.
+    const out = logs.join("\n");
+    expect(out).toContain("unmapped/unknown blockers: 0");
+    expect(out).toContain("knockout shell advisories:");
+    expect(out).toContain("knockout-shell-unmapped");
+    // No provider ids / raw fields / tokens leak into the stored object.
+    const body = store.objects[DEFAULT_BLOB_OBJECT_PATH]!;
+    expect(/\b(759|764|9500|769)\b/.test(body)).toBe(false);
+    for (const bad of FORBIDDEN) expect(body.includes(bad)).toBe(false);
+    expect(out).not.toContain("fd-secret");
+    expect(out).not.toContain("blob-secret");
+  });
+
+  it("still BLOCKS on a FINISHED knockout that cannot be mapped (real result risk)", async () => {
+    const finishedUnmappedKo = {
+      ...scheduledKnockoutShell,
+      id: 9600, status: "FINISHED",
+      score: { winner: "HOME_TEAM", duration: "REGULAR", fullTime: { home: 2, away: 1 } },
+    };
+    const payload = { competition: { code: "WC" }, matches: [...finishedGroupWin.matches, finishedUnmappedKo] };
+    const store = fakeStore();
+    const r = await runWritePublicSafeBlob({
+      ...baseDeps, source: "football-data", dryRun: false, allowPartial: true, store,
+      blobToken: "blob-secret", providerToken: "fd-secret",
+      fetchImpl: matchesFetch(payload), log: () => {},
+    });
+    expect(r.action).toBe("blocked");
+    expect(r.reason).toContain("unmapped");
+    expect(Object.keys(store.objects)).toHaveLength(0); // last-known-good preserved
+  });
 });
 
 describe("route wiring (real resolver, default env)", () => {
