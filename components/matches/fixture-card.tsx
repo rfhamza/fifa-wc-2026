@@ -132,11 +132,11 @@ function TeamSide({
     <div
       className={`flex min-w-0 flex-1 flex-col ${align === "right" ? "items-end text-right" : ""}`}
     >
-      <div className="flex items-center gap-2">
+      <div className="flex min-w-0 items-center gap-2">
         {align === "left" && (
           <FlagGlyph countryCode={team.countryCode} flag={team.flag} name={team.name} size={20} />
         )}
-        <span className="truncate font-semibold">{team.name}</span>
+        <span className="min-w-0 truncate font-semibold">{team.name}</span>
         {align === "right" && (
           <FlagGlyph countryCode={team.countryCode} flag={team.flag} name={team.name} size={20} />
         )}
