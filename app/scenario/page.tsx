@@ -19,6 +19,7 @@ export default function ScenarioPage() {
       id: t.id,
       name: t.name,
       flag: t.flag,
+      countryCode: t.countryCode,
       fifaRanking: t.fifaRanking,
     })),
     fixtures: getFixturesForGroup(groupId).map((fixture) => {
@@ -35,6 +36,8 @@ export default function ScenarioPage() {
         awayName: away.name,
         homeFlag: home.flag,
         awayFlag: away.flag,
+        homeCountryCode: home.countryCode,
+        awayCountryCode: away.countryCode,
         defaultHomeGoals: top?.homeGoals ?? 0,
         defaultAwayGoals: top?.awayGoals ?? 0,
       };
