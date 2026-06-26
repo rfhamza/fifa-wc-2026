@@ -6,6 +6,8 @@ import {
   type StandoutRow,
 } from "@/components/dashboard/standout-contenders";
 import { DataSourceBadge } from "@/components/data-source-badge";
+import { LiveTeaser } from "@/components/live/live-teaser";
+import { LIVE_STATE_UI_ENABLED } from "@/lib/live-client/config";
 import { WinnerBarChart } from "@/components/charts/winner-bar-chart";
 import {
   Card,
@@ -48,6 +50,7 @@ export default function DashboardPage() {
 
       <DataSourceBadge />
 
+      {LIVE_STATE_UI_ENABLED && <LiveTeaser />}
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
