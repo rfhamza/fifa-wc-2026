@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { FlagGlyph } from "@/components/flag-glyph";
 import { cn } from "@/lib/utils";
 import { computeScenarioStandings } from "@/lib/simulation/scenario";
 import type { GroupId } from "@/lib/types";
@@ -25,13 +26,15 @@ export interface ScenarioFixture {
   awayName: string;
   homeFlag: string;
   awayFlag: string;
+  homeCountryCode: string;
+  awayCountryCode: string;
   defaultHomeGoals: number;
   defaultAwayGoals: number;
 }
 
 export interface ScenarioGroup {
   id: GroupId;
-  teams: { id: string; name: string; flag: string; fifaRanking: number }[];
+  teams: { id: string; name: string; flag: string; countryCode: string; fifaRanking: number }[];
   fixtures: ScenarioFixture[];
 }
 
@@ -53,6 +56,8 @@ export function ScenarioSimulator({ groups }: { groups: ScenarioGroup[] }) {
     group.teams.find((t) => t.id === id)?.name ?? id;
   const teamFlag = (id: string) =>
     group.teams.find((t) => t.id === id)?.flag ?? "";
+  const teamCountry = (id: string) =>
+    group.teams.find((t) => t.id === id)?.countryCode ?? "";
 
   // Effective score for a fixture: override if present, else model default.
   const scoreFor = (f: ScenarioFixture) =>
@@ -166,7 +171,8 @@ export function ScenarioSimulator({ groups }: { groups: ScenarioGroup[] }) {
               >
                 <div className="flex items-center justify-between gap-2 text-sm">
                   <span className="flex flex-1 items-center gap-1.5">
-                    {f.homeFlag} {f.homeName}
+                    <FlagGlyph countryCode={f.homeCountryCode} flag={f.homeFlag} name={f.homeName} size={16} />
+                    {f.homeName}
                   </span>
                   <Stepper
                     value={s.home}
@@ -178,7 +184,8 @@ export function ScenarioSimulator({ groups }: { groups: ScenarioGroup[] }) {
                     onChange={(d) => setScore(f, "away", d)}
                   />
                   <span className="flex flex-1 items-center justify-end gap-1.5 text-right">
-                    {f.awayName} {f.awayFlag}
+                    {f.awayName}
+                    <FlagGlyph countryCode={f.awayCountryCode} flag={f.awayFlag} name={f.awayName} size={16} />
                   </span>
                 </div>
               </div>
@@ -218,7 +225,10 @@ export function ScenarioSimulator({ groups }: { groups: ScenarioGroup[] }) {
                       {s.rank}
                     </TableCell>
                     <TableCell className="font-medium">
-                      {teamFlag(s.teamId)} {teamName(s.teamId)}
+                      <span className="inline-flex items-center gap-1.5">
+                        <FlagGlyph countryCode={teamCountry(s.teamId)} flag={teamFlag(s.teamId)} name={teamName(s.teamId)} size={16} />
+                        {teamName(s.teamId)}
+                      </span>
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
                       {s.played}
