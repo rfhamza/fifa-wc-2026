@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/table";
 import { ProbabilityMeter } from "@/components/charts/probability-meter";
 import { FlagGlyph } from "@/components/flag-glyph";
+import { WinnerCards } from "./winner-cards";
 import type { Team, TournamentStageProbability } from "@/lib/types";
 import { pct } from "@/lib/utils";
 
@@ -17,7 +18,7 @@ export interface WinnerRow {
   probability: TournamentStageProbability;
 }
 
-const STAGE_COLUMNS: {
+export const STAGE_COLUMNS: {
   key: keyof Omit<TournamentStageProbability, "teamId">;
   label: string;
 }[] = [
@@ -27,10 +28,19 @@ const STAGE_COLUMNS: {
   { key: "final", label: "Final" },
 ];
 
-/** Ranked tournament outlook table with a winner-probability bar + stage columns. */
+/**
+ * Ranked tournament outlook. The rich table renders at `md`+ (it needs ~657px); below
+ * `md` it would overflow narrow phones, so a stacked-card layout (`WinnerCards`) is shown
+ * instead - same rows, order and probability values, no horizontal scroll.
+ */
 export function WinnerTable({ rows }: { rows: WinnerRow[] }) {
   return (
-    <Table>
+    <>
+      <div className="md:hidden">
+        <WinnerCards rows={rows} />
+      </div>
+      <div className="hidden md:block">
+        <Table>
       <TableHeader>
         <TableRow>
           <TableHead className="w-8">#</TableHead>
@@ -79,8 +89,10 @@ export function WinnerTable({ rows }: { rows: WinnerRow[] }) {
               </TableCell>
             ))}
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+          ))}
+        </TableBody>
+        </Table>
+      </div>
+    </>
   );
 }

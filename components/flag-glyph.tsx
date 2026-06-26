@@ -77,14 +77,14 @@ export function FlagGlyph({ countryCode, flag, name, size = 18, className }: Fla
 
   if (code === "ENG") {
     return (
-      <span className={cn("inline-flex items-center", className)}>
+      <span className={cn("inline-flex shrink-0 items-center", className)}>
         <EnglandFlag size={size} label={label} />
       </span>
     );
   }
   if (code === "SCO") {
     return (
-      <span className={cn("inline-flex items-center", className)}>
+      <span className={cn("inline-flex shrink-0 items-center", className)}>
         <ScotlandFlag size={size} label={label} />
       </span>
     );
@@ -92,7 +92,7 @@ export function FlagGlyph({ countryCode, flag, name, size = 18, className }: Fla
 
   return (
     <span
-      className={cn("inline-block align-middle leading-none", className)}
+      className={cn("inline-block shrink-0 align-middle leading-none", className)}
       style={{ fontSize: `${size}px` }}
       aria-hidden
     >

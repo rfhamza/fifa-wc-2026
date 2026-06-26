@@ -65,7 +65,7 @@ export function LiveTournamentState({ teamLookup }: { teamLookup: TeamLookup }) 
   return (
     <div className="space-y-6">
       <LiveDataBadge view={view} nowMs={nowMs} />
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2 [&>*]:min-w-0">
         <LatestMatchesPanel matches={view.matches} lookup={teamLookup} />
         <ThirdPlaceRaceCard standings={view.standings} lookup={teamLookup} />
       </div>

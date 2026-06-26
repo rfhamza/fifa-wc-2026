@@ -43,11 +43,11 @@ export function LiveBracketStatus({
           <ul className="divide-y divide-border/60">
             {resolved.map((b) => (
               <li key={b.matchNumber} className="flex items-center justify-between gap-2 py-1.5 text-sm">
-                <span className="text-xs text-muted-foreground tabular-nums">M{b.matchNumber}</span>
-                <span className="flex flex-1 items-center justify-end gap-2">
-                  <LiveTeam id={b.homeTeamId} lookup={lookup} />
-                  <span className="text-xs text-muted-foreground">v</span>
-                  <LiveTeam id={b.awayTeamId} lookup={lookup} />
+                <span className="shrink-0 text-xs text-muted-foreground tabular-nums">M{b.matchNumber}</span>
+                <span className="flex min-w-0 flex-1 items-center justify-end gap-2">
+                  <LiveTeam id={b.homeTeamId} lookup={lookup} className="min-w-0" />
+                  <span className="shrink-0 text-xs text-muted-foreground">v</span>
+                  <LiveTeam id={b.awayTeamId} lookup={lookup} className="min-w-0" />
                 </span>
               </li>
             ))}

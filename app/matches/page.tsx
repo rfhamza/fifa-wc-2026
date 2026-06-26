@@ -38,7 +38,7 @@ export default function MatchesPage() {
       {[...byGroup.entries()].map(([groupId, items]) => (
         <section key={groupId} className="space-y-4">
           <h2 className="text-xl font-semibold">Group {groupId}</h2>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 [&>*]:min-w-0">
             {items.map(({ fixture, prediction }) => (
               <FixtureCard
                 key={fixture.id}
