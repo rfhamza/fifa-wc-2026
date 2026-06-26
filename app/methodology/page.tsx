@@ -114,46 +114,40 @@ export default function MethodologyPage() {
           table that allocates the eight best third-placed teams across the 495
           possible group combinations.
         </p>
-        <p>
-          Current bracket status:{" "}
+        {/* Block-level wrapper (not <p>): Badge renders a <div>, which is invalid
+            inside a <p> and caused a hydration mismatch. */}
+        <div className="flex items-center gap-2">
+          <span>Current bracket status:</span>
           <Badge variant={BRACKET_ACTIVE ? "default" : "muted"}>
             {bracket.sourceStatus}
             {BRACKET_ACTIVE ? " - official path active" : " - placeholder seeding"}
           </Badge>
-        </p>
+        </div>
         <p>
-          Because the official FIFA regulations PDF is not machine-retrievable
-          here, the bracket data is not yet source-verified. Until the graph and
-          all 495 Annexe C rows are transcribed, validated, and confirmed, the
-          simulator uses a transparent balanced-seeding placeholder &mdash; it is
-          never silently presented as the official bracket.
+          The official knockout path is <strong>active</strong>: the Round of 32
+          skeleton (M73&ndash;M88), the downstream R16/QF/SF/final propagation
+          graph, and all 495 Annexe C third-place-allocation rows are transcribed,
+          validated and used directly by the simulator. The allocation of the eight
+          best third-placed teams is computed internally from FIFA&apos;s rules &mdash;
+          it is never approximated.
         </p>
       </Section>
 
       <Section title="Group-stage fixtures">
         <p>
-          Group composition is source-verified (candidate), and the six matches
-          in each group are generated strictly from the FIFA{" "}
-          <strong>Article 12.4</strong> draw-position chart - the regulation
-          pairings (MD1: 1v2, 3v4; MD2: 1v3, 4v2; MD3: 4v1, 2v3). Only the three
-          co-hosts have a source-backed draw slot (Mexico A1, Canada B1, USA D1);
-          the remaining positions use an internal placeholder ordering purely to
-          form pairings.
+          The <strong>official FIFA match schedule (v17, 10 Apr 2026, &ldquo;subject
+          to change&rdquo;)</strong> is <strong>active</strong>. All 48 draw
+          positions are verified, so the 72 group-stage fixtures carry their
+          official match numbers, <strong>dates, kickoff times and venues</strong>
+          &mdash; not a generated ordering. The schedule itself remains officially
+          labelled &ldquo;subject to change&rdquo;, and that caveat is preserved on
+          every fixture.
         </p>
         <p>
-          Because the official chronological schedule (match dates, kickoff times
-          and venue assignments) is not yet source-verified, these fixtures are
-          labelled <strong>position-generated</strong> and shown without kickoff
-          dates. The real schedule may list matches in a different order than the
-          regulation pairing chart - we never present the generated order as
-          official until the FIFA schedule is supplied and validated.
-        </p>
-        <p>
-          The official FIFA match schedule (PDF v17, 10 Apr 2026, &ldquo;subject
-          to change&rdquo;) has now been transcribed into an isolated staging
-          layer and verified, but is <strong>not yet activated</strong> &mdash;
-          production fixtures remain position-generated until activation is
-          reviewed and approved.
+          Group composition is cross-verified (candidate), and the regulation
+          pairings still follow the FIFA <strong>Article 12.4</strong> chart (MD1:
+          1v2, 3v4; MD2: 1v3, 4v2; MD3: 4v1, 2v3) &mdash; now placed on the official
+          chronological schedule rather than an internal ordering.
         </p>
       </Section>
 
@@ -170,19 +164,32 @@ export default function MethodologyPage() {
           playability score from World Bank Climate Knowledge Portal 1991-2020
           normals (England &amp; Scotland from Met Office / HadUK-Grid), kept
           capped. The remaining numeric inputs (squad quality and form) are
-          realistic but hand-authored <strong>placeholder</strong> values, and the
-          knockout bracket mapping is still illustrative. Each is structured to be
+          realistic but hand-authored <strong>placeholder</strong> values, kept
+          capped so they cannot dominate the forecast. Each is structured to be
           swapped for a real data source without touching the model or UI.
+        </p>
+      </Section>
+
+      <Section title="Live tournament state">
+        <p>
+          A <strong>live tournament-state</strong> view (the Tournament State page)
+          is now populated from a sanitized <strong>Football-Data.org</strong>
+          provider feed. It is <strong>provider-backed and delayed</strong>, and
+          public-safe: no provider IDs, raw payloads or credentials are exposed. The
+          provider feed <strong>does not drive</strong> bracket logic, group
+          standings, or canonical match numbers &mdash; those remain derived
+          internally from FIFA rules. The published probabilities are still baseline{" "}
+          <strong>model estimates</strong> and are <strong>not</strong> yet
+          recalculated from live results.
         </p>
       </Section>
 
       <Section title="What will be improved later">
         <ul className="ml-5 list-disc space-y-1">
-          <li>Live ratings, results and squad data via real APIs.</li>
-          <li>Player-level value and availability (injuries, suspensions).</li>
+          <li>Recalculating probabilities from live results as the tournament unfolds.</li>
+          <li>A probability history / timeline of how forecasts move over time.</li>
+          <li>Live ratings and squad data (injuries, suspensions, availability) via real APIs.</li>
           <li>A bivariate / Dixon-Coles scoreline model with goal correlation.</li>
-          <li>The official 2026 knockout bracket position chart.</li>
-          <li>Snapshot history to power genuine &ldquo;top movers&rdquo;.</li>
         </ul>
       </Section>
 

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ProbabilityMeter } from "@/components/charts/probability-meter";
+import { FlagGlyph } from "@/components/flag-glyph";
 import { GROUP_IDS, getTeamsInGroup } from "@/lib/data";
 import { getStageProbability } from "@/lib/model/forecast";
 
@@ -33,7 +34,7 @@ export default function TeamsPage() {
                     <CardContent className="space-y-3 p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="text-2xl">{team.flag}</span>
+                          <FlagGlyph countryCode={team.countryCode} flag={team.flag} name={team.name} size={24} />
                           <div>
                             <div className="font-semibold leading-tight">
                               {team.name}

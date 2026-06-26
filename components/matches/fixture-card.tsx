@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ProbabilityBar } from "@/components/charts/probability-bar";
+import { FlagGlyph } from "@/components/flag-glyph";
 import type { Fixture, FixtureSource, MatchPrediction, Team, Venue } from "@/lib/types";
 import { pct } from "@/lib/utils";
 import { MapPin } from "lucide-react";
@@ -132,9 +133,13 @@ function TeamSide({
       className={`flex min-w-0 flex-1 flex-col ${align === "right" ? "items-end text-right" : ""}`}
     >
       <div className="flex items-center gap-2">
-        {align === "left" && <span className="text-xl">{team.flag}</span>}
+        {align === "left" && (
+          <FlagGlyph countryCode={team.countryCode} flag={team.flag} name={team.name} size={20} />
+        )}
         <span className="truncate font-semibold">{team.name}</span>
-        {align === "right" && <span className="text-xl">{team.flag}</span>}
+        {align === "right" && (
+          <FlagGlyph countryCode={team.countryCode} flag={team.flag} name={team.name} size={20} />
+        )}
       </div>
       <span className="text-xs text-muted-foreground">xG {xg.toFixed(2)}</span>
     </div>

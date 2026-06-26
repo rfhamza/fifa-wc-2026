@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { FlagGlyph } from "@/components/flag-glyph";
 import type { TeamLookup } from "@/lib/live-client/public-safe-view.client";
 
 /** Compact team identity (flag + name) resolved from the server-provided lookup. */
@@ -15,9 +16,13 @@ export function LiveTeam({
   const team = lookup[id];
   return (
     <span className={cn("inline-flex items-center gap-1.5", className)}>
-      <span className="text-base leading-none" aria-hidden>
-        {team?.flag ?? "·"}
-      </span>
+      {team ? (
+        <FlagGlyph countryCode={team.countryCode} flag={team.flag} name={team.name} size={16} />
+      ) : (
+        <span className="text-base leading-none" aria-hidden>
+          ·
+        </span>
+      )}
       <span className="font-medium">{team?.name ?? id}</span>
     </span>
   );

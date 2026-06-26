@@ -20,7 +20,10 @@ export interface WinnerBarDatum {
 export function WinnerBarChart({ data }: { data: WinnerBarDatum[] }) {
   const chartData = data.map((d) => ({
     ...d,
-    label: `${d.flag} ${d.name}`,
+    // Recharts axis ticks are plain strings, so the inline-SVG FlagGlyph can't be used
+    // here. England/Scotland have a text-code flag ("ENG"/"SCO"); show just the name for
+    // those (avoids a redundant "ENG England") and keep the emoji prefix for the rest.
+    label: /^[A-Za-z]{2,4}$/.test(d.flag) ? d.name : `${d.flag} ${d.name}`,
     value: +(d.winner * 100).toFixed(1),
   }));
 

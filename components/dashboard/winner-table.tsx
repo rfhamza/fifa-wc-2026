@@ -8,6 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ProbabilityMeter } from "@/components/charts/probability-meter";
+import { FlagGlyph } from "@/components/flag-glyph";
 import type { Team, TournamentStageProbability } from "@/lib/types";
 import { pct } from "@/lib/utils";
 
@@ -53,7 +54,7 @@ export function WinnerTable({ rows }: { rows: WinnerRow[] }) {
                 href={`/teams/${row.team.id}`}
                 className="flex items-center gap-2 font-medium transition-colors hover:text-primary"
               >
-                <span className="text-lg">{row.team.flag}</span>
+                <FlagGlyph countryCode={row.team.countryCode} flag={row.team.flag} name={row.team.name} size={18} />
                 {row.team.name}
               </Link>
             </TableCell>
