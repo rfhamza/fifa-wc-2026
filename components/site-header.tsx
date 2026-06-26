@@ -4,12 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { LIVE_STATE_UI_ENABLED } from "@/lib/live-client/config";
 
 const NAV = [
   { href: "/", label: "Forecast" },
   { href: "/matches", label: "Matches" },
   { href: "/teams", label: "Teams" },
   { href: "/scenario", label: "Scenario Lab" },
+  ...(LIVE_STATE_UI_ENABLED ? [{ href: "/live", label: "Tournament State" }] : []),
   { href: "/methodology", label: "Methodology" },
 ];
 
