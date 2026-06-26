@@ -265,6 +265,30 @@ object `live-state.sanitized.json` remains untouched, and the scheduled workflow
 writing **only** the provider object - so the manual snapshot is always a clean
 last-known-good.
 
+### 3h. Knockout-shell mapping severity (Phase 1.28P-Hotfix)
+
+As group results finalise, R32 ties get both participants determined. A fully-resolved
+knockout match with no provider-id -> `M{n}` mapping is now classified by playability:
+- **scheduled / postponed / cancelled** (not yet a played result) -> advisory
+  `knockout-shell-unmapped` (NON-blocking; excluded from results - the bracket is derived
+  internally, so nothing real is lost).
+- **active / finished / ambiguous** (`in-progress` | `complete` | `unknown`, i.e. provider
+  LIVE/IN_PLAY/PAUSED/FINISHED/unrecognised) -> blocking `knockout-mapping-unavailable`
+  (never silently drop a live/finished result we cannot map).
+
+`knockout-shell-unmapped` is excluded from `UNMAPPED_CODES`, so it does not count toward
+`unmappedCount` and does not block the write. The fetch summary now prints
+`unmapped/unknown blockers: N` and a separate `knockout shell advisories: {...}` line.
+Group-stage unmapped/unknown-team risks, validation warnings, no-mapped-matches, and
+payload shape drift all still block. The provider write still emits
+`publicSourcePolicy="provider-public-delayed"`.
+
+> **Follow-up (REQUIRED before R32 kickoff; not in this hotfix):** supply a provider
+> knockout-id -> `M{n}` mapping so real knockout results map to canonical ids. This hotfix
+> only stops scheduled/future knockout shells from blocking group-stage updates; once
+> knockouts are actually played, finished knockout matches will (correctly) block until the
+> mapping exists. The group stage is nearly complete - prioritise this.
+
 ---
 
 ## 4. Expected healthy output

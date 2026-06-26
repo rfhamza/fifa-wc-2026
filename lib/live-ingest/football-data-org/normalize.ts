@@ -155,7 +155,23 @@ export function normalizeFootballDataMatches(
     } else {
       const mapped = opts.knockoutMatchIdMap?.[pid];
       if (mapped == null) {
-        issue("knockout-mapping-unavailable", `No matchNumber mapping for knockout provider id ${pid} (full mapping is future work).`);
+        // Both knockout sides are resolved + mappable here (TBD/unknown sides were handled
+        // above), but there is no provider-id -> matchNumber mapping. Severity depends on
+        // whether excluding this row would drop a REAL result:
+        //   - active / finished / ambiguous status (in-progress | complete | unknown) ->
+        //     BLOCKING `knockout-mapping-unavailable` (never silently drop a live/finished
+        //     knockout result we cannot map). Covers provider LIVE/IN_PLAY/PAUSED/FINISHED;
+        //     `unknown` is treated as a result-risk conservatively.
+        //   - scheduled / postponed / cancelled (not yet a played result) -> ADVISORY
+        //     `knockout-shell-unmapped`. The bracket is derived internally, so nothing real
+        //     is lost; these future shells must NOT block group-stage provider writes.
+        const isResultRisk =
+          status === "in-progress" || status === "complete" || status === "unknown";
+        if (isResultRisk) {
+          issue("knockout-mapping-unavailable", `Active/finished knockout ${pid} (status "${status}") has no matchNumber mapping; cannot safely record result.`);
+        } else {
+          issue("knockout-shell-unmapped", `Scheduled knockout shell ${pid} (status "${status}") resolved but not yet mapped; advisory - bracket is derived internally.`);
+        }
         continue;
       }
       matchId = `M${mapped}`;
