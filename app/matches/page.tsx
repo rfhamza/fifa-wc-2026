@@ -28,10 +28,10 @@ export default function MatchesPage() {
         </h1>
         <p className="max-w-2xl text-muted-foreground">
           Every group-stage match with win/draw/loss probabilities, expected
-          goals, most-likely scorelines and the key drivers behind each
-          prediction. Pairings are position-generated from the FIFA Article 12.4
-          chart; the chronological schedule and venue assignments are pending
-          official verification (so no kickoff dates are shown).
+          goals, most-likely scorelines and key drivers. Fixtures, dates, kickoff
+          times and venues follow the official FIFA schedule v17, subject to
+          change. Forecasts are pre-match model estimates and are not yet
+          recalculated from live results.
         </p>
       </header>
 

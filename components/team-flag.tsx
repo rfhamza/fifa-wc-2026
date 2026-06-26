@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Team } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { FlagGlyph } from "@/components/flag-glyph";
 
 interface TeamFlagProps {
   team: Team;
@@ -19,9 +20,7 @@ export function TeamFlag({
 }: TeamFlagProps) {
   const content = (
     <span className={cn("inline-flex items-center gap-2", className)}>
-      <span className="text-lg leading-none" aria-hidden>
-        {team.flag}
-      </span>
+      <FlagGlyph countryCode={team.countryCode} flag={team.flag} name={team.name} size={18} />
       <span className="font-medium">{team.name}</span>
       {showCode && (
         <span className="text-xs text-muted-foreground">{team.countryCode}</span>

@@ -19,6 +19,7 @@ import {
 import { climateSuitabilityTo100 } from "@/lib/model/climate-suitability";
 import { StageFunnelChart } from "@/components/charts/stage-funnel-chart";
 import { ProbabilityBar } from "@/components/charts/probability-bar";
+import { FlagGlyph } from "@/components/flag-glyph";
 import { teams, teamById, getTeam, getVenue, getFixturesForTeam } from "@/lib/data";
 import {
   getStageProbability,
@@ -75,7 +76,7 @@ export default function TeamPage({ params }: { params: { teamId: string } }) {
 
       {/* Overview */}
       <header className="flex flex-wrap items-center gap-4">
-        <span className="text-6xl">{team.flag}</span>
+        <FlagGlyph countryCode={team.countryCode} flag={team.flag} name={team.name} size={56} />
         <div className="space-y-1">
           <h1 className="text-3xl font-bold tracking-tight">{team.name}</h1>
           <div className="flex flex-wrap items-center gap-2">
@@ -226,7 +227,9 @@ export default function TeamPage({ params }: { params: { teamId: string } }) {
                 className="space-y-3 rounded-lg border border-border/60 p-4"
               >
                 <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium">vs {opponent.flag} {opponent.name}</span>
+                  <span className="inline-flex items-center gap-1.5 font-medium">
+                    vs <FlagGlyph countryCode={opponent.countryCode} flag={opponent.flag} name={opponent.name} size={16} /> {opponent.name}
+                  </span>
                   <Badge variant="outline">MD{fixture.matchday}</Badge>
                 </div>
                 <ProbabilityBar

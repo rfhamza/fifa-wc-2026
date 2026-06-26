@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { FlagGlyph } from "@/components/flag-glyph";
 import type { Team, TournamentStageProbability } from "@/lib/types";
 import { pct } from "@/lib/utils";
 
@@ -33,7 +34,7 @@ export function Hero({ favourite, iterations, teamsCount }: HeroProps) {
               Current favourite
             </div>
             <div className="mt-1 flex items-center gap-2 text-xl font-semibold">
-              <span className="text-2xl">{favourite.team.flag}</span>
+              <FlagGlyph countryCode={favourite.team.countryCode} flag={favourite.team.flag} name={favourite.team.name} size={24} />
               {favourite.team.name}
             </div>
           </div>
