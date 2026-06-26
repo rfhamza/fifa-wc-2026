@@ -77,3 +77,11 @@ export function getTeamMeta(): TeamMeta[] {
     conductScore: 0,
   }));
 }
+
+// Phase 1.28R: official knockout-stage schedule (M73-M104 kickoff timing).
+export {
+  officialKnockoutSchedule,
+  validateKnockoutSchedule,
+  etDaylightToUtc,
+  type OfficialKnockoutScheduleRow,
+} from "@/data/official/knockout-schedule";

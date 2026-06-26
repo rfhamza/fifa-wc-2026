@@ -17,6 +17,7 @@
  * standings stay COMPARISON-ONLY; canonical `matchNumber`/`M{n}` stays internal.
  */
 import { normalizeFootballDataMatches, extractFootballDataStandings } from "@/lib/live-ingest/football-data-org/normalize";
+import { buildKnockoutMatchIdMap, findKnockoutTeamConflicts } from "@/lib/live-ingest/football-data-org/knockout-bridge";
 import { buildOfficialReference, ingestLiveSnapshot } from "@/lib/live-state/ingest";
 import type { LiveStateReference, LiveTournamentState } from "@/lib/live-state/types";
 import type { FdMatchesResponse, FdStandingsResponse } from "@/lib/live-ingest/football-data-org/types";
@@ -82,6 +83,10 @@ export interface FetchSummary {
   normalizationErrorCodes: Record<string, number>;
   /** Non-blocking knockout-shell advisories (future/scheduled shells), for transparency. */
   knockoutShellAdvisories: Record<string, number>;
+  /** Phase 1.28R bridge: knockout provider rows mapped to canonical M{n} by official kickoff. */
+  knockoutBridgeMapped: number;
+  /** Bridge: knockout rows with no official (round,kickoffUtc) match that are playable. */
+  knockoutBridgeUnmatchedPlayable: number;
   validationWarnings: number;
   derivedStandingsSource: "results";
   providerStandingsComparisonOnly: boolean;
@@ -254,6 +259,17 @@ export async function runFetchLiveState(deps: FetchDeps): Promise<RunResult> {
 
   const provider = summariseMatchesPayload(matchesPayload);
 
+  // --- knockout fixture identity bridge (Phase 1.28R): provider (stage,utcDate) ->
+  // official (round,kickoffUtc) -> canonical matchNumber. In-memory only; fails closed on
+  // ambiguous (duplicate) keys. Provider IDs never leave this map (not logged/persisted). ---
+  let knockoutBridge: ReturnType<typeof buildKnockoutMatchIdMap>;
+  try {
+    knockoutBridge = buildKnockoutMatchIdMap(matchesPayload);
+  } catch (e) {
+    log(`ERROR: knockout identity bridge failed: ${e instanceof Error ? e.message : "unknown"}`);
+    return { exitCode: 1, error: "knockout-bridge-failed" };
+  }
+
   // --- normalize (fails closed on non-WC / count mismatch / schema drift) ---
   let normalized: ReturnType<typeof normalizeFootballDataMatches>;
   try {
@@ -261,6 +277,7 @@ export async function runFetchLiveState(deps: FetchDeps): Promise<RunResult> {
       reference,
       expectFullTournament: options.expectFullTournament,
       asOf: fetchedAt,
+      knockoutMatchIdMap: knockoutBridge.knockoutMatchIdMap,
     });
   } catch (e) {
     log(`ERROR: normalization failed: ${e instanceof Error ? e.message : "unknown"}`);
@@ -272,6 +289,15 @@ export async function runFetchLiveState(deps: FetchDeps): Promise<RunResult> {
     generatedAt: fetchedAt,
     staleAfterSeconds: 24 * 60 * 60,
   });
+
+  // Cross-check: bridged knockout matches with resolved teams must agree with the
+  // internally derived bracket slot. A conflict means a mis-map -> fail closed (no write).
+  const knockoutConflicts = findKnockoutTeamConflicts(state.matches, state.bracket);
+  if (knockoutConflicts.length > 0) {
+    log(`ERROR: ${knockoutConflicts.length} knockout team conflict(s) vs internal bracket; failing closed.`);
+    return { exitCode: 1, error: "knockout-team-conflict" };
+  }
+
   writeIf("live-state.json", JSON.stringify(state));
 
   const errorCodes = normalized.errors.map((x) => x.code);
@@ -321,6 +347,8 @@ export async function runFetchLiveState(deps: FetchDeps): Promise<RunResult> {
     unmappedCount: errorCodes.filter((c) => UNMAPPED_CODES.has(c)).length,
     normalizationErrorCodes: tallyCodes(errorCodes),
     knockoutShellAdvisories: tallyCodes(errorCodes.filter((c) => KNOCKOUT_ADVISORY_CODES.has(c))),
+    knockoutBridgeMapped: knockoutBridge.diagnostics.mapped,
+    knockoutBridgeUnmatchedPlayable: knockoutBridge.diagnostics.unmatchedPlayable,
     validationWarnings: state.warnings.length,
     derivedStandingsSource: "results",
     providerStandingsComparisonOnly: true,
@@ -352,6 +380,7 @@ export function formatSummary(s: FetchSummary): string {
     `  statusCounts:        ${JSON.stringify(s.statusCounts)}`,
     `  stageCounts:         ${JSON.stringify(s.stageCounts)}`,
     `  mapped -> M{n}:      ${s.mappedCount}`,
+    `  knockout bridge mapped: ${s.knockoutBridgeMapped} (unmatched playable: ${s.knockoutBridgeUnmatchedPlayable})`,
     `  unmapped/unknown blockers: ${s.unmappedCount}`,
     `  knockout shell advisories: ${JSON.stringify(s.knockoutShellAdvisories)}`,
     `  normalization codes: ${JSON.stringify(s.normalizationErrorCodes)}`,
