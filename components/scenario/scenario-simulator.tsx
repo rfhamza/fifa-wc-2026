@@ -152,7 +152,7 @@ export function ScenarioSimulator({ groups }: { groups: ScenarioGroup[] }) {
         </Button>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2 [&>*]:min-w-0">
         {/* Editable fixtures */}
         <div className="space-y-3">
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
@@ -170,21 +170,21 @@ export function ScenarioSimulator({ groups }: { groups: ScenarioGroup[] }) {
                 )}
               >
                 <div className="flex items-center justify-between gap-2 text-sm">
-                  <span className="flex flex-1 items-center gap-1.5">
+                  <span className="flex min-w-0 flex-1 items-center gap-1.5">
                     <FlagGlyph countryCode={f.homeCountryCode} flag={f.homeFlag} name={f.homeName} size={16} />
-                    {f.homeName}
+                    <span className="min-w-0 truncate">{f.homeName}</span>
                   </span>
                   <Stepper
                     value={s.home}
                     onChange={(d) => setScore(f, "home", d)}
                   />
-                  <span className="text-muted-foreground">–</span>
+                  <span className="shrink-0 text-muted-foreground">–</span>
                   <Stepper
                     value={s.away}
                     onChange={(d) => setScore(f, "away", d)}
                   />
-                  <span className="flex flex-1 items-center justify-end gap-1.5 text-right">
-                    {f.awayName}
+                  <span className="flex min-w-0 flex-1 items-center justify-end gap-1.5 text-right">
+                    <span className="min-w-0 truncate">{f.awayName}</span>
                     <FlagGlyph countryCode={f.awayCountryCode} flag={f.awayFlag} name={f.awayName} size={16} />
                   </span>
                 </div>

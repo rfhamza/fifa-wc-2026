@@ -53,7 +53,7 @@ export default function DashboardPage() {
       {LIVE_STATE_UI_ENABLED && <LiveTeaser />}
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
+        <Card className="min-w-0 lg:col-span-2">
           <CardHeader>
             <CardTitle>Tournament win probability</CardTitle>
             <CardDescription>
@@ -66,7 +66,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Top contenders</CardTitle>

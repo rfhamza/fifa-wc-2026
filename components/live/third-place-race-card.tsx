@@ -52,14 +52,16 @@ export function ThirdPlaceRaceCard({
           <ul className="space-y-1">
             {preview.map((e) => (
               <li key={e.teamId} className="flex items-center justify-between gap-2 text-sm">
-                <span className="flex items-center gap-2 truncate">
-                  <span className="w-4 text-right text-xs text-muted-foreground tabular-nums">
+                <span className="flex min-w-0 items-center gap-2">
+                  <span className="w-4 shrink-0 text-right text-xs text-muted-foreground tabular-nums">
                     {e.rank}
                   </span>
-                  <LiveTeam id={e.teamId} lookup={lookup} />
-                  <span className="text-xs text-muted-foreground">Grp {e.group}</span>
+                  <LiveTeam id={e.teamId} lookup={lookup} className="min-w-0" />
+                  <span className="shrink-0 text-xs text-muted-foreground">Grp {e.group}</span>
                 </span>
-                <Badge variant={statusVariant(e.status)}>{e.status}</Badge>
+                <Badge variant={statusVariant(e.status)} className="shrink-0">
+                  {e.status}
+                </Badge>
               </li>
             ))}
           </ul>

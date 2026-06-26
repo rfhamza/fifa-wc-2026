@@ -12,7 +12,7 @@ interface HeroProps {
 /** Premium hero banner for the forecast dashboard. */
 export function Hero({ favourite, iterations, teamsCount }: HeroProps) {
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-card via-card to-secondary/30 p-8 lg:p-12">
+    <section className="relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-card via-card to-secondary/30 p-6 md:p-8 lg:p-12">
       <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
       <div className="relative max-w-2xl space-y-4">
         <Badge variant="accent">FIFA World Cup 2026 · Forecast Lab</Badge>

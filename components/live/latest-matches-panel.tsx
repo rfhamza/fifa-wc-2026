@@ -37,17 +37,17 @@ export function LatestMatchesPanel({
             {rows.map((m) => {
               const hasScore = typeof m.goalsA === "number" && typeof m.goalsB === "number";
               return (
-                <li key={m.matchId} className="flex items-center justify-between gap-3 py-2.5">
-                  <div className="flex items-center gap-2 text-sm">
+                <li key={m.matchId} className="flex items-center justify-between gap-2 py-2.5">
+                  <div className="flex shrink-0 items-center gap-2 text-sm">
                     {statusBadge(m.status)}
                     <span className="text-xs text-muted-foreground tabular-nums">{m.matchId}</span>
                   </div>
-                  <div className="flex flex-1 items-center justify-end gap-3 text-sm">
-                    <LiveTeam id={m.teamA} lookup={lookup} />
-                    <span className="min-w-[2.5rem] text-center font-semibold tabular-nums">
+                  <div className="flex min-w-0 flex-1 items-center justify-end gap-2 text-sm">
+                    <LiveTeam id={m.teamA} lookup={lookup} className="min-w-0" />
+                    <span className="shrink-0 text-center font-semibold tabular-nums">
                       {hasScore ? `${m.goalsA}-${m.goalsB}` : "v"}
                     </span>
-                    <LiveTeam id={m.teamB} lookup={lookup} />
+                    <LiveTeam id={m.teamB} lookup={lookup} className="min-w-0" />
                   </div>
                 </li>
               );

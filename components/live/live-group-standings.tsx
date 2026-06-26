@@ -35,7 +35,7 @@ export function LiveGroupStandings({
         {groups.length === 0 ? (
           <p className="text-sm text-muted-foreground">Standings not available yet.</p>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 [&>*]:min-w-0">
             {groups.map((g) => (
               <div key={g.group} className="rounded-lg border border-border/60 bg-secondary/20 p-3">
                 <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -50,13 +50,13 @@ export function LiveGroupStandings({
                         r.position <= 2 && "font-medium",
                       )}
                     >
-                      <span className="flex items-center gap-2 truncate">
-                        <span className="w-4 text-right text-xs text-muted-foreground tabular-nums">
+                      <span className="flex min-w-0 items-center gap-2">
+                        <span className="w-4 shrink-0 text-right text-xs text-muted-foreground tabular-nums">
                           {r.position}
                         </span>
-                        <LiveTeam id={r.teamId} lookup={lookup} />
+                        <LiveTeam id={r.teamId} lookup={lookup} className="min-w-0" />
                       </span>
-                      <span className="flex items-center gap-2">
+                      <span className="flex shrink-0 items-center gap-2">
                         <span className="text-xs text-muted-foreground tabular-nums">
                           {r.points} pts
                         </span>
