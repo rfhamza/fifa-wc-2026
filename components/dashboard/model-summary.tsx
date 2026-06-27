@@ -2,40 +2,64 @@ import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MODEL_WEIGHTS } from "@/lib/model/config";
+import {
+  activeSignals,
+  claimStatusLabel,
+  type ClaimStatus,
+  type ModelSignalTruth,
+} from "@/lib/model/model-truth";
 
-const SIGNALS: { label: string; weight: number; unit: string }[] = [
-  { label: "Elo rating", weight: MODEL_WEIGHTS.elo, unit: "×" },
-  { label: "FIFA ranking", weight: MODEL_WEIGHTS.fifaRankingPerPlace, unit: "pts/place" },
-  { label: "Squad quality", weight: MODEL_WEIGHTS.squadQuality, unit: "pts/pt" },
-  { label: "Recent form", weight: MODEL_WEIGHTS.recentForm, unit: "pts/pt" },
-  { label: "Manager cohesion", weight: MODEL_WEIGHTS.manager, unit: "pts" },
-  { label: "Host advantage", weight: MODEL_WEIGHTS.host, unit: "pts" },
-  { label: "Regional edge", weight: MODEL_WEIGHTS.regional, unit: "pts" },
-  { label: "Climate familiarity", weight: MODEL_WEIGHTS.climate, unit: "pts/pt" },
-  { label: "Structural prior (economic)", weight: MODEL_WEIGHTS.structural, unit: "pts (weak)" },
-];
+/** Descriptive unit per signal key (not a weight literal). */
+const UNIT: Record<string, string> = {
+  eloRating: "×",
+  fifaRanking: "pts/place",
+  squadQuality: "pts/pt",
+  recentForm: "pts/pt",
+  managerCohesion: "pts",
+  hostAdvantage: "pts",
+  regionalAdvantage: "pts",
+  climateFamiliarity: "pts/pt",
+  structural: "pts (weak)",
+  tournamentContext: "pts (capped)",
+};
 
-/** Card summarising the model's inputs and tunable weights. */
+function statusVariant(status: ClaimStatus): "default" | "accent" | "outline" | "muted" {
+  if (status === "active-validated") return "default";
+  if (status === "experimental") return "outline";
+  return "muted"; // placeholder / others
+}
+
+/** Primary weight value for display (per-place for FIFA), read from MODEL_WEIGHTS. */
+function primaryWeight(s: ModelSignalTruth): number {
+  const key = Array.isArray(s.weightRef) ? s.weightRef[0] : s.weightRef;
+  return key ? MODEL_WEIGHTS[key] : 0;
+}
+
+/** Card summarising the model's inputs, their tunable weights, and how strongly each is claimed. */
 export function ModelSummary() {
+  const signals = activeSignals();
   return (
     <Card>
       <CardHeader>
         <CardTitle>Model summary</CardTitle>
         <CardDescription>
-          A transparent, Elo-anchored baseline. Every signal below is a tunable
-          weight in <code className="text-xs">lib/model/config.ts</code>.
+          A transparent, Elo-anchored baseline. Elo, FIFA, host and regional are active and
+          backtested; the rest are capped or experimental priors (not yet backtested). Every
+          weight lives in <code className="text-xs">lib/model/config.ts</code>.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-2">
-        {SIGNALS.map((s) => (
-          <div
-            key={s.label}
-            className="flex items-center justify-between text-sm"
-          >
-            <span className="text-muted-foreground">{s.label}</span>
-            <Badge variant="muted" className="tabular-nums">
-              {s.weight} {s.unit}
-            </Badge>
+        {signals.map((s) => (
+          <div key={s.key} className="flex items-center justify-between gap-2 text-sm">
+            <span className="min-w-0 truncate text-muted-foreground">{s.label}</span>
+            <span className="flex shrink-0 items-center gap-1.5">
+              <Badge variant={statusVariant(s.claimStatus)} className="text-[10px]">
+                {claimStatusLabel(s.claimStatus)}
+              </Badge>
+              <Badge variant="muted" className="tabular-nums">
+                {primaryWeight(s)} {UNIT[s.key] ?? "pts"}
+              </Badge>
+            </span>
           </div>
         ))}
         <Link

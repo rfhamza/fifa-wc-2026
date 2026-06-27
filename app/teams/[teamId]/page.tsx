@@ -135,8 +135,9 @@ export default function TeamPage({ params }: { params: { teamId: string } }) {
               <Users className="h-4 w-4 text-primary" /> Manager cohesion signal
             </CardTitle>
             <CardDescription>
-              Same-nationality managers are used as a lightweight squad-cohesion
-              proxy in the baseline model.
+              An experimental same-nationality cohesion proxy — included as a small prior,
+              but not yet backtested, so it is not a validated driver. A crude binary signal,
+              not a measure of actual squad cohesion.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-1">
@@ -144,10 +145,10 @@ export default function TeamPage({ params }: { params: { teamId: string } }) {
               Manager nationality:{" "}
               <span className="font-medium">{team.managerNationality}</span>
             </p>
-            <Badge variant={team.sameNationalityManager ? "default" : "muted"}>
+            <Badge variant="outline">
               {team.sameNationalityManager
-                ? "Domestic manager — cohesion bonus applied"
-                : "Foreign manager — no cohesion bonus"}
+                ? "Domestic manager — experimental · not backtested"
+                : "Foreign manager — proxy not applied"}
             </Badge>
           </CardContent>
         </Card>
