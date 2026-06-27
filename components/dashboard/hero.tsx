@@ -20,9 +20,10 @@ export function Hero({ favourite, iterations, teamsCount }: HeroProps) {
           Explainable probabilities for every team, match and stage.
         </h1>
         <p className="text-balance text-muted-foreground">
-          A transparent baseline model blends Elo, FIFA ranking, squad quality,
-          form, manager cohesion, host advantage and climate familiarity — then
-          a Monte Carlo engine simulates the tournament{" "}
+          A transparent baseline anchored on validated strength signals (Elo and FIFA
+          ranking, plus host and regional advantage), then adjusted with capped or
+          experimental priors — tournament context, climate, structural depth, and
+          squad/form placeholders — before a Monte Carlo engine simulates the tournament{" "}
           <span className="font-semibold text-foreground">
             {iterations.toLocaleString()}
           </span>{" "}
