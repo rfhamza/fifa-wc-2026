@@ -2,6 +2,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ProbabilityBar } from "@/components/charts/probability-bar";
 import { FlagGlyph } from "@/components/flag-glyph";
+import { LiveResultSlot } from "@/components/matches/live-result-slot";
+import { predictedOutcomeOf } from "@/lib/live-client/compare-forecast";
 import type { Fixture, FixtureSource, MatchPrediction, Team, Venue } from "@/lib/types";
 import { pct } from "@/lib/utils";
 import { MapPin } from "lucide-react";
@@ -40,6 +42,11 @@ export function FixtureCard({
   const sourceChip = SOURCE_CHIP[fixture.source ?? "position-generated"];
   const isOfficial = fixture.source === "official";
 
+  // Forecast primitives for the live-result overlay (computed server-side; cheap to pass).
+  const predictedOutcome = predictedOutcomeOf(prediction);
+  const top = prediction.topScorelines[0];
+  const mostLikely = { homeGoals: top?.homeGoals ?? 0, awayGoals: top?.awayGoals ?? 0 };
+
   return (
     <Card className="transition-colors hover:border-primary/40">
       <CardContent className="space-y-4 p-5">
@@ -68,6 +75,9 @@ export function FixtureCard({
         </div>
 
         {/* Win / draw / loss bar */}
+        <div className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+          Forecast
+        </div>
         <ProbabilityBar
           homeWin={prediction.homeWin}
           draw={prediction.draw}
@@ -114,6 +124,17 @@ export function FixtureCard({
           <MapPin className="h-3 w-3" />
           {isOfficial ? `${venue.name}, ${venue.city}` : "Venue pending official schedule"}
         </div>
+
+        {/* Actual result overlay (client leaf; renders only when public live data is usable) */}
+        <LiveResultSlot
+          matchNumber={fixture.matchNumber}
+          homeTeamId={home.id}
+          awayTeamId={away.id}
+          homeCode={home.countryCode}
+          awayCode={away.countryCode}
+          predictedOutcome={predictedOutcome}
+          mostLikely={mostLikely}
+        />
       </CardContent>
     </Card>
   );
