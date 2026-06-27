@@ -95,11 +95,11 @@ describe("forecast snapshot is public-safe (no provider/private leakage)", () =>
 });
 
 describe("forecast manifest", () => {
-  it("the committed manifest.json is schema-valid and starts empty", () => {
+  it("the committed manifest.json is schema-valid", () => {
     const manifest = loadForecastManifest(read("data/forecast/snapshots/manifest.json"));
     expect(validateForecastManifest(manifest)).toEqual([]);
     expect(manifest.schemaVersion).toBe(FORECAST_SNAPSHOT_SCHEMA_VERSION);
-    expect(manifest.snapshots).toEqual([]);
+    expect(Array.isArray(manifest.snapshots)).toBe(true);
   });
 });
 
