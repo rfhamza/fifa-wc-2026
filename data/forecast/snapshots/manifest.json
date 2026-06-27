@@ -1,4 +1,16 @@
 {
   "schemaVersion": "1.0.0",
-  "snapshots": []
+  "snapshots": [
+    {
+      "snapshotId": "baseline-2026-06-11.pre-tournament",
+      "file": "baseline-2026-06-11.pre-tournament.json",
+      "snapshotType": "baseline",
+      "asOf": "2026-06-11",
+      "label": "Pre-tournament baseline (2026-06-11)",
+      "completedMatchesLocked": 0,
+      "isBaseline": true,
+      "previousSnapshotId": null,
+      "notes": "Frozen pre-tournament reference forecast; seed 20260611, 2000 iterations, no completed results locked."
+    }
+  ]
 }
