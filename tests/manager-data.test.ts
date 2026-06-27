@@ -71,19 +71,19 @@ describe("corrected manager data (high-impact)", () => {
   });
 });
 
-describe("no model weight/formula change in this data PR", () => {
-  it("MODEL_WEIGHTS.manager remains 15", () => {
-    expect(MODEL_WEIGHTS.manager).toBe(15);
+describe("model weights (manager disabled in PR-4C; all others unchanged)", () => {
+  it("MODEL_WEIGHTS.manager is 0 (disabled pending out-of-sample backtest)", () => {
+    expect(MODEL_WEIGHTS.manager).toBe(0);
   });
 
-  it("all production weights are unchanged from their documented baseline", () => {
+  it("all other production weights are unchanged from their documented baseline", () => {
     expect(MODEL_WEIGHTS).toEqual({
       elo: 1.0,
       fifaRankingPerPlace: 1.4,
       fifaRankingCap: 90,
       squadQuality: 4.0,
       recentForm: 2.0,
-      manager: 15,
+      manager: 0,
       host: 60,
       regional: 18,
       climate: 0.8,

@@ -27,17 +27,27 @@ describe("methodology claims are aligned and honest", () => {
     expect(methodology).toContain("host and regional");
     expect(methodology.toLowerCase()).toContain("backtest exercises only");
   });
-  it("labels manager cohesion experimental, not a validated bonus", () => {
+  it("labels manager cohesion disabled (zero weight) pending backtest, not an active points bonus", () => {
     expect(methodology).toContain("Manager cohesion");
     expect(methodology.toLowerCase()).not.toContain("cohesion bonus");
+    expect(methodology.toLowerCase()).toContain("zero model weight");
   });
 });
 
-describe("manager nationality wording is conservative", () => {
-  it("team detail drops 'cohesion bonus applied' and labels it experimental", () => {
+describe("manager nationality wording is conservative (disabled pending backtest)", () => {
+  it("team detail labels manager disabled/pending backtest and never an applied bonus", () => {
     expect(teamDetail).not.toContain("cohesion bonus applied");
-    expect(teamDetail.toLowerCase()).toContain("experimental");
-    expect(teamDetail.toLowerCase()).toContain("not yet backtested");
+    expect(teamDetail.toLowerCase()).toContain("disabled");
+    expect(teamDetail.toLowerCase()).toContain("pending out-of-sample backtest");
+  });
+
+  it("no stale 'active' manager phrasing returns anywhere user-facing", () => {
+    for (const src of [methodology, teamDetail, modelSummary]) {
+      expect(src).not.toContain("15 pts");
+      expect(src.toLowerCase()).not.toContain("bonus applied");
+      expect(src.toLowerCase()).not.toContain("active prior");
+      expect(src.toLowerCase()).not.toContain("currently included");
+    }
   });
 });
 
@@ -48,7 +58,7 @@ describe("dashboard claims consume the truth layer and stay consistent", () => {
   });
   it("model summary is driven by the model-truth layer (not a hardcoded list)", () => {
     expect(modelSummary).toContain("@/lib/model/model-truth");
-    expect(modelSummary).toContain("activeSignals");
+    expect(modelSummary).toContain("weightedSignals");
     expect(modelSummary).toContain("claimStatusLabel");
   });
 });

@@ -34,8 +34,8 @@ describe("model-truth structure", () => {
         expect(s.weightRef, `${s.key} active but no weightRef`).not.toBeNull();
       }
     }
-    // The 10 active weighted drivers are present.
-    expect(activeSignals().length).toBe(10);
+    // 9 active weighted drivers feed probabilities (manager is disabled = weight 0).
+    expect(activeSignals().length).toBe(9);
   });
 });
 
@@ -54,12 +54,12 @@ describe("active-validated is limited to the backtested set", () => {
 });
 
 describe("manager & other priors are not presented as validated", () => {
-  it("manager cohesion is experimental and not backtested", () => {
+  it("manager cohesion is disabled pending backtest (not active, not validated)", () => {
     const m = byKey("managerCohesion")!;
-    expect(m.claimStatus).toBe("experimental");
+    expect(m.claimStatus).toBe("disabled-pending-backtest");
     expect(m.claimStatus).not.toBe("active-validated");
     expect(m.backtested).toBe(false);
-    expect(m.active).toBe(true);
+    expect(m.active).toBe(false); // weight is 0 -> does not feed probabilities
     expect(m.caveat ?? "").not.toBe("");
   });
 
@@ -84,6 +84,7 @@ describe("alignment with data/model-inputs/sources.ts provenance", () => {
     "active-uncalibrated": null,
     experimental: ["candidate"],
     placeholder: ["placeholder"],
+    "disabled-pending-backtest": ["candidate"], // manager: candidate provenance, weight 0
     "display-only": null,
     planned: null,
   };

@@ -47,14 +47,16 @@ export default function MethodologyPage() {
           into win, draw and loss probabilities. Only <strong>Elo, FIFA ranking,
           host and regional advantage</strong> are exercised in our historical
           backtest; the others are active but either weight-capped placeholders or{" "}
-          <em>experimental priors that are not yet backtested</em>.
+          <em>experimental priors that are not yet backtested</em>. Manager cohesion
+          is tracked as a candidate signal but <strong>currently has zero model
+          weight</strong> pending validation.
         </p>
         <ul className="ml-5 list-disc space-y-1">
           <li><strong>Elo rating</strong> - overall strength (the anchor, weight {MODEL_WEIGHTS.elo}x). Status: {MODEL_INPUT_SOURCES.eloRating.status} (World Football Elo snapshot, {MODEL_INPUT_SOURCES.eloRating.sourceDate}; published values, not recalculated).</li>
           <li><strong>FIFA ranking</strong> - {MODEL_WEIGHTS.fifaRankingPerPlace} pts per place, capped at {MODEL_WEIGHTS.fifaRankingCap}. Status: {MODEL_INPUT_SOURCES.fifaRanking.status} (supplied FIFA snapshot, {MODEL_INPUT_SOURCES.fifaRanking.sourceDate}).</li>
           <li><strong>Squad quality</strong> - {MODEL_WEIGHTS.squadQuality} pts per quality point. Status: {MODEL_INPUT_SOURCES.squadQuality.status} (capped).</li>
           <li><strong>Recent form</strong> - {MODEL_WEIGHTS.recentForm} pts per form point. Status: {MODEL_INPUT_SOURCES.recentForm.status} (capped).</li>
-          <li><strong>Manager cohesion</strong> - {MODEL_WEIGHTS.manager} pts for a same-nationality manager (a crude binary cohesion proxy). Status: {MODEL_INPUT_SOURCES.managerCohesion.status} - <em>experimental, not yet backtested</em>; it correlates with established footballing nations already captured by Elo/FIFA, so treat it as a small prior, not a validated driver.</li>
+          <li><strong>Manager cohesion</strong> - a same-nationality-manager proxy, <strong>currently disabled (zero model weight) pending out-of-sample backtest</strong>. It is a crude binary signal confounded with strength already captured by Elo/FIFA; the data is kept for transparency but it does not affect probabilities today.</li>
           <li><strong>Host &amp; regional advantage</strong> - {MODEL_WEIGHTS.host} pts (co-host), {MODEL_WEIGHTS.regional} pts (region). Status: {MODEL_INPUT_SOURCES.hostAdvantage.status} / {MODEL_INPUT_SOURCES.regionalAdvantage.status} (both exercised in the backtest).</li>
           <li><strong>Climate suitability</strong> - {MODEL_WEIGHTS.climate} pts per playability point, capped at +/-{CLIMATE_CONTRIBUTION_CAP}. Status: {MODEL_INPUT_SOURCES.climateFamiliarity.status} (a 12-month home-climate playability score from CCKP 1991-2020 normals; England &amp; Scotland from Met Office / HadUK-Grid - a candidate heuristic, not a tournament-acclimatization score) - <em>not yet backtested</em>.</li>
           <li><strong>Structural prior (economic)</strong> - up to {MODEL_WEIGHTS.structural} pts across the 0-1 range, blended from log-scaled GDP per capita and population. An <em>experimental weak prior</em>, deliberately small and <em>not yet backtested</em>. Status: {MODEL_INPUT_SOURCES.structural.status} (World Bank WDI {MODEL_INPUT_SOURCES.structural.sourceDate}; 46 economies source-backed, England &amp; Scotland official-derived from ONS / Scottish Government figures - no separate World Bank economy).</li>
@@ -225,11 +227,12 @@ export default function MethodologyPage() {
         </p>
         <p>
           Importantly, the backtest exercises only the <strong>Elo, FIFA ranking,
-          host and regional</strong> signals; the other active drivers (manager
-          cohesion, climate, structural depth and tournament context) are{" "}
-          <strong>not yet backtested</strong> and the placeholder drivers (squad
-          quality and recent form) are weight-capped. So &ldquo;backtested&rdquo;
-          describes the anchor signals, not the whole model.
+          host and regional</strong> signals; the other active drivers (climate,
+          structural depth and tournament context) are <strong>not yet
+          backtested</strong>, the placeholder drivers (squad quality and recent
+          form) are weight-capped, and manager cohesion is <strong>disabled (zero
+          weight) pending backtest</strong>. So &ldquo;backtested&rdquo; describes
+          the anchor signals, not the whole model.
         </p>
         <p>
           Probabilities remain <strong>estimates, not guarantees</strong>.
