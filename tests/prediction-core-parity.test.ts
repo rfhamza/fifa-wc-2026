@@ -1722,11 +1722,11 @@ const GOLDEN = {
     "prediction": {
       "homeTeamId": "a",
       "awayTeamId": "b",
-      "homeWin": 0.3822,
-      "draw": 0.2638,
-      "awayWin": 0.3541,
-      "expectedHomeGoals": 1.33,
-      "expectedAwayGoals": 1.27,
+      "homeWin": 0.368,
+      "draw": 0.2639,
+      "awayWin": 0.368,
+      "expectedHomeGoals": 1.3,
+      "expectedAwayGoals": 1.3,
       "topScorelines": [
         {
           "homeGoals": 1,
@@ -1734,39 +1734,30 @@ const GOLDEN = {
           "probability": 0.1255
         },
         {
-          "homeGoals": 1,
-          "awayGoals": 0,
-          "probability": 0.0988
-        },
-        {
           "homeGoals": 0,
           "awayGoals": 1,
-          "probability": 0.0943
+          "probability": 0.0966
         },
         {
-          "homeGoals": 2,
-          "awayGoals": 1,
-          "probability": 0.0834
+          "homeGoals": 1,
+          "awayGoals": 0,
+          "probability": 0.0966
         },
         {
           "homeGoals": 1,
           "awayGoals": 2,
-          "probability": 0.0797
+          "probability": 0.0816
+        },
+        {
+          "homeGoals": 2,
+          "awayGoals": 1,
+          "probability": 0.0816
         }
       ],
       "explanation": {
-        "positiveDrivers": [
-          {
-            "label": "Manager cohesion",
-            "family": "managerCohesion",
-            "contribution": 15,
-            "detail": "Same-nationality manager used as a squad-cohesion proxy.",
-            "status": "candidate",
-            "capped": false
-          }
-        ],
+        "positiveDrivers": [],
         "negativeDrivers": [],
-        "netAdvantage": 15
+        "netAdvantage": 0
       }
     },
     "drivers": [
@@ -1805,7 +1796,7 @@ const GOLDEN = {
       {
         "label": "Manager cohesion",
         "family": "managerCohesion",
-        "contribution": 15,
+        "contribution": 0,
         "detail": "Same-nationality manager used as a squad-cohesion proxy.",
         "status": "candidate",
         "capped": false
@@ -1852,18 +1843,9 @@ const GOLDEN = {
       }
     ],
     "explanation": {
-      "positiveDrivers": [
-        {
-          "label": "Manager cohesion",
-          "family": "managerCohesion",
-          "contribution": 15,
-          "detail": "Same-nationality manager used as a squad-cohesion proxy.",
-          "status": "candidate",
-          "capped": false
-        }
-      ],
+      "positiveDrivers": [],
       "negativeDrivers": [],
-      "netAdvantage": 15
+      "netAdvantage": 0
     },
     "xg10": {
       "home": 1.32,

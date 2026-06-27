@@ -19,8 +19,14 @@ export const MODEL_WEIGHTS = {
   squadQuality: 4.0,
   /** Elo points per recent-form point (0..100 scale). */
   recentForm: 2.0,
-  /** Elo points for having a same-nationality manager (cohesion proxy). */
-  manager: 15,
+  /**
+   * Same-nationality-manager cohesion proxy. DISABLED (0) pending an out-of-sample
+   * backtest (Phase 1.28Q-I): it is an unvalidated, crude binary proxy confounded with
+   * team strength already captured by Elo/FIFA. The signal + data are kept (see
+   * `sameNationalityManager`); only the weight is zero, so re-enabling after a backtest
+   * is a one-line change. See lib/model/model-truth.ts (`disabled-pending-backtest`).
+   */
+  manager: 0,
   /** Elo points for being a co-host (crowd, travel, familiarity). */
   host: 60,
   /** Elo points for being in the host region (CONCACAF) but not a host. */

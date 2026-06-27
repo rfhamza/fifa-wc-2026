@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { MODEL_WEIGHTS } from "@/lib/model/config";
 import {
-  activeSignals,
+  weightedSignals,
   claimStatusLabel,
   type ClaimStatus,
   type ModelSignalTruth,
@@ -37,15 +37,16 @@ function primaryWeight(s: ModelSignalTruth): number {
 
 /** Card summarising the model's inputs, their tunable weights, and how strongly each is claimed. */
 export function ModelSummary() {
-  const signals = activeSignals();
+  const signals = weightedSignals();
   return (
     <Card>
       <CardHeader>
         <CardTitle>Model summary</CardTitle>
         <CardDescription>
           A transparent, Elo-anchored baseline. Elo, FIFA, host and regional are active and
-          backtested; the rest are capped or experimental priors (not yet backtested). Every
-          weight lives in <code className="text-xs">lib/model/config.ts</code>.
+          backtested; the rest are capped or experimental priors (not yet backtested). Manager
+          cohesion is tracked but currently has zero weight pending validation. Every weight
+          lives in <code className="text-xs">lib/model/config.ts</code>.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-2">

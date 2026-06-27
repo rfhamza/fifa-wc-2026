@@ -23,6 +23,7 @@ export const CLAIM_STATUSES = [
   "active-uncalibrated", // active + source-backed, but not statistically calibrated
   "experimental", // active but a candidate prior, not yet backtested
   "placeholder", // active but hand-authored filler; weight-capped
+  "disabled-pending-backtest", // tracked + data kept, but weight is 0 pending validation
   "display-only", // shown for transparency; not a probability driver
   "planned", // intended; not active
 ] as const;
@@ -110,13 +111,13 @@ export const MODEL_SIGNAL_TRUTH: readonly ModelSignalTruth[] = [
   {
     key: "managerCohesion",
     label: "Manager cohesion",
-    claimStatus: "experimental",
-    active: true,
+    claimStatus: "disabled-pending-backtest",
+    active: false, // weight is 0 (config.ts); kept tracked, but does not move probabilities
     backtested: false,
     weightRef: "manager",
-    caption: "Same-nationality cohesion proxy — included as a small prior, not yet backtested.",
+    caption: "Same-nationality cohesion proxy — currently set to zero pending out-of-sample backtest.",
     caveat:
-      "Crude binary proxy; correlates with established footballing nations (already captured by Elo/FIFA) and is not a measure of actual squad cohesion.",
+      "Crude binary proxy; correlates with established footballing nations (already captured by Elo/FIFA) and is not a measure of actual squad cohesion. Disabled (weight 0) pending validation.",
   },
   {
     key: "climateFamiliarity",
@@ -163,9 +164,17 @@ export const MODEL_SIGNAL_TRUTH: readonly ModelSignalTruth[] = [
 /** Signal keys that are active AND exercised in the backtest (the only `active-validated` set). */
 export const BACKTESTED_SIGNAL_KEYS = ["eloRating", "fifaRanking", "hostAdvantage", "regionalAdvantage"] as const;
 
-/** Active drivers that feed probabilities today (weighted). */
+/** Active drivers that feed probabilities today (weighted AND active). */
 export function activeSignals(): ModelSignalTruth[] {
   return MODEL_SIGNAL_TRUTH.filter((s) => s.active && s.weightRef !== null);
+}
+
+/**
+ * All weighted signals for the model-summary UI - includes a disabled (weight-0) driver
+ * like manager cohesion so it stays visible and transparently labelled, rather than vanishing.
+ */
+export function weightedSignals(): ModelSignalTruth[] {
+  return MODEL_SIGNAL_TRUTH.filter((s) => s.weightRef !== null);
 }
 
 /** Lookup by signal key. */
@@ -184,6 +193,8 @@ export function claimStatusLabel(status: ClaimStatus): string {
       return "Experimental · not backtested";
     case "placeholder":
       return "Placeholder · capped";
+    case "disabled-pending-backtest":
+      return "Disabled · pending backtest";
     case "display-only":
       return "Display only";
     case "planned":

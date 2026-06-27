@@ -135,9 +135,10 @@ export default function TeamPage({ params }: { params: { teamId: string } }) {
               <Users className="h-4 w-4 text-primary" /> Manager cohesion signal
             </CardTitle>
             <CardDescription>
-              An experimental same-nationality cohesion proxy — included as a small prior,
-              but not yet backtested, so it is not a validated driver. A crude binary signal,
-              not a measure of actual squad cohesion.
+              A same-nationality-manager proxy, tracked for transparency but{" "}
+              <strong>currently disabled (zero model weight) pending out-of-sample
+              backtest</strong>. A crude binary signal confounded with strength already
+              captured by Elo/FIFA; it does not affect probabilities today.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-1">
@@ -145,10 +146,10 @@ export default function TeamPage({ params }: { params: { teamId: string } }) {
               Manager nationality:{" "}
               <span className="font-medium">{team.managerNationality}</span>
             </p>
-            <Badge variant="outline">
+            <Badge variant="muted">
               {team.sameNationalityManager
-                ? "Domestic manager — experimental · not backtested"
-                : "Foreign manager — proxy not applied"}
+                ? "Domestic manager — disabled pending backtest"
+                : "Foreign manager — disabled pending backtest"}
             </Badge>
           </CardContent>
         </Card>
