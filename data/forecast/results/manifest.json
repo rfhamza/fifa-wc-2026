@@ -1,4 +1,13 @@
 {
   "schemaVersion": "1.0.0",
-  "ledgers": []
+  "ledgers": [
+    {
+      "ledgerId": "results-as-of-2026-06-25-after-match-054",
+      "file": "results-as-of-2026-06-25-after-match-054.json",
+      "asOf": "2026-06-25T12:33:09Z",
+      "label": "Manual public-safe results as of 2026-06-25 (after M54)",
+      "resultCount": 54,
+      "notes": "Derived from the committed public-safe manual sample (data/live/public-safe-sample.json); completed group-stage matches only. Historical/manual checkpoint, not the latest provider-derived live-state."
+    }
+  ]
 }

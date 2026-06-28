@@ -144,11 +144,11 @@ describe("fixture-aware ledger validation", () => {
 });
 
 describe("results manifest", () => {
-  it("the committed results manifest.json is schema-valid and empty", () => {
+  it("the committed results manifest.json is schema-valid", () => {
     const manifest = loadForecastResultsManifest(read("data/forecast/results/manifest.json"));
     expect(validateForecastResultsManifest(manifest)).toEqual([]);
     expect(manifest.schemaVersion).toBe(FORECAST_RESULTS_SCHEMA_VERSION);
-    expect(manifest.ledgers).toEqual([]);
+    expect(Array.isArray(manifest.ledgers)).toBe(true);
   });
 });
 
