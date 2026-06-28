@@ -23,6 +23,7 @@
 import { fixtures, teams } from "@/lib/data";
 import { MODEL_WEIGHTS, SIMULATION_CONFIG } from "@/lib/model/config";
 import { runTournamentSimulation } from "@/lib/simulation/tournament";
+import type { LockedResult } from "@/lib/simulation/locked-results";
 
 export const FORECAST_SNAPSHOT_SCHEMA_VERSION = "1.0.0";
 
@@ -191,43 +192,72 @@ export interface BuildBaselineOptions {
   notes?: string;
 }
 
+/** Options for a live-aware snapshot (completed results locked in). */
+export interface BuildLiveAwareOptions {
+  /** Required for deterministic output (committed artifacts + tests). */
+  generatedAt: string;
+  /** Completed group-stage results to lock into the simulation. */
+  lockedResults: LockedResult[];
+  /** post-match | post-matchday | manual. Defaults to "post-match". */
+  snapshotType?: Exclude<ForecastSnapshotType, "baseline">;
+  /** ISO date/time the locked state is "as of" (from the results ledger). */
+  asOf?: string;
+  /** Snapshot id. Defaults to `snapshot-<asOf>.<snapshotType>`. */
+  snapshotId?: string;
+  seed?: number;
+  iterations?: number;
+  notes?: string;
+  /** Provenance label of the locked results (e.g. ledger sourcePolicy). */
+  liveStateSource?: string | null;
+  /** "As of" time of the locked results (ledger asOf). */
+  liveStateAsOf?: string | null;
+}
+
+interface BuildForecastSnapshotOptions {
+  generatedAt: string;
+  snapshotType: ForecastSnapshotType;
+  asOf: string;
+  snapshotId: string;
+  seed: number;
+  iterations: number;
+  notes: string;
+  lockedResults: LockedResult[];
+  liveStateSource: string | null;
+  liveStateAsOf: string | null;
+}
+
 /** Default "as of" date for the pre-tournament baseline (model cutoff). */
 export const BASELINE_AS_OF = "2026-06-11";
 
 /**
- * Build a deterministic pre-tournament baseline forecast snapshot. Wraps
- * `runTournamentSimulation` (no completed-result locking) and replaces the
- * simulator's wall-clock timestamp with the caller-supplied `generatedAt`.
+ * Shared, deterministic snapshot builder. Wraps `runTournamentSimulation`
+ * (optionally locking completed results) and replaces the simulator's wall-clock
+ * timestamp with the caller-supplied `generatedAt`. The thin `buildBaseline…` and
+ * `buildLiveAware…` wrappers below preserve their exact public shapes; the
+ * baseline output stays byte-identical (guarded by the PR-2 reproducibility test).
  */
-export function buildBaselineForecastSnapshot(
-  options: BuildBaselineOptions,
-): ForecastSnapshot {
-  const seed = options.seed ?? SIMULATION_CONFIG.defaultSeed;
-  const iterations = options.iterations ?? SIMULATION_CONFIG.defaultIterations;
-  const asOf = options.asOf ?? BASELINE_AS_OF;
-  const snapshotId =
-    options.snapshotId ?? `baseline-${asOf}.pre-tournament`;
-
-  const sim = runTournamentSimulation({ seed, iterations });
+function buildForecastSnapshot(options: BuildForecastSnapshotOptions): ForecastSnapshot {
+  const { seed, iterations, lockedResults } = options;
+  const sim = runTournamentSimulation({ seed, iterations, lockedResults });
 
   const weightsSummary: Record<string, number> = { ...MODEL_WEIGHTS };
 
   const meta: ForecastSnapshotMeta = {
     schemaVersion: FORECAST_SNAPSHOT_SCHEMA_VERSION,
-    snapshotId,
-    snapshotType: "baseline",
-    asOf,
+    snapshotId: options.snapshotId,
+    snapshotType: options.snapshotType,
+    asOf: options.asOf,
     generatedAt: options.generatedAt,
     weightsSummary,
     modelConfigHash: computeModelConfigHash(weightsSummary),
     dataVersion: computeDataVersion(),
     fixtureVersion: computeFixtureVersion(),
-    liveStateSource: null,
-    liveStateAsOf: null,
-    completedMatchesLocked: 0,
+    liveStateSource: options.liveStateSource,
+    liveStateAsOf: options.liveStateAsOf,
+    completedMatchesLocked: lockedResults.length,
     simulationIterations: iterations,
     seed,
-    notes: options.notes ?? "Pre-tournament baseline; no completed results locked.",
+    notes: options.notes,
   };
 
   const ranked = [...sim.stageProbabilities].sort((a, b) => b.winner - a.winner);
@@ -245,6 +275,52 @@ export function buildBaselineForecastSnapshot(
   }));
 
   return { meta, teams: snapshotTeams };
+}
+
+/**
+ * Build a deterministic pre-tournament baseline forecast snapshot (no completed
+ * results locked).
+ */
+export function buildBaselineForecastSnapshot(
+  options: BuildBaselineOptions,
+): ForecastSnapshot {
+  const asOf = options.asOf ?? BASELINE_AS_OF;
+  return buildForecastSnapshot({
+    generatedAt: options.generatedAt,
+    snapshotType: "baseline",
+    asOf,
+    snapshotId: options.snapshotId ?? `baseline-${asOf}.pre-tournament`,
+    seed: options.seed ?? SIMULATION_CONFIG.defaultSeed,
+    iterations: options.iterations ?? SIMULATION_CONFIG.defaultIterations,
+    notes: options.notes ?? "Pre-tournament baseline; no completed results locked.",
+    lockedResults: [],
+    liveStateSource: null,
+    liveStateAsOf: null,
+  });
+}
+
+/**
+ * Build a deterministic live-aware forecast snapshot: completed group-stage
+ * results are locked in (via the existing `lockedResults` simulator capability),
+ * and the remaining fixtures are simulated by the existing model.
+ */
+export function buildLiveAwareForecastSnapshot(
+  options: BuildLiveAwareOptions,
+): ForecastSnapshot {
+  const snapshotType = options.snapshotType ?? "post-match";
+  const asOf = options.asOf ?? BASELINE_AS_OF;
+  return buildForecastSnapshot({
+    generatedAt: options.generatedAt,
+    snapshotType,
+    asOf,
+    snapshotId: options.snapshotId ?? `snapshot-${asOf}.${snapshotType}`,
+    seed: options.seed ?? SIMULATION_CONFIG.defaultSeed,
+    iterations: options.iterations ?? SIMULATION_CONFIG.defaultIterations,
+    notes: options.notes ?? "Live-aware forecast; completed results locked from a committed ledger.",
+    lockedResults: options.lockedResults,
+    liveStateSource: options.liveStateSource ?? null,
+    liveStateAsOf: options.liveStateAsOf ?? null,
+  });
 }
 
 /** An empty, schema-valid manifest (used to seed `manifest.json`). */

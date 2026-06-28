@@ -10,17 +10,33 @@
  *   npm run forecast:snapshot -- --generated-at <iso> # deterministic timestamp
  *   npm run forecast:snapshot -- --out <path>         # write artifact (used in PR-2)
  *   npm run forecast:snapshot -- --iterations 500 --seed 20260611
+ *   npm run forecast:snapshot -- --results <ledger.json> --type post-match --out <path>
  *
- * Safety: this generator runs purely from committed fixtures + model config. It
- * does NOT read the runtime live-state HTTP route, Blob, env vars or any provider
- * data, and it does not write a committed artifact unless `--out` is given.
+ * With `--results`, a committed sanitized results ledger is locked into the
+ * simulation (live-aware snapshot); without it, the pre-tournament baseline is
+ * generated unchanged.
+ *
+ * Safety: this generator runs purely from committed fixtures + model config (+ a
+ * committed ledger when given). It does NOT read the runtime live-state HTTP
+ * route, Blob, env vars or any provider data, and it does not write a committed
+ * artifact unless `--out` is given.
  */
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
+import { fixtures } from "@/lib/data";
 import {
   buildBaselineForecastSnapshot,
+  buildLiveAwareForecastSnapshot,
   validateForecastSnapshot,
   assertNoForbiddenData,
+  type ForecastSnapshot,
 } from "../lib/model/forecast-snapshots";
+import {
+  loadForecastResultsLedger,
+  ledgerToLockedResults,
+} from "../lib/model/forecast-results-ledger";
+
+type LiveAwareType = "post-match" | "post-matchday" | "manual";
+const LIVE_AWARE_TYPES: LiveAwareType[] = ["post-match", "post-matchday", "manual"];
 
 interface CliArgs {
   generatedAt?: string;
@@ -30,6 +46,8 @@ interface CliArgs {
   iterations?: number;
   notes?: string;
   out?: string;
+  results?: string;
+  type?: string;
 }
 
 function parseArgs(argv: string[]): CliArgs {
@@ -46,6 +64,8 @@ function parseArgs(argv: string[]): CliArgs {
       case "--iterations": args.iterations = Number(next()); break;
       case "--notes": args.notes = next(); break;
       case "--out": args.out = next(); break;
+      case "--results": args.results = next(); break;
+      case "--type": args.type = next(); break;
       // --dry-run / --stdout are the default; accepted as no-ops for clarity.
       case "--dry-run":
       case "--stdout": break;
@@ -64,14 +84,35 @@ function main(): void {
   // deterministic/committed output.
   const generatedAt = args.generatedAt ?? new Date().toISOString();
 
-  const snapshot = buildBaselineForecastSnapshot({
-    generatedAt,
-    asOf: args.asOf,
-    snapshotId: args.snapshotId,
-    seed: args.seed,
-    iterations: args.iterations,
-    notes: args.notes,
-  });
+  let snapshot: ForecastSnapshot;
+  if (args.results) {
+    // Live-aware: lock a committed sanitized results ledger into the simulation.
+    if (args.type && !LIVE_AWARE_TYPES.includes(args.type as LiveAwareType)) {
+      throw new Error(`--type must be one of ${LIVE_AWARE_TYPES.join(", ")} (got ${args.type})`);
+    }
+    const ledger = loadForecastResultsLedger(readFileSync(args.results, "utf8"), fixtures);
+    snapshot = buildLiveAwareForecastSnapshot({
+      generatedAt,
+      lockedResults: ledgerToLockedResults(ledger),
+      snapshotType: (args.type as LiveAwareType | undefined) ?? "post-match",
+      asOf: args.asOf ?? ledger.asOf,
+      snapshotId: args.snapshotId,
+      seed: args.seed,
+      iterations: args.iterations,
+      notes: args.notes,
+      liveStateSource: ledger.sourcePolicy,
+      liveStateAsOf: ledger.asOf,
+    });
+  } else {
+    snapshot = buildBaselineForecastSnapshot({
+      generatedAt,
+      asOf: args.asOf,
+      snapshotId: args.snapshotId,
+      seed: args.seed,
+      iterations: args.iterations,
+      notes: args.notes,
+    });
+  }
 
   const errors = validateForecastSnapshot(snapshot);
   if (errors.length > 0) {
