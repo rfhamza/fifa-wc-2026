@@ -41,6 +41,7 @@ import {
   realiseOfficialBracket,
   type GroupResult,
 } from "./bracket";
+import { resolveLockedResults, type LockedResult, type ResolvedLockedScore } from "./locked-results";
 
 const QUALIFYING_THIRDS = 8; // best third-placed teams that advance
 
@@ -54,6 +55,12 @@ interface PreparedFixture {
   homeTeamId: string;
   awayTeamId: string;
   lambdas: MatchupLambdas;
+  /**
+   * Fixed score for a completed (locked) group-stage fixture, oriented to this
+   * fixture's home/away. When present, the simulator uses it instead of sampling
+   * (see the sampler in `simulateOneTournament`). Undefined for normal fixtures.
+   */
+  locked?: ResolvedLockedScore;
 }
 
 /** Net Elo advantage of A over B from the model drivers (no allocation-heavy explanation). */
@@ -131,6 +138,12 @@ export interface SimulationOptions {
    * forecast responds to alternative weightings - NOT a production setting.
    */
   weights?: ModelWeights;
+  /**
+   * Completed group-stage results to lock into the simulation (Phase 1.29). Locked
+   * fixtures use the supplied final score instead of being sampled; all other
+   * fixtures are simulated normally. Omitted / empty reproduces the baseline exactly.
+   */
+  lockedResults?: LockedResult[];
 }
 
 /**
@@ -151,11 +164,16 @@ export function runTournamentSimulation(
   );
   const feat = (id: string) => featureSets.get(id)!;
 
+  // Resolve any locked completed results once (fails closed on invalid input);
+  // empty/undefined yields an empty map and the baseline code path.
+  const lockedByFixtureId = resolveLockedResults(options.lockedResults ?? [], fixtures);
+
   const prepared: PreparedFixture[] = fixtures.map((f) => ({
     group: f.group,
     homeTeamId: f.homeTeamId,
     awayTeamId: f.awayTeamId,
     lambdas: matchupLambdas(feat(f.homeTeamId), feat(f.awayTeamId), weights),
+    locked: lockedByFixtureId.get(f.id),
   }));
 
   const counts = new Map<string, StageCounts>(
@@ -215,8 +233,21 @@ function simulateOneTournament(
   // 1. Simulate group matches.
   const resultsByGroup = new Map<GroupId, MatchResult[]>();
   for (const pf of prepared) {
-    const homeGoals = samplePoisson(rng, pf.lambdas.home);
-    const awayGoals = samplePoisson(rng, pf.lambdas.away);
+    let homeGoals: number;
+    let awayGoals: number;
+    if (pf.locked) {
+      // Locked (completed) fixture: still draw the same two Poisson samples an
+      // unlocked fixture would consume, then discard them. This keeps the RNG
+      // stream aligned with the baseline (common random numbers) so subsequent
+      // unlocked fixtures sample identically; the fixed locked score is used.
+      samplePoisson(rng, pf.lambdas.home);
+      samplePoisson(rng, pf.lambdas.away);
+      homeGoals = pf.locked.home;
+      awayGoals = pf.locked.away;
+    } else {
+      homeGoals = samplePoisson(rng, pf.lambdas.home);
+      awayGoals = samplePoisson(rng, pf.lambdas.away);
+    }
     const list = resultsByGroup.get(pf.group) ?? [];
     list.push({
       homeTeamId: pf.homeTeamId,
