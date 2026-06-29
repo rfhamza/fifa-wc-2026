@@ -82,6 +82,20 @@ export interface ForecastSnapshotMeta {
   simulationIterations: number;
   seed: number;
   notes: string;
+  /**
+   * Highest completed match number actually locked into the simulation. NOT a
+   * "matches through N" claim - it is the latest *supported* (lockable) match
+   * included. Present only on live-aware snapshots.
+   */
+  latestCompletedSupportedMatchNumber?: number;
+  /**
+   * Count of ALL completed official matches present in the source live-state
+   * (incl. ones the engine cannot yet lock, e.g. knockout). Lets a snapshot
+   * disclose that the provider is ahead of what is locked. Present when known.
+   */
+  providerCompletedMatchesTotal?: number;
+  /** Public-safe source object PATHNAME (never a URL/token). Present when known. */
+  sourceObjectPath?: string;
 }
 
 /** Per-team forecast probabilities (all metrics in [0,1]). */
@@ -211,6 +225,12 @@ export interface BuildLiveAwareOptions {
   liveStateSource?: string | null;
   /** "As of" time of the locked results (ledger asOf). */
   liveStateAsOf?: string | null;
+  /** Count of ALL completed official matches in the source (incl. unlockable). */
+  providerCompletedMatchesTotal?: number;
+  /** Public-safe source object PATHNAME (never a URL/token). */
+  sourceObjectPath?: string;
+  /** Highest locked match number; auto-derived from lockedResults if omitted. */
+  latestCompletedSupportedMatchNumber?: number;
 }
 
 interface BuildForecastSnapshotOptions {
@@ -224,6 +244,9 @@ interface BuildForecastSnapshotOptions {
   lockedResults: LockedResult[];
   liveStateSource: string | null;
   liveStateAsOf: string | null;
+  providerCompletedMatchesTotal?: number;
+  sourceObjectPath?: string;
+  latestCompletedSupportedMatchNumber?: number;
 }
 
 /** Default "as of" date for the pre-tournament baseline (model cutoff). */
@@ -259,6 +282,19 @@ function buildForecastSnapshot(options: BuildForecastSnapshotOptions): ForecastS
     seed,
     notes: options.notes,
   };
+
+  // Optional provenance - included ONLY when explicitly provided, so baseline and
+  // earlier live-aware snapshots (which do not pass these) stay byte-identical
+  // (omitted keys are not serialized).
+  if (options.latestCompletedSupportedMatchNumber !== undefined) {
+    meta.latestCompletedSupportedMatchNumber = options.latestCompletedSupportedMatchNumber;
+  }
+  if (options.providerCompletedMatchesTotal !== undefined) {
+    meta.providerCompletedMatchesTotal = options.providerCompletedMatchesTotal;
+  }
+  if (options.sourceObjectPath !== undefined) {
+    meta.sourceObjectPath = options.sourceObjectPath;
+  }
 
   const ranked = [...sim.stageProbabilities].sort((a, b) => b.winner - a.winner);
   const snapshotTeams: ForecastTeamProbabilities[] = ranked.map((p, i) => ({
@@ -320,6 +356,11 @@ export function buildLiveAwareForecastSnapshot(
     lockedResults: options.lockedResults,
     liveStateSource: options.liveStateSource ?? null,
     liveStateAsOf: options.liveStateAsOf ?? null,
+    providerCompletedMatchesTotal: options.providerCompletedMatchesTotal,
+    sourceObjectPath: options.sourceObjectPath,
+    // Opt-in only (passed by the generator). NOT auto-derived, so earlier
+    // live-aware snapshots that omit it stay byte-identical.
+    latestCompletedSupportedMatchNumber: options.latestCompletedSupportedMatchNumber,
   });
 }
 
@@ -374,6 +415,15 @@ export function validateForecastSnapshot(value: unknown): string[] {
     if (!isFiniteNumber(m.seed)) errors.push("meta.seed must be a number");
     if (typeof m.weightsSummary !== "object" || m.weightsSummary === null)
       errors.push("meta.weightsSummary must be an object");
+    // Optional provenance (live-aware snapshots only).
+    if (m.latestCompletedSupportedMatchNumber !== undefined &&
+        (!isFiniteNumber(m.latestCompletedSupportedMatchNumber) || m.latestCompletedSupportedMatchNumber < 0))
+      errors.push("meta.latestCompletedSupportedMatchNumber must be a non-negative number");
+    if (m.providerCompletedMatchesTotal !== undefined &&
+        (!isFiniteNumber(m.providerCompletedMatchesTotal) || m.providerCompletedMatchesTotal < 0))
+      errors.push("meta.providerCompletedMatchesTotal must be a non-negative number");
+    if (m.sourceObjectPath !== undefined && !isString(m.sourceObjectPath))
+      errors.push("meta.sourceObjectPath must be a string");
   }
 
   const teamRows = snap.teams;

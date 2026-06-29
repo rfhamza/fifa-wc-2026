@@ -48,6 +48,7 @@ interface CliArgs {
   out?: string;
   results?: string;
   type?: string;
+  sourceObjectPath?: string;
 }
 
 function parseArgs(argv: string[]): CliArgs {
@@ -66,6 +67,7 @@ function parseArgs(argv: string[]): CliArgs {
       case "--out": args.out = next(); break;
       case "--results": args.results = next(); break;
       case "--type": args.type = next(); break;
+      case "--source-object-path": args.sourceObjectPath = next(); break;
       // --dry-run / --stdout are the default; accepted as no-ops for clarity.
       case "--dry-run":
       case "--stdout": break;
@@ -91,9 +93,13 @@ function main(): void {
       throw new Error(`--type must be one of ${LIVE_AWARE_TYPES.join(", ")} (got ${args.type})`);
     }
     const ledger = loadForecastResultsLedger(readFileSync(args.results, "utf8"), fixtures);
+    const lockedResults = ledgerToLockedResults(ledger);
+    const latestCompletedSupportedMatchNumber = lockedResults.length
+      ? lockedResults.reduce((max, r) => (r.matchNumber > max ? r.matchNumber : max), 0)
+      : undefined;
     snapshot = buildLiveAwareForecastSnapshot({
       generatedAt,
-      lockedResults: ledgerToLockedResults(ledger),
+      lockedResults,
       snapshotType: (args.type as LiveAwareType | undefined) ?? "post-match",
       asOf: args.asOf ?? ledger.asOf,
       snapshotId: args.snapshotId,
@@ -102,6 +108,9 @@ function main(): void {
       notes: args.notes,
       liveStateSource: ledger.sourcePolicy,
       liveStateAsOf: ledger.asOf,
+      providerCompletedMatchesTotal: ledger.providerCompletedMatchesTotal,
+      sourceObjectPath: args.sourceObjectPath ?? ledger.sourceObjectPath,
+      latestCompletedSupportedMatchNumber,
     });
   } else {
     snapshot = buildBaselineForecastSnapshot({

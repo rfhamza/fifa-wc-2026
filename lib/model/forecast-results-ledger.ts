@@ -52,6 +52,13 @@ export interface ForecastResultsLedger {
   /** Provenance LABEL only (e.g. "manual-snapshot") - never a URL/token. */
   sourcePolicy: string;
   notes: string;
+  /** Public-safe source object PATHNAME (never a URL/token). Present when known. */
+  sourceObjectPath?: string;
+  /**
+   * Count of ALL completed official matches in the source live-state (incl.
+   * matches the engine cannot yet lock, e.g. knockout). `results` may be fewer.
+   */
+  providerCompletedMatchesTotal?: number;
   results: ResultLedgerRow[];
 }
 
@@ -92,6 +99,10 @@ export function validateResultsLedger(value: unknown): string[] {
   for (const k of ["ledgerId", "asOf", "sourcePolicy", "notes"] as const) {
     if (!isString(led[k])) errors.push(`${k} must be a string`);
   }
+  if (led.sourceObjectPath !== undefined && !isString(led.sourceObjectPath))
+    errors.push("sourceObjectPath must be a string when present");
+  if (led.providerCompletedMatchesTotal !== undefined && !isNonNegativeInteger(led.providerCompletedMatchesTotal))
+    errors.push("providerCompletedMatchesTotal must be a non-negative integer when present");
 
   if (!Array.isArray(led.results)) {
     errors.push("results must be an array");
@@ -266,6 +277,7 @@ export interface PublicSafeStateMatchInput {
 export interface PublicSafeStateInput {
   asOf?: string;
   publicSourcePolicy?: string;
+  serving?: { sourceObjectPath?: string };
   matches: PublicSafeStateMatchInput[];
 }
 
@@ -275,6 +287,8 @@ export interface DeriveLedgerOptions {
   notes?: string;
   /** Override the provenance label (e.g. "provider-public-delayed"). */
   sourcePolicy?: string;
+  /** Override the source object pathname (else taken from state.serving). */
+  sourceObjectPath?: string;
 }
 
 /**
@@ -328,6 +342,9 @@ export function deriveLedgerFromPublicSafeState(
   const ledgerId =
     options.ledgerId ?? `results-as-of-${asOfDate}-after-match-${String(results.length).padStart(3, "0")}`;
 
+  const providerCompletedMatchesTotal = (state.matches ?? []).filter((m) => m.status === "complete").length;
+  const sourceObjectPath = options.sourceObjectPath ?? state.serving?.sourceObjectPath;
+
   const ledger: ForecastResultsLedger = {
     schemaVersion: FORECAST_RESULTS_SCHEMA_VERSION,
     ledgerId,
@@ -337,6 +354,8 @@ export function deriveLedgerFromPublicSafeState(
       options.notes ??
       "Derived from a sanitized public-safe live-state. No raw provider payloads, provider IDs, " +
         "headers, tokens, or private Blob URLs included.",
+    ...(sourceObjectPath !== undefined ? { sourceObjectPath } : {}),
+    providerCompletedMatchesTotal,
     results,
   };
 
