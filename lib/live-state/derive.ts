@@ -11,7 +11,12 @@
  * Unresolved slots stay unresolved; ties are flagged, never force-decided (no
  * drawing-of-lots). It imports NO model/prediction/simulator-engine code.
  */
-import type { GroupId, QualifierSlot } from "@/lib/types";
+import type {
+  GroupId,
+  QualifierSlot,
+  ThirdPlaceAllocationMap,
+  ThirdPlaceSlotId,
+} from "@/lib/types";
 import {
   computeGroupStandings,
   rankThirdPlacedTeams,
@@ -22,6 +27,7 @@ import {
   type GroupResult,
   type RealisedKnockout,
 } from "@/lib/simulation/bracket";
+import { normalizeCombinationKey, THIRD_SLOT_IDS, THIRDS_SELECTED } from "@/lib/simulation/bracket-validate";
 import { officialBracket } from "@/data/official/bracket";
 import type {
   LiveBracketMatch,
@@ -108,6 +114,74 @@ export function rankLiveThirdPlaced(
   return ranked.map((r) => byTeam.get(r.teamId) ?? { ...r, qualificationState: "undecided", derivedFrom: "results" });
 }
 
+/**
+ * True only when EVERY group is fully complete (all rows present and every team has
+ * played all its games). Mirrors `completedGroupResults` (ingest.ts) so third-place
+ * finalisation and slot resolution gate on exactly the same notion of completeness.
+ */
+function allGroupsComplete(reference: LiveStateReference, standings: LiveGroupStanding[]): boolean {
+  for (const group of reference.groups) {
+    const rows = standings.filter((s) => s.group === group.id);
+    if (rows.length !== group.teamIds.length) return false;
+    if (!rows.every((r) => r.played === group.teamIds.length - 1)) return false;
+  }
+  return true;
+}
+
+/**
+ * Finalise third-place qualification once the WHOLE group stage is complete: rank the
+ * twelve third-placed teams (best-thirds via the pure Article-13 helper) and mark the
+ * top `THIRDS_SELECTED` (8) `qualified` and the remaining four `eliminated`. While any
+ * group is incomplete this is a NO-OP (returns the input unchanged), preserving the
+ * cautious `undecided` state. Pure: returns a new array, never mutates.
+ */
+export function finaliseThirdPlace(
+  reference: LiveStateReference,
+  standings: LiveGroupStanding[],
+): LiveGroupStanding[] {
+  if (!allGroupsComplete(reference, standings)) return standings;
+  const thirds = standings.filter((s) => s.rank === 3);
+  const ranked = rankThirdPlacedTeams(thirds, reference.teamMeta);
+  const qualified = new Set(ranked.slice(0, THIRDS_SELECTED).map((t) => t.teamId));
+  return standings.map((s) =>
+    s.rank === 3
+      ? { ...s, qualificationState: qualified.has(s.teamId) ? "qualified" : "eliminated" }
+      : s,
+  );
+}
+
+/**
+ * Resolve the eight R32 third-place slots (T1..T8) via the internal Annexe C table once
+ * the whole group stage is complete. Reads the qualifying-thirds groups from the
+ * FINALISED standings (so call `finaliseThirdPlace` first), normalises the combination
+ * key, looks up the internal 495-row allocation, and maps each slot to that group's
+ * third-placed team (from `groupResults`). FAIL-SAFE: returns an empty map (slots stay
+ * unresolved) when the group stage is incomplete, the qualifying set is not exactly 8,
+ * or the allocation key is absent - it never throws and never force-assigns. Pure.
+ * `allocation` is injectable for testing the fail-safe; it defaults to the official map.
+ */
+export function resolveThirdPlaceSlots(
+  reference: LiveStateReference,
+  standings: LiveGroupStanding[],
+  groupResults: Map<GroupId, GroupResult>,
+  allocation: ThirdPlaceAllocationMap = officialBracket.thirdPlaceAllocation,
+): Map<ThirdPlaceSlotId, string> {
+  const out = new Map<ThirdPlaceSlotId, string>();
+  if (!allGroupsComplete(reference, standings)) return out;
+  const qualifyingGroups = standings
+    .filter((s) => s.rank === 3 && s.qualificationState === "qualified")
+    .map((s) => s.group);
+  if (qualifyingGroups.length !== THIRDS_SELECTED) return out;
+  const assign = allocation[normalizeCombinationKey(qualifyingGroups)];
+  if (!assign) return out; // fail-safe: unknown combination -> leave slots unresolved
+  for (const slot of THIRD_SLOT_IDS) {
+    const group = assign[slot];
+    const gr = group ? groupResults.get(group) : undefined;
+    if (gr) out.set(slot, gr.third);
+  }
+  return out;
+}
+
 /** Winner of a completed knockout live match (explicit, by goals, or by penalties). */
 function knockoutWinner(m: LiveMatchState): string | null {
   if (m.status !== "complete") return null;
@@ -123,12 +197,17 @@ function knockoutWinner(m: LiveMatchState): string | null {
 /**
  * Derive knockout bracket progression from completed knockout results, walking the
  * official graph in match-number order so later matches read earlier winners/losers.
- * Group-position slots resolve only when `groupResults` is supplied; third-place
- * slots are deferred this phase. Anything undetermined stays null/unresolved.
+ * Group-position slots resolve when `groupResults` is supplied; third-place slots
+ * resolve when `thirdPlaceSlots` (the Annexe C allocation) is supplied. Anything
+ * still undetermined stays null/unresolved (never force-decided).
  */
 export function deriveBracketState(
   validMatches: LiveMatchState[],
-  opts: { groupResults?: Map<GroupId, GroupResult> } = {},
+  opts: {
+    groupResults?: Map<GroupId, GroupResult>;
+    /** Resolved Annexe C third-place slots (T1..T8 -> team id); empty until the group stage is complete. */
+    thirdPlaceSlots?: Map<ThirdPlaceSlotId, string>;
+  } = {},
 ): LiveBracketState {
   const completed = new Map<number, LiveMatchState>();
   for (const m of validMatches) {
@@ -150,7 +229,9 @@ export function deriveBracketState(
         return slot.position === 1 ? gr.winner : gr.runnerUp;
       }
       case "thirdPlace":
-        return null; // deferred this phase (needs the full set of qualifying thirds)
+        // Resolved via the internal Annexe C allocation once the group stage is
+        // complete (see resolveThirdPlaceSlots); null while still undetermined.
+        return opts.thirdPlaceSlots?.get(slot.slot) ?? null;
       case "matchWinner":
         return winners.get(slot.matchNumber) ?? null;
       case "matchLoser":

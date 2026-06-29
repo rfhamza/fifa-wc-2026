@@ -136,14 +136,26 @@ describe("metadata + policy labelling", () => {
   });
 });
 
-describe("committed fixture is the app-safe manual-snapshot projection", () => {
-  it("matches a freshly computed projection (provenance = FIFA manual snapshot, not provider)", () => {
+describe("committed fallback/reference fixture (provider-public-delayed, public-safe)", () => {
+  // Phase 1.29 PR-3F: the committed fallback fixture is now a public-safe, statically
+  // committed, truthfully-labelled provider-public-delayed reference projection (not a
+  // manual snapshot). It demonstrates the resolved third-place + R32 state for default
+  // config/previews. The canonical live source remains the gated provider Blob object.
+  it("is a public-safe provider-derived reference projection with truthful provenance", () => {
     const committed = committedFixture as unknown as PublicSafeLiveState;
-    expect(committed.isProviderDerived).toBe(false);
-    expect(committed.publicSourcePolicy).toBe("manual-snapshot");
-    expect(committed.matches).toHaveLength(54);
+    expect(committed.isProviderDerived).toBe(true);
+    expect(committed.publicSourcePolicy).toBe("provider-public-delayed");
+    expect(committed.matches).toHaveLength(88);
     const m73 = committed.bracket.find((b) => b.matchNumber === 73)!;
     expect([m73.homeTeamId, m73.awayTeamId]).toEqual(["south-africa", "canada"]);
+  });
+
+  it("demonstrates the resolved third-place + R32 state (8 qualified, all 16 R32 populated)", () => {
+    const committed = committedFixture as unknown as PublicSafeLiveState;
+    expect(committed.standings.filter((s) => s.position === 3 && s.qualificationState === "qualified")).toHaveLength(8);
+    const r32 = committed.bracket.filter((b) => b.round === "roundOf32");
+    expect(r32).toHaveLength(16);
+    expect(r32.every((b) => b.homeTeamId !== null && b.awayTeamId !== null)).toBe(true);
   });
 
   it("the committed fixture lives outside the git-ignored private live path", () => {
@@ -158,7 +170,7 @@ describe("read path + fallback", () => {
     const r = await loadPublicSafeLiveState();
     expect(r.ok).toBe(true);
     expect(r.fallback).toBe(false);
-    expect(r.state.matches.length).toBe(54);
+    expect(r.state.matches.length).toBe(88);
   });
 
   it("falls back safely when the source throws", async () => {

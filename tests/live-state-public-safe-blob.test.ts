@@ -25,7 +25,12 @@ import committedFixture from "@/data/live/public-safe-sample.json";
  * serving resolver (provider-derived public-display guard), and the privacy boundary.
  */
 
+// Phase 1.29 PR-3F: the committed fallback/reference fixture is now a public-safe,
+// truthfully-labelled provider-public-delayed projection (88 matches, resolved
+// third-place + R32). The serving-gate safety property is proved via serving metadata
+// (servedFrom / providerDerivedBlocked), not by the fixture being non-provider.
 const FIXTURE = committedFixture as unknown as PublicSafeLiveState;
+const FIXTURE_MATCH_COUNT = 88;
 
 /** An in-memory fake of the private Blob store seam. */
 function fakeStore(seed?: Record<string, string>): PublicSafeBlobStore & { objects: Record<string, string> } {
@@ -58,7 +63,7 @@ describe("Blob adapter (mocked SDK seam)", () => {
     const { pathname } = await putPublicSafeLiveStateToBlob(FIXTURE, { store });
     expect(pathname).toBe(DEFAULT_BLOB_OBJECT_PATH);
     const parsed = JSON.parse(store.objects[DEFAULT_BLOB_OBJECT_PATH]!);
-    expect(parsed.matches).toHaveLength(54);
+    expect(parsed.matches).toHaveLength(FIXTURE_MATCH_COUNT);
   });
 
   it("honours a custom object path", async () => {
@@ -71,7 +76,7 @@ describe("Blob adapter (mocked SDK seam)", () => {
     const store = fakeStore({ [DEFAULT_BLOB_OBJECT_PATH]: JSON.stringify(FIXTURE) });
     const r = await getPublicSafeLiveStateFromBlob({ store });
     expect(r.ok).toBe(true);
-    expect(r.state.matches).toHaveLength(54);
+    expect(r.state.matches).toHaveLength(FIXTURE_MATCH_COUNT);
   });
 
   it("falls back safely on a malformed object", async () => {
@@ -116,26 +121,31 @@ describe("Blob adapter (mocked SDK seam)", () => {
 describe("serving resolver (provider-derived public-display guard)", () => {
   const fixtureResult: LoadResult = { state: FIXTURE, ok: true, fallback: false };
   const providerState: PublicSafeLiveState = { ...FIXTURE, isProviderDerived: true, publicSourcePolicy: "provider-public-delayed" };
+  // A non-provider blob payload (manual snapshot) for the "non-provider blob served
+  // directly" path - the committed fixture itself is provider-derived now.
+  const nonProviderBlob: PublicSafeLiveState = { ...FIXTURE, isProviderDerived: false, publicSourcePolicy: "manual-snapshot" };
 
-  it("default source returns the fixture", async () => {
+  it("default source returns the committed reference fixture (provider-public-delayed)", async () => {
     const r = await resolvePublicSafeLiveStateForServing(
       { source: "fixture", allowProviderDerivedPublic: false },
       { loadFixture: async () => fixtureResult, loadBlob: async () => { throw new Error("should not read blob"); } },
     );
-    expect(r.state.isProviderDerived).toBe(false);
     expect(r.ok).toBe(true);
+    expect(r.serving.servedFrom).toBe("fixture");
+    expect(r.state.publicSourcePolicy).toBe("provider-public-delayed");
   });
 
-  it("blob source returns manual-snapshot (non-provider) state", async () => {
+  it("blob source serves a non-provider (manual) blob directly (not gated)", async () => {
     const r = await resolvePublicSafeLiveStateForServing(
       { source: "blob", allowProviderDerivedPublic: false },
-      { loadFixture: async () => fixtureResult, loadBlob: async () => ({ state: FIXTURE, ok: true, fallback: false }) },
+      { loadFixture: async () => fixtureResult, loadBlob: async () => ({ state: nonProviderBlob, ok: true, fallback: false }) },
     );
     expect(r.ok).toBe(true);
+    expect(r.serving.servedFrom).toBe("blob");
     expect(r.state.isProviderDerived).toBe(false);
   });
 
-  it("blob source with provider-derived state is BLOCKED unless explicitly allowed", async () => {
+  it("blob source with provider-derived state is BLOCKED unless explicitly allowed (falls back to the committed fixture)", async () => {
     let fixtureServed = false;
     const r = await resolvePublicSafeLiveStateForServing(
       { source: "blob", allowProviderDerivedPublic: false },
@@ -144,8 +154,9 @@ describe("serving resolver (provider-derived public-display guard)", () => {
         loadBlob: async () => ({ state: providerState, ok: true, fallback: false }),
       },
     );
-    expect(fixtureServed).toBe(true);
-    expect(r.state.isProviderDerived).toBe(false); // fixture, not the provider-derived blob
+    expect(fixtureServed).toBe(true); // the provider-derived blob was blocked
+    expect(r.serving.servedFrom).toBe("fixture-fallback");
+    expect(r.serving.providerDerivedBlocked).toBe(true);
   });
 
   it("blob source with provider-derived state IS served when explicitly allowed", async () => {
@@ -177,7 +188,7 @@ describe("serving resolver (provider-derived public-display guard)", () => {
       },
     );
     expect(r.ok).toBe(true);
-    expect(r.state.matches).toHaveLength(54);
+    expect(r.state.matches).toHaveLength(FIXTURE_MATCH_COUNT);
   });
 });
 
@@ -187,7 +198,7 @@ describe("manual writer", () => {
     now: () => "2026-06-25T12:00:00Z",
   };
 
-  it("fixture mode writes the manual/FIFA snapshot (not provider-derived)", async () => {
+  it("fixture mode writes the committed public-safe reference fixture (provider-public-delayed)", async () => {
     const store = fakeStore();
     const logs: string[] = [];
     const r = await runWritePublicSafeBlob({
@@ -195,8 +206,9 @@ describe("manual writer", () => {
       log: (l) => logs.push(l),
     });
     expect(r.action).toBe("wrote");
-    expect(r.isProviderDerived).toBe(false);
-    expect(r.matchCount).toBe(54);
+    // The committed reference fixture is now a public-safe provider-public-delayed projection.
+    expect(r.isProviderDerived).toBe(true);
+    expect(r.matchCount).toBe(FIXTURE_MATCH_COUNT);
     expect(logs.join("\n")).not.toContain("blob-secret");
   });
 
@@ -335,30 +347,32 @@ describe("route wiring (real resolver, default env)", () => {
     for (const k of KEYS) delete process.env[k];
   });
 
-  it("defaults to the manual fixture (200)", async () => {
+  it("defaults to the committed reference fixture (200)", async () => {
     const { GET } = await import("@/app/api/live-state/route");
     const res = await GET();
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.matches).toHaveLength(54);
-    expect(body.isProviderDerived).toBe(false);
+    expect(body.matches).toHaveLength(FIXTURE_MATCH_COUNT);
+    expect(body.isProviderDerived).toBe(true);
+    expect(body.publicSourcePolicy).toBe("provider-public-delayed");
   });
 
-  it("source=blob with no token falls back to the fixture (no throw, 200)", async () => {
+  it("source=blob with no token falls back to the committed fixture (no throw, 200)", async () => {
     process.env.LIVE_STATE_SOURCE = "blob";
     delete process.env.BLOB_READ_WRITE_TOKEN;
     const { GET } = await import("@/app/api/live-state/route");
     const res = await GET();
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.matches).toHaveLength(54);
-    expect(body.isProviderDerived).toBe(false);
+    expect(body.matches).toHaveLength(FIXTURE_MATCH_COUNT);
+    expect(body.serving.servedFrom).toBe("fixture-fallback");
   });
 });
 
 describe("serving metadata (Phase 1.28N observability)", () => {
   const fixtureResult: LoadResult = { state: FIXTURE, ok: true, fallback: false };
   const providerState: PublicSafeLiveState = { ...FIXTURE, isProviderDerived: true, publicSourcePolicy: "provider-public-delayed" };
+  const nonProviderBlob: PublicSafeLiveState = { ...FIXTURE, isProviderDerived: false, publicSourcePolicy: "manual-snapshot" };
   const blobOk = (state: PublicSafeLiveState): LoadResult => ({ state, ok: true, fallback: false });
   const blobErr = (error: string): LoadResult => ({ state: { ...FIXTURE, status: "unavailable" }, ok: false, fallback: true, error });
 
@@ -376,7 +390,7 @@ describe("serving metadata (Phase 1.28N observability)", () => {
   it("blob source with manual snapshot -> servedFrom=blob + echoed object path", async () => {
     const r = await resolvePublicSafeLiveStateForServing(
       { source: "blob", allowProviderDerivedPublic: false, objectPath: "live-state.sanitized.json" },
-      { loadFixture: async () => fixtureResult, loadBlob: async () => blobOk(FIXTURE) },
+      { loadFixture: async () => fixtureResult, loadBlob: async () => blobOk(nonProviderBlob) },
     );
     expect(r.serving.servedFrom).toBe("blob");
     expect(r.serving.sourceObjectPath).toBe("live-state.sanitized.json");
@@ -384,16 +398,18 @@ describe("serving metadata (Phase 1.28N observability)", () => {
     expect(r.state.isProviderDerived).toBe(false);
   });
 
-  it("provider-derived + allow=false -> fixture-fallback, blocked, served state stays non-provider", async () => {
+  it("provider-derived blob + allow=false -> fixture-fallback, blocked; served state is the committed reference fixture", async () => {
     const r = await resolvePublicSafeLiveStateForServing(
       { source: "blob", allowProviderDerivedPublic: false, objectPath: "live-state.provider.sanitized.json" },
       { loadFixture: async () => fixtureResult, loadBlob: async () => blobOk(providerState) },
     );
+    // The gated provider BLOB object is not served; the committed public-safe reference
+    // fixture is served instead (its own provenance is truthful provider-public-delayed).
     expect(r.serving.servedFrom).toBe("fixture-fallback");
     expect(r.serving.fallbackReason).toBe("provider-derived-public-blocked");
     expect(r.serving.providerDerivedBlocked).toBe(true);
     expect(r.serving.sourceObjectPath).toBe("live-state.provider.sanitized.json");
-    expect(r.state.isProviderDerived).toBe(false);
+    expect(r.state.publicSourcePolicy).toBe("provider-public-delayed");
   });
 
   it("provider-derived + allow=true -> servedFrom=blob with provider-derived state", async () => {
@@ -419,7 +435,7 @@ describe("serving metadata (Phase 1.28N observability)", () => {
       );
       expect(r.serving.servedFrom).toBe("fixture-fallback");
       expect(r.serving.fallbackReason).toBe(expected);
-      expect(r.state.matches).toHaveLength(54); // safe fixture content
+      expect(r.state.matches).toHaveLength(FIXTURE_MATCH_COUNT); // safe committed fixture content
     }
   });
 
@@ -462,16 +478,16 @@ describe("route serving metadata (real resolver, env set+restore)", () => {
     "vercel-storage", "blob-read-error", "not-found",
   ];
 
-  it("default env -> serving.servedFrom=fixture, body.matches=54", async () => {
+  it("default env -> serving.servedFrom=fixture, body.matches=88", async () => {
     const { GET } = await import("@/app/api/live-state/route");
     const res = await GET();
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.serving.servedFrom).toBe("fixture");
-    expect(body.matches).toHaveLength(54);
+    expect(body.matches).toHaveLength(FIXTURE_MATCH_COUNT);
   });
 
-  it("source=blob + custom object path + no token -> safe fixture fallback, path echoed", async () => {
+  it("source=blob + custom object path + no token -> safe committed-fixture fallback, path echoed", async () => {
     process.env.LIVE_STATE_SOURCE = "blob";
     process.env.LIVE_STATE_BLOB_OBJECT_PATH = "live-state.provider.sanitized.json";
     delete process.env.BLOB_READ_WRITE_TOKEN;
@@ -482,8 +498,7 @@ describe("route serving metadata (real resolver, env set+restore)", () => {
     expect(body.serving.servedFrom).toBe("fixture-fallback");
     expect(body.serving.fallbackReason).toBe("missing-blob-token");
     expect(body.serving.sourceObjectPath).toBe("live-state.provider.sanitized.json");
-    expect(body.isProviderDerived).toBe(false);
-    expect(body.matches).toHaveLength(54);
+    expect(body.matches).toHaveLength(FIXTURE_MATCH_COUNT);
   });
 
   it("the full serialized response leaks no token / blob URL / header / raw error / provider id", async () => {

@@ -22,12 +22,17 @@ const read = (rel: string) => readFileSync(join(process.cwd(), rel), "utf8");
 const sampleState = JSON.parse(read("data/live/public-safe-sample.json")) as PublicSafeStateInput;
 
 describe("deriveLedgerFromPublicSafeState (pure, no I/O)", () => {
-  it("derives a valid 54-row ledger from the committed sanitized sample", () => {
-    const ledger = deriveLedgerFromPublicSafeState(sampleState, { asOf: "2026-06-25" });
-    expect(ledger.results).toHaveLength(54);
+  it("derives a valid 73-row ledger (72 group + R32 M73) from the committed sanitized sample", () => {
+    // PR-3F refreshed the committed sample to the provider-public-delayed reference state
+    // (all 72 group matches complete + the completed R32 M73); derive emits 72 group rows
+    // plus the one completed knockout row.
+    const ledger = deriveLedgerFromPublicSafeState(sampleState, { asOf: "2026-06-29" });
+    expect(ledger.results).toHaveLength(73);
+    expect(ledger.results.filter((r) => r.stage === "group")).toHaveLength(72);
+    expect(ledger.results.filter((r) => r.stage !== "group")).toHaveLength(1);
     expect(validateResultsLedger(ledger)).toEqual([]);
     expect(validateResultsLedgerAgainstFixtures(ledger, fixtures)).toEqual([]);
-    expect(ledger.sourcePolicy).toBe("manual-snapshot");
+    expect(ledger.sourcePolicy).toBe("provider-public-delayed");
   });
 
   it("honours a sourcePolicy override (e.g. provider-public-delayed)", () => {
@@ -87,10 +92,10 @@ describe("Blob read seam (injected store, no token / no network)", () => {
     });
     expect(result.ok).toBe(true);
     const ledger = deriveLedgerFromPublicSafeState(result.state as unknown as PublicSafeStateInput, {
-      asOf: "2026-06-25",
+      asOf: "2026-06-29",
       sourcePolicy: "provider-public-delayed",
     });
-    expect(ledger.results).toHaveLength(54);
+    expect(ledger.results).toHaveLength(73);
     expect(validateResultsLedgerAgainstFixtures(ledger, fixtures)).toEqual([]);
   });
 
