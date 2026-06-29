@@ -12,8 +12,14 @@ import type { GroupId } from "@/lib/types";
 import { fixtures, groups, teams, getTeamMeta } from "@/lib/data";
 import { officialBracket } from "@/data/official/bracket";
 import type { GroupResult } from "@/lib/simulation/bracket";
+import { THIRDS_SELECTED } from "@/lib/simulation/bracket-validate";
 import { validateLiveSnapshot } from "./validate";
-import { deriveBracketState, deriveGroupStandings } from "./derive";
+import {
+  deriveBracketState,
+  deriveGroupStandings,
+  finaliseThirdPlace,
+  resolveThirdPlaceSlots,
+} from "./derive";
 import type {
   LiveDataFreshness,
   LiveFreshnessStatus,
@@ -98,9 +104,13 @@ export function ingestLiveSnapshot(
   const generatedAt = opts.generatedAt ?? new Date().toISOString();
 
   const validation = validateLiveSnapshot(snapshot, reference, { asOf, staleAfterSeconds });
-  const groupStandings = deriveGroupStandings(reference, validation.matches);
+  // Derive standings, then finalise third-place qualification across groups (no-op until
+  // every group is complete), then resolve the Annexe C third-place slots and feed both
+  // the group winners/runners-up AND the third-place slots into the bracket derivation.
+  const groupStandings = finaliseThirdPlace(reference, deriveGroupStandings(reference, validation.matches));
   const groupResults = completedGroupResults(reference, groupStandings);
-  const bracket = deriveBracketState(validation.matches, { groupResults });
+  const thirdPlaceSlots = resolveThirdPlaceSlots(reference, groupStandings, groupResults);
+  const bracket = deriveBracketState(validation.matches, { groupResults, thirdPlaceSlots });
 
   // ---- Freshness (never silent: fallback always carries a reason) ----
   let matchesStat: LiveFreshnessStatus = snapshot.matches.length === 0 ? "missing" : "fresh";
@@ -113,6 +123,14 @@ export function ingestLiveSnapshot(
   for (const m of usedComplete) derivedStat = worst(derivedStat, m.freshnessStatus);
 
   const warnings = validation.warnings.map((w) => `${w.code}: ${w.message}`);
+  // Fail-safe surfacing: if the whole group stage is complete but the Annexe C
+  // third-place slots could not be fully resolved (e.g. an unexpected allocation gap),
+  // surface a warning rather than silently leaving the bracket partially populated.
+  if (groupResults.size === reference.groups.length && thirdPlaceSlots.size < THIRDS_SELECTED) {
+    warnings.push(
+      "third-place-allocation-unresolved: group stage complete but Annexe C third-place slots were not fully resolved",
+    );
+  }
   let sections = { matches: matchesStat, standings: derivedStat, bracket: derivedStat };
   let fallbackReason: string | undefined;
   if (opts.fallback) {
