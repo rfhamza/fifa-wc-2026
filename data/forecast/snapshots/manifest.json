@@ -33,6 +33,17 @@
       "isBaseline": false,
       "previousSnapshotId": "snapshot-2026-06-25-after-match-054",
       "notes": "Live-aware forecast from the sanitized provider-derived live-state as of 2026-06-29 (provider-public-delayed). All 72 group-stage matches locked; seed 20260611, 2000 iterations. The provider also had M73 (R32, Canada) complete, but knockout result locking is deferred to PR-3E so it is not yet reflected. Suffix 072 = latest completed LOCKED match number, not latest provider-completed match."
+    },
+    {
+      "snapshotId": "snapshot-2026-06-29-after-match-073",
+      "file": "snapshot-2026-06-29-after-match-073.json",
+      "snapshotType": "post-match",
+      "asOf": "2026-06-29",
+      "label": "Provider-public-delayed checkpoint (72 group matches + R32 M73 locked, 2026-06-29)",
+      "completedMatchesLocked": 73,
+      "isBaseline": false,
+      "previousSnapshotId": "snapshot-2026-06-29-after-match-072",
+      "notes": "Live-aware forecast from the sanitized provider-derived live-state as of 2026-06-29 (provider-public-delayed). All 72 group-stage matches plus the completed Round of 32 match M73 (Canada over South Africa) locked via the PR-3E generic knockout engine; seed 20260611, 2000 iterations. Canada is advanced to the Round of 16 (prob 1.0) and South Africa eliminated. Suffix 073 = latest completed LOCKED match number."
     }
   ]
 }

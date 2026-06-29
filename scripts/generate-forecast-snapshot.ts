@@ -33,6 +33,7 @@ import {
 import {
   loadForecastResultsLedger,
   ledgerToLockedResults,
+  ledgerToKnockoutLockedResults,
 } from "../lib/model/forecast-results-ledger";
 
 type LiveAwareType = "post-match" | "post-matchday" | "manual";
@@ -94,12 +95,18 @@ function main(): void {
     }
     const ledger = loadForecastResultsLedger(readFileSync(args.results, "utf8"), fixtures);
     const lockedResults = ledgerToLockedResults(ledger);
-    const latestCompletedSupportedMatchNumber = lockedResults.length
-      ? lockedResults.reduce((max, r) => (r.matchNumber > max ? r.matchNumber : max), 0)
+    const lockedKnockoutResults = ledgerToKnockoutLockedResults(ledger);
+    const allMatchNumbers = [
+      ...lockedResults.map((r) => r.matchNumber),
+      ...lockedKnockoutResults.map((r) => r.matchNumber),
+    ];
+    const latestCompletedSupportedMatchNumber = allMatchNumbers.length
+      ? allMatchNumbers.reduce((max, n) => (n > max ? n : max), 0)
       : undefined;
     snapshot = buildLiveAwareForecastSnapshot({
       generatedAt,
       lockedResults,
+      lockedKnockoutResults,
       snapshotType: (args.type as LiveAwareType | undefined) ?? "post-match",
       asOf: args.asOf ?? ledger.asOf,
       snapshotId: args.snapshotId,

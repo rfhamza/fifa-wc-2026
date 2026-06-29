@@ -42,6 +42,11 @@ import {
   type GroupResult,
 } from "./bracket";
 import { resolveLockedResults, type LockedResult, type ResolvedLockedScore } from "./locked-results";
+import {
+  resolveKnockoutLockedResults,
+  type KnockoutLockedResult,
+  type ResolvedKnockoutLock,
+} from "./locked-knockout-results";
 
 const QUALIFYING_THIRDS = 8; // best third-placed teams that advance
 
@@ -144,6 +149,15 @@ export interface SimulationOptions {
    * fixtures are simulated normally. Omitted / empty reproduces the baseline exactly.
    */
   lockedResults?: LockedResult[];
+  /**
+   * Completed knockout results to lock into the simulation (Phase 1.29, PR-3E).
+   * Each locked match (M73..M104) forces its recorded winner and eliminates the
+   * loser; the official bracket then propagates the winner downstream while all
+   * unresolved knockout matches are simulated normally. Requires the official
+   * bracket to be active AND all 72 group-stage matches locked (a complete group
+   * stage). Omitted / empty reproduces the baseline knockout path exactly.
+   */
+  lockedKnockoutResults?: KnockoutLockedResult[];
 }
 
 /**
@@ -207,8 +221,41 @@ export function runTournamentSimulation(
   const bracketDef = options.bracket ?? officialBracketDefinition;
   const activeBracket = isBracketActive(bracketDef) ? bracketDef : null;
 
+  // Resolve any locked completed knockout results once (fails closed on invalid
+  // input). Knockout locking requires the official bracket to be active AND a
+  // complete group stage (all 72 group matches locked) - a knockout result can
+  // never precede a finished group stage. Empty/undefined yields an empty map and
+  // the baseline knockout path (byte-identical to no knockout locking).
+  const lockedKnockout = options.lockedKnockoutResults ?? [];
+  if (lockedKnockout.length > 0) {
+    if (!activeBracket) {
+      throw new Error(
+        "lockedKnockoutResults require the official bracket to be active (verified + valid)",
+      );
+    }
+    if (lockedByFixtureId.size !== fixtures.length) {
+      throw new Error(
+        `lockedKnockoutResults require all ${fixtures.length} group-stage matches to be locked first ` +
+          `(got ${lockedByFixtureId.size}); a knockout result cannot precede a complete group stage`,
+      );
+    }
+  }
+  const forcedKnockout: Map<number, ResolvedKnockoutLock> = activeBracket
+    ? resolveKnockoutLockedResults(lockedKnockout, activeBracket.graph)
+    : new Map();
+
   for (let i = 0; i < iterations; i++) {
-    simulateOneTournament(prepared, feat, rng, counts, standingSums, teamMeta, activeBracket, weights);
+    simulateOneTournament(
+      prepared,
+      feat,
+      rng,
+      counts,
+      standingSums,
+      teamMeta,
+      activeBracket,
+      weights,
+      forcedKnockout,
+    );
   }
 
   return {
@@ -229,6 +276,7 @@ function simulateOneTournament(
   teamMeta: TeamMeta[],
   activeBracket: BracketDefinition | null,
   weights: ModelWeights,
+  forcedKnockout: Map<number, ResolvedKnockoutLock>,
 ): void {
   // 1. Simulate group matches.
   const resultsByGroup = new Map<GroupId, MatchResult[]>();
@@ -305,7 +353,7 @@ function simulateOneTournament(
 
   // 4. Knockout stage: official bracket when active, else placeholder seeding.
   if (activeBracket) {
-    runOfficialKnockout(activeBracket, groupResults, qualifyingThirds, feat, rng, counts, weights);
+    runOfficialKnockout(activeBracket, groupResults, qualifyingThirds, feat, rng, counts, weights, forcedKnockout);
   } else {
     runPlaceholderKnockout(winnersAndRunners, qualifyingThirds, feat, rng, counts, weights);
   }
@@ -357,13 +405,43 @@ function runOfficialKnockout(
   rng: Rng,
   counts: Map<string, StageCounts>,
   weights: ModelWeights,
+  forcedKnockout: Map<number, ResolvedKnockoutLock>,
 ): void {
   const realised = realiseOfficialBracket({
     graph: bracketDef.graph,
     allocation: bracketDef.thirdPlaceAllocation,
     groupResults,
     thirdGroups: qualifyingThirds.map((s) => s.group),
-    decideWinner: (a, b) => knockoutWinner(a, b, feat, rng, weights),
+    decideWinner: (homeId, awayId, matchNumber) => {
+      const lock = forcedKnockout.get(matchNumber);
+      if (lock) {
+        // Defensive: the bracket-resolved participants must match the locked
+        // result's participant set (set equality), and the forced winner must be
+        // one of them. With a complete group stage + ancestor-closure this always
+        // holds; it fails fast/clearly otherwise.
+        const resolvedPair = new Set([homeId, awayId]);
+        if (
+          resolvedPair.size !== 2 ||
+          !resolvedPair.has(lock.homeTeamId) ||
+          !resolvedPair.has(lock.awayTeamId)
+        ) {
+          throw new Error(
+            `forced knockout M${matchNumber}: locked participants {${lock.homeTeamId}, ${lock.awayTeamId}} ` +
+              `do not match bracket-resolved {${homeId}, ${awayId}}`,
+          );
+        }
+        if (lock.winnerTeamId !== homeId && lock.winnerTeamId !== awayId) {
+          throw new Error(
+            `forced knockout M${matchNumber}: winner "${lock.winnerTeamId}" is not a bracket participant`,
+          );
+        }
+        // Burn the same RNG draws an unlocked match would consume, then discard,
+        // to keep the RNG stream aligned (common random numbers) up to this match.
+        knockoutWinner(homeId, awayId, feat, rng, weights);
+        return lock.winnerTeamId;
+      }
+      return knockoutWinner(homeId, awayId, feat, rng, weights);
+    },
   });
   for (const id of realised.r32Entrants) counts.get(id)!.roundOf32 += 1;
   for (const id of realised.roundOf16) counts.get(id)!.roundOf16 += 1;
