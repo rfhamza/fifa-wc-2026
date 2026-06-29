@@ -24,6 +24,7 @@ import { fixtures, teams } from "@/lib/data";
 import { MODEL_WEIGHTS, SIMULATION_CONFIG } from "@/lib/model/config";
 import { runTournamentSimulation } from "@/lib/simulation/tournament";
 import type { LockedResult } from "@/lib/simulation/locked-results";
+import type { KnockoutLockedResult } from "@/lib/simulation/locked-knockout-results";
 
 export const FORECAST_SNAPSHOT_SCHEMA_VERSION = "1.0.0";
 
@@ -212,6 +213,8 @@ export interface BuildLiveAwareOptions {
   generatedAt: string;
   /** Completed group-stage results to lock into the simulation. */
   lockedResults: LockedResult[];
+  /** Completed knockout results (M73..M104) to lock into the simulation. */
+  lockedKnockoutResults?: KnockoutLockedResult[];
   /** post-match | post-matchday | manual. Defaults to "post-match". */
   snapshotType?: Exclude<ForecastSnapshotType, "baseline">;
   /** ISO date/time the locked state is "as of" (from the results ledger). */
@@ -242,6 +245,7 @@ interface BuildForecastSnapshotOptions {
   iterations: number;
   notes: string;
   lockedResults: LockedResult[];
+  lockedKnockoutResults?: KnockoutLockedResult[];
   liveStateSource: string | null;
   liveStateAsOf: string | null;
   providerCompletedMatchesTotal?: number;
@@ -261,7 +265,8 @@ export const BASELINE_AS_OF = "2026-06-11";
  */
 function buildForecastSnapshot(options: BuildForecastSnapshotOptions): ForecastSnapshot {
   const { seed, iterations, lockedResults } = options;
-  const sim = runTournamentSimulation({ seed, iterations, lockedResults });
+  const lockedKnockoutResults = options.lockedKnockoutResults ?? [];
+  const sim = runTournamentSimulation({ seed, iterations, lockedResults, lockedKnockoutResults });
 
   const weightsSummary: Record<string, number> = { ...MODEL_WEIGHTS };
 
@@ -277,7 +282,7 @@ function buildForecastSnapshot(options: BuildForecastSnapshotOptions): ForecastS
     fixtureVersion: computeFixtureVersion(),
     liveStateSource: options.liveStateSource,
     liveStateAsOf: options.liveStateAsOf,
-    completedMatchesLocked: lockedResults.length,
+    completedMatchesLocked: lockedResults.length + lockedKnockoutResults.length,
     simulationIterations: iterations,
     seed,
     notes: options.notes,
@@ -354,6 +359,7 @@ export function buildLiveAwareForecastSnapshot(
     iterations: options.iterations ?? SIMULATION_CONFIG.defaultIterations,
     notes: options.notes ?? "Live-aware forecast; completed results locked from a committed ledger.",
     lockedResults: options.lockedResults,
+    lockedKnockoutResults: options.lockedKnockoutResults,
     liveStateSource: options.liveStateSource ?? null,
     liveStateAsOf: options.liveStateAsOf ?? null,
     providerCompletedMatchesTotal: options.providerCompletedMatchesTotal,

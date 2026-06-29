@@ -47,8 +47,12 @@ export interface RealiseInput {
   groupResults: Map<GroupId, GroupResult>;
   /** The eight groups whose third-placed team qualified (order irrelevant). */
   thirdGroups: GroupId[];
-  /** Decide a knockout winner between two team ids (e.g. model + RNG). */
-  decideWinner: (homeId: string, awayId: string) => string;
+  /**
+   * Decide a knockout winner between two team ids (e.g. model + RNG). The graph
+   * match number is supplied so a caller can force a completed (locked) result
+   * for that match while simulating the rest.
+   */
+  decideWinner: (homeId: string, awayId: string, matchNumber: number) => string;
 }
 
 /** Teams reaching each stage (cumulative semantics matching stage counts). */
@@ -122,7 +126,7 @@ export function realiseOfficialBracket(input: RealiseInput): RealisedKnockout {
   for (const m of ordered) {
     const homeId = resolve(m.home);
     const awayId = resolve(m.away);
-    const winnerId = decideWinner(homeId, awayId);
+    const winnerId = decideWinner(homeId, awayId, m.matchNumber);
     const loserId = winnerId === homeId ? awayId : homeId;
     winners.set(m.matchNumber, winnerId);
     losers.set(m.matchNumber, loserId);

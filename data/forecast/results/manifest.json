@@ -16,6 +16,14 @@
       "label": "Provider-public-delayed results as of 2026-06-29 (all 72 group matches locked)",
       "resultCount": 72,
       "notes": "Derived from the sanitized provider-derived live-state (sourceObjectPath live-state.provider.sanitized.json), generated from a committed public-safe reference fixture (read mode: file fixture, not Blob). Provider had 73 completed official matches (incl. M73 R32, Canada); only the 72 group-stage matches are locked. Knockout result locking is deferred to PR-3E."
+    },
+    {
+      "ledgerId": "results-as-of-2026-06-29-after-match-073",
+      "file": "results-as-of-2026-06-29-after-match-073.json",
+      "asOf": "2026-06-29T07:02:22.483Z",
+      "label": "Provider-public-delayed results as of 2026-06-29 (72 group matches + R32 M73 locked)",
+      "resultCount": 73,
+      "notes": "Derived from the sanitized provider-derived live-state (sourceObjectPath live-state.provider.sanitized.json), generated from a committed public-safe reference fixture (read mode: file fixture, not Blob). Locks all 72 group-stage matches plus the completed Round of 32 match M73 (Canada over South Africa) - the first knockout result lockable via the PR-3E generic knockout engine. Suffix 073 = latest completed LOCKED match number."
     }
   ]
 }

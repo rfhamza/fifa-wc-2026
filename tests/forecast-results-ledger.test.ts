@@ -119,8 +119,9 @@ describe("fixture-aware ledger validation", () => {
 
   it("rejects a group that does not match the official fixture", () => {
     const led = syntheticLedger();
-    const wrongGroup: GroupId = (groups[1]!.id === led.results[0]!.group ? groups[2]! : groups[1]!).id;
-    led.results[0]!.group = wrongGroup;
+    const row0 = led.results[0]! as { group: GroupId };
+    const wrongGroup: GroupId = (groups[1]!.id === row0.group ? groups[2]! : groups[1]!).id;
+    row0.group = wrongGroup;
     expect(validateResultsLedgerAgainstFixtures(led, fixtures).join(" ")).toMatch(/group/i);
   });
 
