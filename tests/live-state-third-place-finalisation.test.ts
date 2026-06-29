@@ -18,6 +18,7 @@ import {
   referenceFixtureToRawSnapshot,
   regeneratePublicSafeSample,
   REFERENCE_FIXTURE_PATH,
+  SAMPLE_OUTPUT_PATH,
 } from "../scripts/regen-public-safe-sample";
 
 /**
@@ -126,21 +127,37 @@ describe("resolveThirdPlaceSlots fail-safe", () => {
   });
 });
 
-describe("regeneration pipeline + public-safe projection", () => {
-  it("regeneratePublicSafeSample yields a resolved, honest-provenance, leak-clean public-safe state", () => {
-    const regen = regeneratePublicSafeSample(reference);
-    expect(regen.isProviderDerived).toBe(true);
-    expect(regen.publicSourcePolicy).toBe("provider-public-delayed");
-    expect((regen as { serving?: unknown }).serving).toBeUndefined(); // route adds serving, not committed
-    expect(regen.standings.filter((s) => s.position === 3 && s.qualificationState === "qualified")).toHaveLength(8);
-    const r32 = regen.bracket.filter((b) => b.round === "roundOf32");
-    expect(r32).toHaveLength(16);
-    expect(r32.every((b) => b.resolution === "resolved")).toBe(true);
-    expect(findForbiddenSubstrings(JSON.stringify(regen))).toEqual([]);
+describe("committed fallback/reference fixture (refreshed, provider-public-delayed)", () => {
+  it("is byte-reproducible from the committed reference fixture via the fixed offline pipeline", () => {
+    const regenerated = regeneratePublicSafeSample(reference);
+    expect(JSON.stringify(regenerated, null, 2) + "\n").toBe(read(SAMPLE_OUTPUT_PATH));
+  });
+
+  it("keeps honest provider-public-delayed provenance, is public-safe, and carries no serving key", () => {
+    const sample = JSON.parse(read(SAMPLE_OUTPUT_PATH)) as {
+      isProviderDerived: boolean;
+      publicSourcePolicy: string;
+      serving?: unknown;
+    };
+    expect(sample.isProviderDerived).toBe(true);
+    expect(sample.publicSourcePolicy).toBe("provider-public-delayed");
+    expect(sample.serving).toBeUndefined(); // serving metadata is added by the route, never committed
+    expect(findForbiddenSubstrings(read(SAMPLE_OUTPUT_PATH))).toEqual([]);
     expect(findForbiddenSubstrings(read(REFERENCE_FIXTURE_PATH))).toEqual([]);
   });
 
-  it("public-safe projection of the ingested state exposes the resolved third-place + R32 state with no leakage", () => {
+  it("demonstrates the resolved third-place + R32 state (8 qualified, all 16 R32 populated)", () => {
+    const sample = JSON.parse(read(SAMPLE_OUTPUT_PATH)) as {
+      standings: { position: number; qualificationState: string }[];
+      bracket: { round: string; homeTeamId: string | null; awayTeamId: string | null }[];
+    };
+    expect(sample.standings.filter((s) => s.position === 3 && s.qualificationState === "qualified")).toHaveLength(8);
+    const r32 = sample.bracket.filter((b) => b.round === "roundOf32");
+    expect(r32).toHaveLength(16);
+    expect(r32.every((b) => b.homeTeamId !== null && b.awayTeamId !== null)).toBe(true);
+  });
+
+  it("public-safe projection of the ingested state exposes the resolved state with no leakage", () => {
     const pub = toPublicSafeLiveState(fullState, {
       attribution: reference.attribution,
       isProviderDerived: true,
