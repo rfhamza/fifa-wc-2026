@@ -8,6 +8,14 @@
       "label": "Manual public-safe results as of 2026-06-25 (after M54)",
       "resultCount": 54,
       "notes": "Derived from the committed public-safe manual sample (data/live/public-safe-sample.json); completed group-stage matches only. Historical/manual checkpoint, not the latest provider-derived live-state."
+    },
+    {
+      "ledgerId": "results-as-of-2026-06-29-after-match-072",
+      "file": "results-as-of-2026-06-29-after-match-072.json",
+      "asOf": "2026-06-29T07:02:22.483Z",
+      "label": "Provider-public-delayed results as of 2026-06-29 (all 72 group matches locked)",
+      "resultCount": 72,
+      "notes": "Derived from the sanitized provider-derived live-state (sourceObjectPath live-state.provider.sanitized.json), generated from a committed public-safe reference fixture (read mode: file fixture, not Blob). Provider had 73 completed official matches (incl. M73 R32, Canada); only the 72 group-stage matches are locked. Knockout result locking is deferred to PR-3E."
     }
   ]
 }

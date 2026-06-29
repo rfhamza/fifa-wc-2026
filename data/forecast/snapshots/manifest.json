@@ -22,6 +22,17 @@
       "isBaseline": false,
       "previousSnapshotId": "baseline-2026-06-11.pre-tournament",
       "notes": "Live-aware forecast from the committed public-safe manual sample as of 2026-06-25 after 54 completed group-stage matches; seed 20260611, 2000 iterations. Historical/manual checkpoint, not the latest provider-derived live-state."
+    },
+    {
+      "snapshotId": "snapshot-2026-06-29-after-match-072",
+      "file": "snapshot-2026-06-29-after-match-072.json",
+      "snapshotType": "post-match",
+      "asOf": "2026-06-29",
+      "label": "Provider-public-delayed checkpoint (all 72 group matches locked, 2026-06-29)",
+      "completedMatchesLocked": 72,
+      "isBaseline": false,
+      "previousSnapshotId": "snapshot-2026-06-25-after-match-054",
+      "notes": "Live-aware forecast from the sanitized provider-derived live-state as of 2026-06-29 (provider-public-delayed). All 72 group-stage matches locked; seed 20260611, 2000 iterations. The provider also had M73 (R32, Canada) complete, but knockout result locking is deferred to PR-3E so it is not yet reflected. Suffix 072 = latest completed LOCKED match number, not latest provider-completed match."
     }
   ]
 }
