@@ -15,9 +15,13 @@
  */
 import type { Fixture, GroupId } from "@/lib/types";
 import type { LockedResult } from "@/lib/simulation/locked-results";
+import { fixtures } from "@/lib/data";
 import { FORBIDDEN_SNAPSHOT_SUBSTRINGS, findForbiddenSubstrings } from "./forecast-snapshots";
 
 export const FORECAST_RESULTS_SCHEMA_VERSION = "1.0.0";
+
+/** Group-stage match numbers are M1..M72; knockout (M73+) is never lockable here. */
+export const GROUP_STAGE_MAX_MATCH = 72;
 
 /** Only completed group-stage matches are lockable in this phase. */
 export const LEDGER_ALLOWED_STAGE = "group" as const;
@@ -234,6 +238,116 @@ export function loadForecastResultsManifest(raw: string | unknown): ForecastResu
     throw new Error(`Invalid forecast results manifest:\n- ${errors.join("\n- ")}`);
   }
   return value as ForecastResultsManifest;
+}
+
+/* ----------------------------------------------------------------------------
+ * Derivation from a sanitized public-safe live-state (PR-3D).
+ *
+ * Pure: takes a plain public-safe state object (from a committed file OR the
+ * sanitized Blob read - the caller does the I/O) and produces a validated ledger.
+ * Imports NO live-state module, so lib/model stays isolated (the Blob read lives
+ * in the offline script). Keeps only completed group-stage matches and emits only
+ * the sanitized ledger fields - provider/private data can never reach the output.
+ * -------------------------------------------------------------------------- */
+
+/** Minimal public-safe match shape this derivation consumes. */
+export interface PublicSafeStateMatchInput {
+  matchNumber: number;
+  stage: string;
+  status: string;
+  teamA: string;
+  teamB: string;
+  goalsA: number;
+  goalsB: number;
+  kickoff?: string;
+}
+
+/** Minimal public-safe live-state shape this derivation consumes. */
+export interface PublicSafeStateInput {
+  asOf?: string;
+  publicSourcePolicy?: string;
+  matches: PublicSafeStateMatchInput[];
+}
+
+export interface DeriveLedgerOptions {
+  asOf?: string;
+  ledgerId?: string;
+  notes?: string;
+  /** Override the provenance label (e.g. "provider-public-delayed"). */
+  sourcePolicy?: string;
+}
+
+/**
+ * Derive a validated, public-safe results ledger from a sanitized live-state.
+ * Keeps `stage==="group" && status==="complete" && matchNumber<=72`, maps each
+ * onto the official fixture's canonical home/away (goals by team identity), emits
+ * only the 9 ledger fields, and validates against the schema + official fixtures
+ * (throws on any inconsistency). No fetch/Blob/token here - I/O is the caller's.
+ */
+export function deriveLedgerFromPublicSafeState(
+  state: PublicSafeStateInput,
+  options: DeriveLedgerOptions = {},
+): ForecastResultsLedger {
+  const fixtureByMatchNumber = new Map<number, Fixture>();
+  for (const f of fixtures) {
+    if (typeof f.matchNumber === "number") fixtureByMatchNumber.set(f.matchNumber, f);
+  }
+
+  const completedGroup = (state.matches ?? [])
+    .filter((m) => m.stage === "group" && m.status === "complete" && m.matchNumber <= GROUP_STAGE_MAX_MATCH)
+    .sort((a, b) => a.matchNumber - b.matchNumber);
+
+  const results: ResultLedgerRow[] = completedGroup.map((m) => {
+    const fixture = fixtureByMatchNumber.get(m.matchNumber);
+    if (!fixture) {
+      throw new Error(`deriveLedger: matchNumber ${m.matchNumber} is not an official group-stage fixture`);
+    }
+    const teamSet = new Set([fixture.homeTeamId, fixture.awayTeamId]);
+    if (m.teamA === m.teamB || !teamSet.has(m.teamA) || !teamSet.has(m.teamB)) {
+      throw new Error(
+        `deriveLedger: M${m.matchNumber} teams {${m.teamA}, ${m.teamB}} do not match fixture ` +
+          `{${fixture.homeTeamId}, ${fixture.awayTeamId}}`,
+      );
+    }
+    const aIsHome = m.teamA === fixture.homeTeamId;
+    return {
+      matchNumber: m.matchNumber,
+      stage: "group",
+      group: fixture.group,
+      homeTeamId: fixture.homeTeamId,
+      awayTeamId: fixture.awayTeamId,
+      homeGoals: aIsHome ? m.goalsA : m.goalsB,
+      awayGoals: aIsHome ? m.goalsB : m.goalsA,
+      status: "complete",
+      ...(m.kickoff ? { playedAt: m.kickoff } : {}),
+    };
+  });
+
+  const asOf = options.asOf ?? state.asOf ?? "";
+  const asOfDate = asOf.slice(0, 10);
+  const ledgerId =
+    options.ledgerId ?? `results-as-of-${asOfDate}-after-match-${String(results.length).padStart(3, "0")}`;
+
+  const ledger: ForecastResultsLedger = {
+    schemaVersion: FORECAST_RESULTS_SCHEMA_VERSION,
+    ledgerId,
+    asOf: state.asOf ?? asOf,
+    sourcePolicy: options.sourcePolicy ?? state.publicSourcePolicy ?? "manual-snapshot",
+    notes:
+      options.notes ??
+      "Derived from a sanitized public-safe live-state. No raw provider payloads, provider IDs, " +
+        "headers, tokens, or private Blob URLs included.",
+    results,
+  };
+
+  const errors = [
+    ...validateResultsLedger(ledger),
+    ...validateResultsLedgerAgainstFixtures(ledger, fixtures),
+  ];
+  if (errors.length > 0) {
+    throw new Error(`Derived ledger failed validation:\n- ${errors.join("\n- ")}`);
+  }
+  return ledger;
 }
 
 /** Re-exported for callers that want the shared forbidden-substring set. */
