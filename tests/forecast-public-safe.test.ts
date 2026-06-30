@@ -45,7 +45,7 @@ const entryMeta = (over: Partial<MatchForecastEntryMeta> = {}): MatchForecastEnt
   status: "scheduled",
   forecastAsOf: "2026-06-29",
   generatedAt: "2026-06-29T00:00:00.000Z",
-  provenance: "archived-pre-match-forecast",
+  provenance: "current-pre-match-forecast",
   capturedBeforeCompletion: true,
   archived: false,
   ...over,
@@ -137,20 +137,53 @@ describe("match-forecast entries", () => {
     expect(validateMatchForecastEntry(e).join(" ")).toMatch(/knockout entries must include/);
   });
 
-  it("enforces the hindsight rule", () => {
-    // archived-pre-match requires capturedBeforeCompletion=true
-    const mislabeled = toPublicSafeMatchForecastEntry(
-      koForecast,
-      entryMeta({ provenance: "archived-pre-match-forecast", capturedBeforeCompletion: false, archived: true }),
-    );
-    expect(validateMatchForecastEntry(mislabeled).join(" ")).toMatch(/archived-pre-match-forecast requires/);
+  it("enforces the provenance lifecycle rules", () => {
+    // current-pre-match-forecast: archived=false, capturedBeforeCompletion=true (valid)
+    const current = toPublicSafeMatchForecastEntry(koForecast, entryMeta());
+    expect(current.forecastProvenance).toBe("current-pre-match-forecast");
+    expect(validateMatchForecastEntry(current)).toEqual([]);
 
-    // an archived, not-captured-before-completion forecast must be retrospective
+    // current-pre-match-forecast with archived=true is invalid
+    const currentArchived = toPublicSafeMatchForecastEntry(
+      koForecast,
+      entryMeta({ provenance: "current-pre-match-forecast", archived: true }),
+    );
+    expect(validateMatchForecastEntry(currentArchived).join(" ")).toMatch(/current-pre-match-forecast requires archived=false/);
+
+    // archived-pre-match-forecast: archived=true + capturedBeforeCompletion=true (valid)
+    const archived = toPublicSafeMatchForecastEntry(
+      koForecast,
+      entryMeta({ provenance: "archived-pre-match-forecast", archived: true, status: "complete" }),
+    );
+    expect(validateMatchForecastEntry(archived)).toEqual([]);
+
+    // archived-pre-match-forecast with archived=false is invalid (the state we want to avoid)
+    const archivedNotFrozen = toPublicSafeMatchForecastEntry(
+      koForecast,
+      entryMeta({ provenance: "archived-pre-match-forecast", archived: false }),
+    );
+    expect(validateMatchForecastEntry(archivedNotFrozen).join(" ")).toMatch(/archived-pre-match-forecast requires archived=true/);
+
+    // archived-pre-match not captured before completion is invalid
+    const archivedNotCaptured = toPublicSafeMatchForecastEntry(
+      koForecast,
+      entryMeta({ provenance: "archived-pre-match-forecast", archived: true, capturedBeforeCompletion: false, status: "complete" }),
+    );
+    expect(validateMatchForecastEntry(archivedNotCaptured).join(" ")).toMatch(/archived-pre-match-forecast requires capturedBeforeCompletion=true/);
+
+    // retrospective-model-forecast: archived=true + capturedBeforeCompletion=false (valid)
     const retro = toPublicSafeMatchForecastEntry(
       koForecast,
       entryMeta({ provenance: "retrospective-model-forecast", capturedBeforeCompletion: false, archived: true, status: "complete" }),
     );
     expect(validateMatchForecastEntry(retro)).toEqual([]);
+
+    // retrospective captured-before-completion is invalid
+    const retroCaptured = toPublicSafeMatchForecastEntry(
+      koForecast,
+      entryMeta({ provenance: "retrospective-model-forecast", capturedBeforeCompletion: true, archived: true }),
+    );
+    expect(validateMatchForecastEntry(retroCaptured).join(" ")).toMatch(/retrospective-model-forecast requires capturedBeforeCompletion=false/);
   });
 });
 

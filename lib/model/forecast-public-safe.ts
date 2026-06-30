@@ -499,16 +499,32 @@ export function validateMatchForecastEntry(value: unknown, index = 0): string[] 
     }
   }
 
-  // hindsight / provenance rule
+  // hindsight / provenance lifecycle rule
   const provenance = value.forecastProvenance;
-  if (provenance !== "archived-pre-match-forecast" && provenance !== "retrospective-model-forecast") {
-    errors.push(at("forecastProvenance must be archived-pre-match-forecast or retrospective-model-forecast"));
-  }
-  if (provenance === "archived-pre-match-forecast" && value.capturedBeforeCompletion !== true) {
-    errors.push(at("archived-pre-match-forecast requires capturedBeforeCompletion=true"));
-  }
-  if (value.archived === true && value.capturedBeforeCompletion === false && provenance !== "retrospective-model-forecast") {
-    errors.push(at("an archived forecast not captured before completion must be retrospective-model-forecast"));
+  if (
+    provenance !== "current-pre-match-forecast" &&
+    provenance !== "archived-pre-match-forecast" &&
+    provenance !== "retrospective-model-forecast"
+  ) {
+    errors.push(
+      at("forecastProvenance must be current-pre-match-forecast, archived-pre-match-forecast or retrospective-model-forecast"),
+    );
+  } else if (provenance === "current-pre-match-forecast") {
+    if (value.archived !== false) errors.push(at("current-pre-match-forecast requires archived=false"));
+    if (value.capturedBeforeCompletion !== true) {
+      errors.push(at("current-pre-match-forecast requires capturedBeforeCompletion=true"));
+    }
+  } else if (provenance === "archived-pre-match-forecast") {
+    if (value.archived !== true) errors.push(at("archived-pre-match-forecast requires archived=true"));
+    if (value.capturedBeforeCompletion !== true) {
+      errors.push(at("archived-pre-match-forecast requires capturedBeforeCompletion=true"));
+    }
+  } else {
+    // retrospective-model-forecast
+    if (value.archived !== true) errors.push(at("retrospective-model-forecast requires archived=true"));
+    if (value.capturedBeforeCompletion !== false) {
+      errors.push(at("retrospective-model-forecast requires capturedBeforeCompletion=false"));
+    }
   }
   return errors;
 }

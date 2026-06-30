@@ -49,7 +49,7 @@ const meta: MatchForecastEntryMeta = {
   status: "scheduled",
   forecastAsOf: "2026-06-29",
   generatedAt: "2026-06-29T00:00:00.000Z",
-  provenance: "archived-pre-match-forecast",
+  provenance: "current-pre-match-forecast",
   capturedBeforeCompletion: true,
   archived: false,
 };

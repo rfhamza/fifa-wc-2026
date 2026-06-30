@@ -80,10 +80,18 @@ export interface MatchForecast {
  * IMPORTANT product rule: a TRUE pre-match archive entry only exists if it was
  * captured BEFORE the match was completed. A forecast computed for an
  * already-completed match must NOT be labelled an archived pre-match forecast —
- * it is a `retrospective-model-forecast`. PR-83A defines these contracts only; it
- * does NOT write any archive (Blob writing is a later PR).
+ * it is a `retrospective-model-forecast`.
+ *
+ * Lifecycle (validated in `forecast-public-safe.ts`):
+ *   - `current-pre-match-forecast`   — captured before completion, not yet frozen
+ *                                      (archived=false, capturedBeforeCompletion=true)
+ *   - `archived-pre-match-forecast`  — the same forecast frozen once the match completed
+ *                                      (archived=true, capturedBeforeCompletion=true)
+ *   - `retrospective-model-forecast` — generated AFTER completion with no prior pre-match
+ *                                      (archived=true, capturedBeforeCompletion=false)
  */
 export type MatchForecastProvenance =
+  | "current-pre-match-forecast"
   | "archived-pre-match-forecast"
   | "retrospective-model-forecast";
 
