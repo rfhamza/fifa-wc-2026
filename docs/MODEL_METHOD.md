@@ -112,7 +112,7 @@ reproducible). The **third-placed ranking is separate** and uses points ->
 all-group GD -> all-group GF -> conduct -> FIFA ranking (NO head-to-head, since
 those teams did not meet).
 
-### Bracket: official structure + placeholder fallback (Phase 1.2)
+### Bracket: official structure, verified + active (Phase 1.2–1.3)
 The knockout stage is a typed, validated structure built to be **credible** while
 staying honest about provenance:
 
@@ -132,16 +132,21 @@ staying honest about provenance:
   3rd-place match (M103) is simulated for completeness but **not aggregated**.
 
 **Production gate (`isBracketActive`):** the official path runs **only** when the
-bracket is `sourceStatus: "verified"` **and** `validateBracket` passes. Otherwise
+bracket is `sourceStatus: "verified"` **and** `validateBracket` passes; otherwise
 the simulator falls back to the transparent `seedBracket()` balanced seeding. The
-FIFA regulations PDF returned **HTTP 403**, so the graph + Annexe C remain empty
-templates (`sourceStatus: "mock"`) and the official path is **inactive**;
-real-data tests stay **skipped**. Engine correctness is proven against a synthetic
+official graph (M73–M104) + all 495 Annexe C rows were transcribed from the
+official FWC26 regulations and **verified on 2026-06-17**, so
+`data/official/bracket.ts` is `sourceStatus: "verified"` and the **official path is
+active in production** — the forecast simulator AND the live-state derivation
+(`lib/live-state/derive.ts`) both use it for group/third-place/bracket resolution.
+The `seedBracket()` placeholder now serves only as an inactive safety fallback.
+Engine correctness is covered by `tests/bracket*.test.ts` plus the synthetic
 fixture (`tests/fixtures/sample-bracket.ts`).
 
-**Go/No-Go to `verified`:** graph transcribed + valid; all 495 Annexe C rows
-present + valid; realiser resolves 32 distinct teams deterministically; user
-confirms the source is authoritative; CI green and invariants hold.
+**Verified (2026-06-17):** graph transcribed + valid; all 495 Annexe C rows present
++ valid; realiser resolves 32 distinct teams deterministically; source confirmed
+authoritative; CI green and invariants hold. (Provider standings/bracket are never
+canonical — Article 13 + Annexe C remain the internal source of truth.)
 
 ## 6. Tuning guide
 All knobs live in `lib/model/config.ts`:

@@ -18,14 +18,18 @@ official:
 
 | Status | Meaning | Current use |
 | --- | --- | --- |
-| `verified` | Official FIFA source / authoritative JSON | *(none yet)* |
+| `verified` | Official FIFA source / authoritative JSON | **Official 72-match schedule** (v17, subject to change), **48 draw positions**, and the **knockout bracket graph (M73–M104) + all 495 Annexe C rows** |
 | `candidate` | Cross-verified from credible non-FIFA sources | **Group composition + 48-team identities** (Final Draw, 5 Dec 2025) |
-| `mock` | Hand-authored placeholder | Fallback dataset; all **model feature values** (Elo, economy, squad, form, climate) |
+| `mock` | Hand-authored placeholder | Fallback dataset; capped **model feature placeholders** (squad, recent form) |
 
-Fixtures are tagged `official` or `generated`. Currently **generated** (the
-official 72-match schedule and the Round-of-32 / Annexe C bracket could not be
-fetched — FIFA endpoints returned HTTP 403 — so they remain TODO and the
-simulator uses a documented placeholder bracket).
+Fixtures are tagged `official` or `generated`. The official 72-match schedule
+(v17, 10 Apr 2026, **subject to change**) is active, and the **official Round-of-32
+/ Annexe C knockout bracket is verified (2026-06-17) and production-active** — the
+forecast simulator and the live-state derivation both use the official bracket
+path. Article 13 standings and Annexe C allocation are the internal source of
+truth; provider standings/bracket are not canonical. A balanced-seeding
+placeholder remains only as an inactive fallback if the bracket is ever marked
+unverified.
 
 ## Features
 - **Forecast Dashboard** — title-win table, stage columns, probability bars,

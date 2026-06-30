@@ -446,11 +446,11 @@ A roadmap from the foundation to a richer product. Each item lists the
 > `data/official/third-place-allocation.ts`, from the official regulations PDF
 > (which returned HTTP 403 to our fetch agent).
 >
-> **The official path stays inactive until everything is source-verified.** Do
-> not flip `data/official/bracket.ts` to `verified` until the graph + all 495
-> Annexe C rows are present, `validateBracket` passes, and the source is
-> confirmed authoritative. Until then the simulator uses placeholder seeding
-> (`seedBracket`).
+> **DONE (2026-06-17):** the graph + all 495 Annexe C rows were transcribed and
+> verified, `validateBracket` passes, and the source was confirmed authoritative;
+> `data/official/bracket.ts` is now `verified` and the official path is **active in
+> production**. `seedBracket()` remains only as an inactive fallback for a
+> non-verified bracket.
 
 ## Phase 3 - Stronger model
 

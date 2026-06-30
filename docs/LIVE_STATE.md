@@ -1,5 +1,10 @@
 # Live tournament state — contract & freshness governance (Phase 1.25B)
 
+> **Operations:** see `docs/LIVE_STATE_RUNBOOK.md` for the operator runbook —
+> regenerating the Blob after a derivation change (the route serves the stored
+> projection as-is), the required production env flags, and the `live:state:smoke`
+> production smoke check.
+
 > **Data-layer foundation only.** This is the first live-2026 ingestion layer:
 > fixtures, results, match status, group standings, bracket progression, and data
 > freshness/fallback. It is **not** in-play prediction, **not** model tuning, and it
