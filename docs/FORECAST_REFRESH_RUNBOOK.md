@@ -195,3 +195,28 @@ computed **after** the result is known (`capturedBeforeCompletion = false`,
 `archived = true`). It is honest hindsight, **not** a pre-match prediction, so it is
 labelled distinctly and is opt-in: the refresh never silently relabels a completed
 match as a pre-match archive.
+
+## Server-side runtime read helpers (not yet wired)
+
+`lib/model/forecast-runtime-store.ts` (SERVER-ONLY) provides additive read helpers so
+future server components / route handlers can consume the forecast Blob objects. They
+are **not wired into any UI or route yet** — they exist so the read path is ready.
+
+- `getRuntimeCurrentForecastSnapshot()` — the rolling Blob current converted to a
+  `ForecastSnapshot`, falling back to the committed chain tail when the Blob is
+  unavailable/invalid (null only when neither exists).
+- `getRuntimeCurrentSnapshotPolicy()` — which source was used
+  (`blob` / `committed-fallback` / `unavailable`), the resolved + baseline snapshot
+  ids, any Blob error code, the embedded PR-82 committed policy, and warnings.
+- `getRuntimeCurrentVsBaselineComparison()` / `getRuntimeCurrentVsBaselineMovers()` —
+  committed baseline vs runtime current (the PR-82 selectors; movers default to
+  winner / signed / top 5).
+- `getRuntimeMatchForecasts()` / `getRuntimeMatchForecast(matchNumber)` — the
+  match-forecasts object, and a single match classified strictly by provenance
+  (`current-pre-match` / `archived-pre-match` / `retrospective` / `missing` /
+  `unavailable`); a retrospective is never reported as a true pre-match forecast.
+
+All reads are render-safe (never throw for ordinary Blob problems) and return only
+public-safe objects — no tokens, Blob URLs, or raw payloads. They need only
+`BLOB_READ_WRITE_TOKEN`; tests inject fake stores (no real Blob/token/network).
+Team-pair lookup and a runtime snapshot timeline are intentionally deferred.
