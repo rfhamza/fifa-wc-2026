@@ -16,7 +16,8 @@
     "forecast:snapshot": "vite-node --config vitest.config.ts scripts/generate-forecast-snapshot.ts",
     "live:football-data:check": "vite-node --config vitest.config.ts scripts/football-data-org/run.ts",
     "live:football-data:reconcile": "vite-node --config vitest.config.ts scripts/football-data-org/reconcile-run.ts",
-    "live:state:write-blob": "vite-node --config vitest.config.ts scripts/live-state/write-public-safe-blob-run.ts"
+    "live:state:write-blob": "vite-node --config vitest.config.ts scripts/live-state/write-public-safe-blob-run.ts",
+    "live:state:smoke": "vite-node --config vitest.config.ts scripts/live-state/smoke-check-run.ts"
   },
   "dependencies": {
     "@vercel/blob": "^2.4.1",

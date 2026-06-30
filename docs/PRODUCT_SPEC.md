@@ -7,10 +7,14 @@ economic/structural prior** and climate/acclimatization into transparent
 probabilities, and uses Monte Carlo simulation to project the whole tournament.
 It is an **educational data-science hobby project** — never a betting product.
 
-> Phase 1.1 note: group composition + team identities are `candidate`
-> (cross-verified, not official-FIFA-fetched); fixtures are `generated`; model
-> feature values remain `mock` placeholders. Economic indicators are now a
-> small, documented prior — not a determinative predictor.
+> Status note: group composition + 48-team identities are `candidate`
+> (cross-verified). The official 72-match schedule (v17, **subject to change**),
+> the 48 draw positions, and the knockout bracket graph + all 495 Annexe C rows
+> are now `verified` and active (Article 13 + Annexe C are the internal source of
+> truth; provider standings/bracket are not canonical). Model feature values are
+> mixed: `eloRating` and `fifaRanking` are source-backed; squad/recent-form remain
+> capped placeholders; structural/economic and climate are candidate priors — not
+> determinative predictors.
 
 ## Phase one (this build) — what exists
 A clean, extensible foundation running entirely on **static seed data** and
