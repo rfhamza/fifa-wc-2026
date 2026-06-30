@@ -128,6 +128,13 @@ export interface PublicSafeForecastCurrent {
   attribution: ForecastAttribution;
   teams: ForecastTeamProbabilities[];
   notes: string;
+  /**
+   * Deterministic, public-safe fingerprint of the locked supported-results that
+   * produced this forecast. Lets the refresh detect a data CORRECTION (e.g. a
+   * fixed score/penalty winner) that does not change the completed-match counts.
+   * Optional/additive (older objects may omit it).
+   */
+  sourceResultsFingerprint?: string;
 }
 
 export interface ToForecastCurrentOptions {
@@ -135,6 +142,7 @@ export interface ToForecastCurrentOptions {
   attribution: ForecastAttribution;
   sourceLiveStateGeneratedAt?: string | null;
   previousSnapshotId?: string | null;
+  sourceResultsFingerprint?: string;
 }
 
 /** Project a generated `ForecastSnapshot` into the public-safe current shape. */
@@ -170,6 +178,9 @@ export function toPublicSafeForecastCurrent(
   }
   if (m.providerCompletedMatchesTotal !== undefined) {
     current.providerCompletedMatchesTotal = m.providerCompletedMatchesTotal;
+  }
+  if (opts.sourceResultsFingerprint !== undefined) {
+    current.sourceResultsFingerprint = opts.sourceResultsFingerprint;
   }
   return current;
 }
@@ -377,6 +388,12 @@ export function validateForecastCurrent(value: unknown): string[] {
   }
   if (typeof value.seed !== "number" || !Number.isFinite(value.seed)) {
     errors.push("seed must be a finite number");
+  }
+  if (
+    value.sourceResultsFingerprint !== undefined &&
+    (typeof value.sourceResultsFingerprint !== "string" || value.sourceResultsFingerprint.length === 0)
+  ) {
+    errors.push("sourceResultsFingerprint must be a non-empty string when present");
   }
   for (const key of ["latestCompletedSupportedMatchNumber", "providerCompletedMatchesTotal"]) {
     const v = value[key];
