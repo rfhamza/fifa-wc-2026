@@ -27,6 +27,18 @@ on:
         description: "football-data mode: skip the full 104-match assertion"
         type: boolean
         default: false
+      refresh_forecast:
+        description: "Also refresh forecast-current + forecast-matches (production objects only)"
+        type: boolean
+        default: false
+      include_retrospective:
+        description: "forecast-matches: also emit retrospective model forecasts (opt-in)"
+        type: boolean
+        default: false
+      forecast_force:
+        description: "Force a forecast rewrite even when inputs are unchanged"
+        type: boolean
+        default: false
 
 # Read-only: this workflow must never write to the repo, packages, or deployments.
 permissions:
@@ -73,3 +85,47 @@ jobs:
           fi
           echo "Running: npm run live:state:write-blob -- $flags"
           npm run live:state:write-blob -- $flags
+
+      # Opt-in forecast refresh (default OFF). Reads the PUBLIC-SAFE live-state Blob, never
+      # football-data; needs ONLY the Blob token. A real refresh may ONLY read the production
+      # provider live-state object and may ONLY write the production forecast objects — it is
+      # refused otherwise so a fixture/default manual write can never clobber prod forecasts.
+      - name: Refresh + smoke-check forecast objects (opt-in)
+        if: ${{ inputs.refresh_forecast }}
+        env:
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+          SOURCE: ${{ inputs.source }}
+          OBJECT_PATH: ${{ inputs.object_path }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          INCLUDE_RETROSPECTIVE: ${{ inputs.include_retrospective }}
+          FORECAST_FORCE: ${{ inputs.forecast_force }}
+        run: |
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "dry_run=true: SKIPPING forecast refresh (forecast objects are NOT written on a dry run)."
+            echo "Preview forecasts locally with the safe dry-run commands in docs/FORECAST_REFRESH_RUNBOOK.md."
+            exit 0
+          fi
+          # Safety gate: a real forecast refresh may ONLY read the production provider
+          # live-state object. Refuse to overwrite production forecast objects from a
+          # fixture/default live-state object.
+          if [ "$SOURCE" != "football-data" ] || [ "$OBJECT_PATH" != "live-state.provider.sanitized.json" ]; then
+            echo "BLOCKED: refresh_forecast=true requires source=football-data and object_path=live-state.provider.sanitized.json."
+            echo "  got: source=$SOURCE object_path=$OBJECT_PATH"
+            echo "This prevents overwriting production forecast objects from a fixture/default live-state object."
+            exit 1
+          fi
+          current_flags="--source blob --live-state-object-path $OBJECT_PATH --forecast-object-path forecast-current.provider.sanitized.json"
+          matches_flags="--source blob --live-state-object-path $OBJECT_PATH --matches-object-path forecast-matches.provider.sanitized.json --forecast-current-object-path forecast-current.provider.sanitized.json"
+          if [ "$FORECAST_FORCE" = "true" ]; then
+            current_flags="$current_flags --force"
+            matches_flags="$matches_flags --force"
+          fi
+          if [ "$INCLUDE_RETROSPECTIVE" = "true" ]; then
+            matches_flags="$matches_flags --include-retrospective"
+          fi
+          echo "Running: npm run forecast:refresh:current -- $current_flags"
+          npm run forecast:refresh:current -- $current_flags
+          echo "Running: npm run forecast:refresh:matches -- $matches_flags"
+          npm run forecast:refresh:matches -- $matches_flags
+          echo "Running: npm run forecast:smoke -- --source blob --strict"
+          npm run forecast:smoke -- --source blob --strict --current-object-path forecast-current.provider.sanitized.json --matches-object-path forecast-matches.provider.sanitized.json
