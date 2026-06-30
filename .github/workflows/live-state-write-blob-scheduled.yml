@@ -63,3 +63,34 @@ jobs:
         run: |
           echo "Running scheduled provider write to the private provider object."
           npm run live:state:write-blob -- --source football-data --object-path live-state.provider.sanitized.json
+
+      # Forecast refresh runs in the SAME run, right after the live-state write, reading
+      # the just-written PUBLIC-SAFE live-state Blob (NOT football-data; no provider token).
+      # Sequential + idempotent: a failed live-state write fails the job before these run;
+      # forecast-current runs before forecast-matches; a forecast failure turns the Action
+      # red but cannot corrupt live-state (separate objects; validate-then-write).
+      - name: Refresh forecast-current from the live-state Blob
+        if: steps.guard.outputs.run == 'true'
+        # Forecast steps need ONLY the Blob token (read live-state + read/write forecast
+        # objects). They never fetch football-data, so FOOTBALL_DATA_TOKEN is NOT provided.
+        env:
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+        run: |
+          echo "Refreshing forecast-current from the public-safe live-state Blob."
+          npm run forecast:refresh:current -- --source blob --live-state-object-path live-state.provider.sanitized.json --forecast-object-path forecast-current.provider.sanitized.json
+
+      - name: Refresh forecast-matches from the live-state Blob
+        if: steps.guard.outputs.run == 'true'
+        env:
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+        run: |
+          echo "Refreshing forecast-matches from the public-safe live-state Blob."
+          npm run forecast:refresh:matches -- --source blob --live-state-object-path live-state.provider.sanitized.json --matches-object-path forecast-matches.provider.sanitized.json --forecast-current-object-path forecast-current.provider.sanitized.json
+
+      - name: Smoke-check the refreshed forecast objects
+        if: steps.guard.outputs.run == 'true'
+        env:
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+        run: |
+          echo "Smoke-checking the refreshed forecast Blob objects (strict)."
+          npm run forecast:smoke -- --source blob --strict --current-object-path forecast-current.provider.sanitized.json --matches-object-path forecast-matches.provider.sanitized.json

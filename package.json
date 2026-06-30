@@ -16,6 +16,7 @@
     "forecast:snapshot": "vite-node --config vitest.config.ts scripts/generate-forecast-snapshot.ts",
     "forecast:refresh:current": "vite-node --config vitest.config.ts scripts/forecast/refresh-current-run.ts",
     "forecast:refresh:matches": "vite-node --config vitest.config.ts scripts/forecast/refresh-match-forecasts-run.ts",
+    "forecast:smoke": "vite-node --config vitest.config.ts scripts/forecast/forecast-smoke-check-run.ts",
     "live:football-data:check": "vite-node --config vitest.config.ts scripts/football-data-org/run.ts",
     "live:football-data:reconcile": "vite-node --config vitest.config.ts scripts/football-data-org/reconcile-run.ts",
     "live:state:write-blob": "vite-node --config vitest.config.ts scripts/live-state/write-public-safe-blob-run.ts",

@@ -2,7 +2,8 @@
 
 Operational guide for keeping production `/live` correct. Companion to
 `docs/LIVE_STATE.md` (the contract) and `docs/LIVE_DATA_STORAGE_AND_SCHEDULER_DECISION.md`
-(the architecture decisions).
+(the architecture decisions). For the downstream forecast Blob objects refreshed in
+the same workflow run, see `docs/FORECAST_REFRESH_RUNBOOK.md`.
 
 ## How serving works (read this first)
 
