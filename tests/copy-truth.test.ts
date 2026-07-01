@@ -14,7 +14,11 @@ const read = (rel: string) =>
   readFileSync(join(process.cwd(), rel), "utf8").replace(/\s+/g, " ");
 
 const methodology = read("app/methodology/page.tsx");
-const matches = read("app/matches/page.tsx");
+// UX-2A: /matches is now the Match Forecast Centre — user-facing copy lives in the
+// client centre header + the provenance labels module (page.tsx is a data shell).
+const matchesCentre = read("components/matches/match-forecast-centre.tsx");
+const matchCentreLabels = read("lib/ui/match-centre.ts");
+const matchCard = read("components/matches/match-forecast-card.tsx");
 const footer = read("components/data-source-badge.tsx");
 
 // Stale phrasing that is no longer true on the user-facing pages.
@@ -46,20 +50,28 @@ describe("methodology copy reflects current truth", () => {
   });
 });
 
-describe("matches intro copy reflects current truth", () => {
+describe("Match Forecast Centre copy reflects current truth", () => {
   it("drops stale position-generated/no-kickoff phrasing", () => {
     for (const phrase of STALE_ON_PAGES) {
-      expect(matches, `matches still says "${phrase}"`).not.toContain(phrase);
+      expect(matchesCentre, `matches centre still says "${phrase}"`).not.toContain(phrase);
+      expect(matchCard, `match card still says "${phrase}"`).not.toContain(phrase);
     }
   });
 
-  it("states official schedule + pre-match-estimate truth without claiming live actuals yet", () => {
-    expect(matches).toContain("official FIFA schedule v17");
-    expect(matches.toLowerCase()).toContain("pre-match model estimates");
-    expect(matches.toLowerCase()).toContain("not yet recalculated from live results");
-    // prediction-vs-actual overlay is deferred to a later PR - do not imply actuals are shown.
-    expect(matches.toLowerCase()).not.toContain("actual result is shown");
-    expect(matches.toLowerCase()).not.toContain("alongside the forecast");
+  it("labels forecast provenance honestly (retrospective never called pre-match; baseline distinct)", () => {
+    expect(matchCentreLabels).toContain("Pre-match forecast captured before kickoff");
+    expect(matchCentreLabels).toContain("Retrospective model estimate");
+    expect(matchCentreLabels).toContain("Baseline model estimate");
+    expect(matchCentreLabels).toContain("No pre-match forecast captured");
+    // The header explains the captured / retrospective / not-captured distinction.
+    expect(matchesCentre.toLowerCase()).toContain("captured before kickoff");
+    expect(matchesCentre.toLowerCase()).toContain("retrospective");
+  });
+
+  it("uses clear metric labels, not ambiguous bare win%/final%", () => {
+    expect(matchCard).toContain("Model lean");
+    expect(matchCard).toContain("Likely scoreline");
+    expect(matchCard.includes("· final")).toBe(false);
   });
 });
 
