@@ -41,21 +41,23 @@ export function WinnerBarChart({ data }: { data: WinnerBarDatum[] }) {
           width={140}
           tickLine={false}
           axisLine={false}
-          tick={{ fill: "hsl(215 20% 75%)", fontSize: 12 }}
+          tick={{ fill: "hsl(215 16% 42%)", fontSize: 12 }}
         />
         <Tooltip
-          cursor={{ fill: "hsl(217 33% 17% / 0.5)" }}
+          cursor={{ fill: "hsl(214 32% 91% / 0.6)" }}
           contentStyle={{
-            background: "hsl(222 44% 9%)",
-            border: "1px solid hsl(217 33% 18%)",
+            background: "hsl(0 0% 100%)",
+            border: "1px solid hsl(214 32% 91%)",
             borderRadius: 12,
             fontSize: 12,
+            color: "hsl(222 47% 11%)",
+            boxShadow: "0 4px 16px hsl(222 47% 11% / 0.08)",
           }}
           formatter={(value: number) => [`${value}%`, "Win title"]}
         />
-        <Bar dataKey="value" radius={[4, 4, 4, 4]} barSize={16} label={{ position: "right", fill: "hsl(210 40% 90%)", fontSize: 11, formatter: (v: number) => `${v}%` }}>
+        <Bar dataKey="value" radius={[4, 4, 4, 4]} barSize={16} label={{ position: "right", fill: "hsl(222 47% 20%)", fontSize: 11, formatter: (v: number) => `${v}%` }}>
           {chartData.map((_, i) => (
-            <Cell key={i} fill="hsl(152 70% 45%)" fillOpacity={1 - i * 0.05} />
+            <Cell key={i} fill="hsl(152 64% 38%)" fillOpacity={1 - i * 0.05} />
           ))}
         </Bar>
       </BarChart>

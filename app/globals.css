@@ -4,8 +4,37 @@
 
 @layer base {
   :root {
-    /* Dark-first palette (the app defaults to dark). Light values kept for
-       completeness but the <html> element carries the `dark` class. */
+    /* Bright/light premium palette (the app now defaults to light). Dark values are
+       preserved under `.dark` for a future reconsidered dark mode — there is no
+       toggle in this phase. */
+    --background: 210 40% 99%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --primary: 152 64% 38%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 16%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 42%;
+    --accent: 199 89% 42%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 48%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 152 64% 38%;
+    --radius: 0.9rem;
+    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+      Helvetica, Arial, sans-serif;
+
+    /* Semantic probability colours (light-tuned so white inline labels stay legible). */
+    --win: 152 58% 38%;
+    --draw: 38 92% 42%;
+    --loss: 0 72% 48%;
+  }
+
+  .dark {
     --background: 222 47% 6%;
     --foreground: 210 40% 96%;
     --card: 222 44% 9%;
@@ -23,11 +52,7 @@
     --border: 217 33% 18%;
     --input: 217 33% 18%;
     --ring: 152 70% 45%;
-    --radius: 0.85rem;
-    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-      Helvetica, Arial, sans-serif;
 
-    /* Semantic probability colours. */
     --win: 152 65% 45%;
     --draw: 41 90% 58%;
     --loss: 0 72% 56%;
@@ -41,8 +66,8 @@
   body {
     @apply bg-background text-foreground antialiased;
     background-image:
-      radial-gradient(60% 50% at 50% -10%, hsl(152 70% 45% / 0.08), transparent),
-      radial-gradient(40% 40% at 100% 0%, hsl(199 89% 48% / 0.06), transparent);
+      radial-gradient(60% 50% at 50% -10%, hsl(152 64% 45% / 0.07), transparent),
+      radial-gradient(45% 40% at 100% 0%, hsl(199 89% 50% / 0.06), transparent);
     background-attachment: fixed;
   }
 }
@@ -52,6 +77,6 @@
     text-wrap: balance;
   }
   .glass {
-    @apply border border-white/5 bg-card/70 backdrop-blur-sm;
+    @apply border border-black/5 bg-white/70 backdrop-blur-sm;
   }
 }

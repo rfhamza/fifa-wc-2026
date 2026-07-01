@@ -15,7 +15,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <body className="min-h-screen font-sans">
         <SiteHeader />
         <main className="container py-8 lg:py-12">{children}</main>
