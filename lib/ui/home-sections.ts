@@ -37,6 +37,12 @@ export function buildTeamContextIndex(snapshot: ForecastSnapshot | null): TeamCo
 // Match-forecast index (TRUE pre-match only — never retrospective)
 // --------------------------------------------------------------------------
 
+export interface HomeTopScoreline {
+  homeGoals: number;
+  awayGoals: number;
+  probability: number;
+}
+
 export interface HomeMatchForecast {
   homeTeamId: string;
   awayTeamId: string;
@@ -45,6 +51,8 @@ export interface HomeMatchForecast {
   awayWin: number;
   homeAdvance?: number;
   awayAdvance?: number;
+  /** Single most-likely scoreline (home–away orientation); omitted when unavailable. */
+  topScoreline?: HomeTopScoreline;
   stage: string;
 }
 export type MatchForecastIndex = Record<number, HomeMatchForecast>;
@@ -69,6 +77,14 @@ export function buildMatchForecastIndex(matchForecasts: PublicSafeMatchForecasts
     };
     if (typeof e.homeAdvance === "number") entry.homeAdvance = e.homeAdvance;
     if (typeof e.awayAdvance === "number") entry.awayAdvance = e.awayAdvance;
+    const top = e.topScorelines?.[0];
+    if (top) {
+      entry.topScoreline = {
+        homeGoals: top.homeGoals,
+        awayGoals: top.awayGoals,
+        probability: top.probability,
+      };
+    }
     index[e.matchNumber] = entry;
   }
   return index;

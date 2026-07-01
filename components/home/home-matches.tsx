@@ -138,7 +138,18 @@ function MatchCard({
   const teamsConfirmed = Boolean(match.teamA && match.teamB);
 
   // Orient the forecast to the match's A/B ordering.
-  let oriented: { aWin: number; draw: number; bWin: number; aAdv?: number; bAdv?: number } | null = null;
+  let oriented:
+    | {
+        aWin: number;
+        draw: number;
+        bWin: number;
+        aAdv?: number;
+        bAdv?: number;
+        scoreA?: number;
+        scoreB?: number;
+        scoreP?: number;
+      }
+    | null = null;
   if (forecast && teamsConfirmed) {
     const homeIsA = forecast.homeTeamId === match.teamA;
     oriented = {
@@ -150,7 +161,15 @@ function MatchCard({
       oriented.aAdv = homeIsA ? forecast.homeAdvance : forecast.awayAdvance;
       oriented.bAdv = homeIsA ? forecast.awayAdvance : forecast.homeAdvance;
     }
+    if (forecast.topScoreline) {
+      oriented.scoreA = homeIsA ? forecast.topScoreline.homeGoals : forecast.topScoreline.awayGoals;
+      oriented.scoreB = homeIsA ? forecast.topScoreline.awayGoals : forecast.topScoreline.homeGoals;
+      oriented.scoreP = forecast.topScoreline.probability;
+    }
   }
+
+  const nameA = teams[match.teamA]?.name ?? match.teamA;
+  const nameB = teams[match.teamB]?.name ?? match.teamB;
 
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-border/70 bg-card p-5 shadow-sm">
@@ -180,23 +199,37 @@ function MatchCard({
 
       {teamsConfirmed ? (
         <div className="space-y-2 border-t border-border/60 pt-3">
-          <div className="text-xs uppercase tracking-wide text-muted-foreground">
-            Match forecast
-          </div>
           {oriented ? (
             <>
-              <ProbabilityBar homeWin={oriented.aWin} draw={oriented.draw} awayWin={oriented.bWin} />
+              <div className="text-xs uppercase tracking-wide text-muted-foreground">Model lean</div>
+              <div className="text-sm tabular-nums">
+                <span className="font-medium">{nameA}</span> {pct(oriented.aWin, 0)}
+                <span className="text-muted-foreground"> · Draw {pct(oriented.draw, 0)} · </span>
+                <span className="font-medium">{nameB}</span> {pct(oriented.bWin, 0)}
+              </div>
+              <ProbabilityBar
+                homeWin={oriented.aWin}
+                draw={oriented.draw}
+                awayWin={oriented.bWin}
+                showLabels={false}
+                className="h-2"
+              />
+              {oriented.scoreA !== undefined && oriented.scoreB !== undefined && oriented.scoreP !== undefined ? (
+                <div className="text-xs text-muted-foreground tabular-nums">
+                  Likely scoreline: {oriented.scoreA}–{oriented.scoreB} · {pct(oriented.scoreP, 0)}
+                </div>
+              ) : null}
               {typeof oriented.aAdv === "number" && typeof oriented.bAdv === "number" ? (
                 <div className="text-xs text-muted-foreground tabular-nums">
-                  Chance to advance: {teams[match.teamA]?.name ?? match.teamA} {pct(oriented.aAdv, 0)} ·{" "}
-                  {teams[match.teamB]?.name ?? match.teamB} {pct(oriented.bAdv, 0)}
+                  Chance to advance: {nameA} {pct(oriented.aAdv, 0)} · {nameB} {pct(oriented.bAdv, 0)}
                 </div>
               ) : null}
             </>
           ) : (
-            <p className="text-sm text-muted-foreground">
-              Coming soon — once the pre-match forecast is published.
-            </p>
+            <>
+              <div className="text-xs uppercase tracking-wide text-muted-foreground">Match forecast</div>
+              <p className="text-sm text-muted-foreground">Pre-match forecast coming soon.</p>
+            </>
           )}
         </div>
       ) : null}

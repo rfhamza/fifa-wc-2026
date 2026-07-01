@@ -75,7 +75,7 @@ describe("formatKickoff", () => {
 describe("buildMatchForecastIndex", () => {
   const mf = {
     matchForecasts: [
-      { matchNumber: 90, homeTeamId: "spain", awayTeamId: "brazil", homeWin: 0.5, draw: 0.3, awayWin: 0.2, forecastProvenance: "current-pre-match-forecast", homeAdvance: 0.6, awayAdvance: 0.4, stage: "roundOf16" },
+      { matchNumber: 90, homeTeamId: "spain", awayTeamId: "brazil", homeWin: 0.5, draw: 0.3, awayWin: 0.2, forecastProvenance: "current-pre-match-forecast", homeAdvance: 0.6, awayAdvance: 0.4, topScorelines: [{ homeGoals: 1, awayGoals: 1, probability: 0.18 }, { homeGoals: 2, awayGoals: 1, probability: 0.12 }], stage: "roundOf16" },
       { matchNumber: 91, homeTeamId: "france", awayTeamId: "argentina", homeWin: 0.4, draw: 0.3, awayWin: 0.3, forecastProvenance: "archived-pre-match-forecast", stage: "group" },
       { matchNumber: 92, homeTeamId: "germany", awayTeamId: "portugal", homeWin: 0.45, draw: 0.3, awayWin: 0.25, forecastProvenance: "retrospective-model-forecast", stage: "group" },
     ],
@@ -86,6 +86,12 @@ describe("buildMatchForecastIndex", () => {
     expect(Object.keys(index).sort()).toEqual(["90", "91"]);
     expect(index[92]).toBeUndefined();
     expect(index[90]?.homeAdvance).toBe(0.6);
+  });
+
+  it("captures the single top scoreline when present and omits it otherwise", () => {
+    const index = buildMatchForecastIndex(mf);
+    expect(index[90]?.topScoreline).toEqual({ homeGoals: 1, awayGoals: 1, probability: 0.18 });
+    expect(index[91]?.topScoreline).toBeUndefined(); // no topScorelines on that entry
   });
 
   it("returns an empty index for null input", () => {
@@ -168,13 +174,20 @@ describe("home composition + isolation", () => {
 describe("home copy clarity (no ambiguous 'final %' labels)", () => {
   const read = (p: string) => readFileSync(join(process.cwd(), p), "utf8");
 
-  it("match cards label the metric 'title chance' and drop the terse 'win% · final%'", () => {
+  it("match cards read as forecast teasers with clear labels and honest empty state", () => {
     const src = read("components/home/home-matches.tsx");
     expect(src).toContain("title chance");
     expect(src.includes("· final")).toBe(false);
     expect(src.includes("win {pct(ctx.winner")).toBe(false);
-    // A confirmed-but-unpublished match keeps an honest coming-soon state.
-    expect(src.toLowerCase()).toContain("pre-match forecast is published");
+    // Compact forecast teaser: model lean + a single top scoreline.
+    expect(src).toContain("Model lean");
+    expect(src).toContain("Likely scoreline");
+    // A confirmed-but-unpublished match keeps an honest coming-soon state (not invented).
+    expect(src).toContain("Pre-match forecast coming soon.");
+    // It must NOT pull in the full detailed /matches fixture card or its dense blocks.
+    expect(src).not.toContain("fixture-card");
+    expect(src).not.toContain("Key drivers");
+    expect(src).not.toContain("topScorelines.map");
   });
 
   it("top contenders use 'Reach final' and 'title chance', not a bare 'final %'", () => {
