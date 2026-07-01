@@ -75,6 +75,32 @@ describe("Match Forecast Centre copy reflects current truth", () => {
   });
 });
 
+// UX-3: /movement surface + its pure copy/label source.
+const movementSurface = read("components/movement/movement-surface.tsx");
+const movementLib = read("lib/ui/forecast-movement.ts");
+
+describe("Movement surface copy is honest + non-overclaiming", () => {
+  it("uses the not-re-rated caveat and the safe neutral explanation", () => {
+    expect(movementSurface.toLowerCase()).toContain("not re-rated after every match");
+    expect(movementLib).toContain(
+      "Probability moved as results were locked and tournament paths changed.",
+    );
+  });
+
+  it("never overclaims a causal reason for movement", () => {
+    for (const bad of ["rival", "became easier", "became harder", "because they won", "because they lost", "changed its mind"]) {
+      expect(movementLib.toLowerCase(), `movement lib overclaims: "${bad}"`).not.toContain(bad);
+    }
+  });
+
+  it("uses clear stage labels, not bare win%/final%", () => {
+    expect(movementLib).toContain("Title chance");
+    expect(movementLib).toContain("Reach final");
+    expect(movementLib.includes("win %")).toBe(false);
+    expect(movementLib.includes("final %")).toBe(false);
+  });
+});
+
 describe("footer provenance labels are scoped, not a broad 'Data: Candidate'", () => {
   it("uses per-concern labels and avoids the over-broad label", () => {
     expect(footer).not.toContain("Data: ");
