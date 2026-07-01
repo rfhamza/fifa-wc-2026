@@ -1,72 +1,95 @@
-import { FixtureCard } from "@/components/matches/fixture-card";
-import { LiveResultsProvider } from "@/components/matches/live-results-provider";
-import { Badge } from "@/components/ui/badge";
+import { MatchForecastCentre } from "@/components/matches/match-forecast-centre";
 import { getAllFixturePredictions } from "@/lib/model/forecast";
-import { getTeam, getVenue } from "@/lib/data";
-import { LIVE_STATE_UI_ENABLED } from "@/lib/live-client/config";
-import type { GroupId } from "@/lib/types";
+import {
+  getRuntimeCurrentSnapshotPolicy,
+  getRuntimeMatchForecasts,
+} from "@/lib/model/forecast-runtime-store";
+import {
+  buildCentreRuntimeIndex,
+  type CentreBaseMatch,
+  type CentreSimIndex,
+} from "@/lib/ui/match-centre";
+import { teams } from "@/lib/data";
+import type { TeamLookup } from "@/lib/live-client/public-safe-view.client";
 
 export const metadata = {
-  title: "Match Predictor · World Cup Probability Lab",
+  title: "Match Forecast Centre · World Cup Probability Lab",
 };
 
-export default function MatchesPage() {
-  const predictions = getAllFixturePredictions();
+// The centre reads the runtime match-forecast archive + live-state, so it must not be
+// frozen at build. It renders safely (baseline simulation + honest states) when the
+// Blob/token is unavailable.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-  // Group fixtures by their group letter for a tidy, scannable layout.
-  const byGroup = new Map<GroupId, typeof predictions>();
-  for (const item of predictions) {
-    const list = byGroup.get(item.fixture.group) ?? [];
-    list.push(item);
-    byGroup.set(item.fixture.group, list);
+const TEAM_LOOKUP: TeamLookup = Object.fromEntries(
+  teams.map((t) => [t.id, { id: t.id, name: t.name, flag: t.flag, countryCode: t.countryCode }]),
+);
+
+export default async function MatchesPage() {
+  // Pre-tournament simulation (group only) → baseline model estimate + key edges.
+  const simIndex: CentreSimIndex = {};
+  const baseMatches: CentreBaseMatch[] = [];
+  for (const { fixture, prediction } of getAllFixturePredictions()) {
+    if (fixture.matchNumber == null) continue;
+    const base: CentreBaseMatch = {
+      matchNumber: fixture.matchNumber,
+      stage: "group",
+      group: fixture.group,
+      homeTeamId: fixture.homeTeamId,
+      awayTeamId: fixture.awayTeamId,
+    };
+    if (fixture.kickoff) base.kickoff = fixture.kickoff;
+    if (fixture.status) base.status = fixture.status;
+    baseMatches.push(base);
+
+    const sim: CentreSimIndex[number] = {
+      homeTeamId: prediction.homeTeamId,
+      awayTeamId: prediction.awayTeamId,
+      homeWin: prediction.homeWin,
+      draw: prediction.draw,
+      awayWin: prediction.awayWin,
+    };
+    if (prediction.topScorelines[0]) sim.topScoreline = prediction.topScorelines[0];
+    const favHome = prediction.explanation.positiveDrivers[0]?.label;
+    const favAway = prediction.explanation.negativeDrivers[0]?.label;
+    if (favHome) sim.favoursHome = favHome;
+    if (favAway) sim.favoursAway = favAway;
+    simIndex[fixture.matchNumber] = sim;
   }
 
-  const sections = [...byGroup.entries()].map(([groupId, items]) => (
-    <section key={groupId} className="space-y-4">
-      <h2 className="text-xl font-semibold">Group {groupId}</h2>
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 [&>*]:min-w-0">
-        {items.map(({ fixture, prediction }) => (
-          <FixtureCard
-            key={fixture.id}
-            fixture={fixture}
-            prediction={prediction}
-            home={getTeam(fixture.homeTeamId)}
-            away={getTeam(fixture.awayTeamId)}
-            venue={getVenue(fixture.venueId)}
-          />
-        ))}
-      </div>
-    </section>
-  ));
-
-  // Wrap in the live-results provider (one no-store fetch shared by all cards) only when the
-  // live UI is enabled; otherwise render identical prediction-only cards.
-  const board = LIVE_STATE_UI_ENABLED ? (
-    <LiveResultsProvider>
-      <div className="space-y-8">{sections}</div>
-    </LiveResultsProvider>
-  ) : (
-    <div className="space-y-8">{sections}</div>
+  // Runtime match-forecast archive (provenance-tracked; group + knockout; Blob → null).
+  const matchForecasts = await getRuntimeMatchForecasts();
+  const matchesObjectAvailable = matchForecasts !== null;
+  const runtimeIndex = buildCentreRuntimeIndex(
+    matchForecasts
+      ? {
+          matchForecasts: matchForecasts.matchForecasts.map((e) => ({
+            matchNumber: e.matchNumber,
+            forecastProvenance: e.forecastProvenance,
+            homeTeamId: e.homeTeamId,
+            awayTeamId: e.awayTeamId,
+            homeWin: e.homeWin,
+            draw: e.draw,
+            awayWin: e.awayWin,
+            ...(e.topScorelines?.[0] ? { topScoreline: e.topScorelines[0] } : {}),
+            ...(typeof e.homeAdvance === "number" ? { homeAdvance: e.homeAdvance } : {}),
+            ...(typeof e.awayAdvance === "number" ? { awayAdvance: e.awayAdvance } : {}),
+          })),
+        }
+      : null,
   );
 
-  return (
-    <div className="space-y-8 animate-fade-in">
-      <header className="space-y-2">
-        <Badge variant="accent">Match Predictor</Badge>
-        <h1 className="text-3xl font-bold tracking-tight">
-          Group-stage fixture forecasts
-        </h1>
-        <p className="max-w-2xl text-muted-foreground">
-          Every group-stage match with win/draw/loss probabilities, expected
-          goals, most-likely scorelines and key drivers, following the official
-          FIFA schedule v17 (subject to change). Forecasts are pre-match model
-          estimates. Completed matches show actual results from the public
-          live-state feed where available; probabilities are not yet recalculated
-          from live results.
-        </p>
-      </header>
+  const source = (await getRuntimeCurrentSnapshotPolicy()).currentSource;
 
-      {board}
-    </div>
+  return (
+    <MatchForecastCentre
+      baseMatches={baseMatches}
+      simIndex={simIndex}
+      runtimeIndex={runtimeIndex}
+      matchesObjectAvailable={matchesObjectAvailable}
+      teams={TEAM_LOOKUP}
+      source={source}
+    />
   );
 }
