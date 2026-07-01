@@ -164,3 +164,23 @@ describe("home composition + isolation", () => {
     }
   });
 });
+
+describe("home copy clarity (no ambiguous 'final %' labels)", () => {
+  const read = (p: string) => readFileSync(join(process.cwd(), p), "utf8");
+
+  it("match cards label the metric 'title chance' and drop the terse 'win% · final%'", () => {
+    const src = read("components/home/home-matches.tsx");
+    expect(src).toContain("title chance");
+    expect(src.includes("· final")).toBe(false);
+    expect(src.includes("win {pct(ctx.winner")).toBe(false);
+    // A confirmed-but-unpublished match keeps an honest coming-soon state.
+    expect(src.toLowerCase()).toContain("pre-match forecast is published");
+  });
+
+  it("top contenders use 'Reach final' and 'title chance', not a bare 'final %'", () => {
+    const src = read("components/home/home-contenders.tsx");
+    expect(src).toContain("title chance");
+    // The reach-final metric is spelled out (not a bare "final 49%").
+    expect(src.includes("Reach final {pct(row.final, 0)}")).toBe(true);
+  });
+});

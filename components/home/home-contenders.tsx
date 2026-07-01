@@ -49,16 +49,23 @@ export function HomeContenders({ rows }: { rows: HomeContenderRow[] }) {
                 name={row.name}
                 size={22}
               />
-              <span className="min-w-0 flex-1 truncate font-medium">{row.name}</span>
+              <div className="min-w-0 flex-1">
+                <div className="truncate font-medium">{row.name}</div>
+                <div className="text-xs text-muted-foreground tabular-nums">
+                  Reach final {pct(row.final, 0)}
+                </div>
+              </div>
               {row.winnerDeltaPp !== null ? (
                 <MoverChip deltaPp={row.winnerDeltaPp} className="hidden sm:inline-flex" />
               ) : null}
-              <span className="hidden text-xs text-muted-foreground tabular-nums sm:inline">
-                final {pct(row.final, 0)}
-              </span>
-              <span className="w-14 text-right text-lg font-bold text-primary tabular-nums">
-                {pct(row.titleProbability, 1)}
-              </span>
+              <div className="text-right leading-none">
+                <div className="text-lg font-bold text-primary tabular-nums">
+                  {pct(row.titleProbability, 1)}
+                </div>
+                <div className="mt-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+                  title chance
+                </div>
+              </div>
             </li>
           ))}
         </ol>

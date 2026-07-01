@@ -115,7 +115,7 @@ function TeamRow({
       </div>
       {ctx ? (
         <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
-          win {pct(ctx.winner, 0)} · final {pct(ctx.final, 0)}
+          {pct(ctx.winner, 0)} title chance
         </span>
       ) : null}
     </div>
@@ -179,21 +179,26 @@ function MatchCard({
       )}
 
       {teamsConfirmed ? (
-        oriented ? (
-          <div className="space-y-2">
-            <ProbabilityBar homeWin={oriented.aWin} draw={oriented.draw} awayWin={oriented.bWin} />
-            {typeof oriented.aAdv === "number" && typeof oriented.bAdv === "number" ? (
-              <div className="text-xs text-muted-foreground tabular-nums">
-                Advance: {teams[match.teamA]?.name ?? match.teamA} {pct(oriented.aAdv, 0)} ·{" "}
-                {teams[match.teamB]?.name ?? match.teamB} {pct(oriented.bAdv, 0)}
-              </div>
-            ) : null}
+        <div className="space-y-2 border-t border-border/60 pt-3">
+          <div className="text-xs uppercase tracking-wide text-muted-foreground">
+            Match forecast
           </div>
-        ) : (
-          <p className="text-xs text-muted-foreground">
-            Match forecast will appear once it is published.
-          </p>
-        )
+          {oriented ? (
+            <>
+              <ProbabilityBar homeWin={oriented.aWin} draw={oriented.draw} awayWin={oriented.bWin} />
+              {typeof oriented.aAdv === "number" && typeof oriented.bAdv === "number" ? (
+                <div className="text-xs text-muted-foreground tabular-nums">
+                  Chance to advance: {teams[match.teamA]?.name ?? match.teamA} {pct(oriented.aAdv, 0)} ·{" "}
+                  {teams[match.teamB]?.name ?? match.teamB} {pct(oriented.bAdv, 0)}
+                </div>
+              ) : null}
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Coming soon — once the pre-match forecast is published.
+            </p>
+          )}
+        </div>
       ) : null}
     </div>
   );
