@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { FilterPills } from "@/components/ui/filter-pills";
 import { SourceBadge } from "@/components/ui/source-badge";
@@ -112,7 +113,14 @@ export function ForecastBoard({ rows, source }: { rows: BoardRow[]; source: Fore
         </div>
       </div>
 
-      {view === "movement" ? <p className="text-xs text-muted-foreground">{MOVEMENT_CAVEAT}</p> : null}
+      {view === "movement" ? (
+        <p className="text-xs text-muted-foreground">
+          {MOVEMENT_CAVEAT}{" "}
+          <Link href="/movement" className="font-medium text-primary hover:underline">
+            See movement story →
+          </Link>
+        </p>
+      ) : null}
       {view === "baseline" ? <p className="text-xs text-muted-foreground">Pre-tournament model baseline.</p> : null}
 
       {visible.length === 0 ? (
