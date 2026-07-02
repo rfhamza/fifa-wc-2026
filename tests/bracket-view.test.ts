@@ -240,6 +240,8 @@ describe("no leak + client/server isolation", () => {
       "components/bracket/bracket-round.tsx",
       "components/bracket/bracket-match-card.tsx",
       "components/bracket/bracket-status-badge.tsx",
+      "components/bracket/bracket-match-detail.tsx",
+      "lib/ui/bracket-detail.ts",
     ]) {
       const imports = read(f)
         .split("\n")

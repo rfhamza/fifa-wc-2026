@@ -2,7 +2,15 @@ import { BracketMatchCard } from "@/components/bracket/bracket-match-card";
 import type { BracketRound as BracketRoundModel } from "@/lib/ui/bracket-view";
 
 /** One round as a labelled column (desktop) / stacked section (mobile). */
-export function BracketRound({ round }: { round: BracketRoundModel }) {
+export function BracketRound({
+  round,
+  selectedMatchNumber,
+  onSelect,
+}: {
+  round: BracketRoundModel;
+  selectedMatchNumber: number | null;
+  onSelect: (matchNumber: number) => void;
+}) {
   const resolved = round.nodes.filter((n) => n.state === "completed" || n.state === "live").length;
   return (
     <section className="min-w-0 space-y-3">
@@ -14,7 +22,12 @@ export function BracketRound({ round }: { round: BracketRoundModel }) {
       </div>
       <div className="space-y-3">
         {round.nodes.map((node) => (
-          <BracketMatchCard key={node.matchNumber} node={node} />
+          <BracketMatchCard
+            key={node.matchNumber}
+            node={node}
+            selected={selectedMatchNumber === node.matchNumber}
+            onSelect={onSelect}
+          />
         ))}
       </div>
     </section>
