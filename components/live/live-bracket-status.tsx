@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LiveTeam } from "./live-team";
@@ -53,6 +55,12 @@ export function LiveBracketStatus({
             ))}
           </ul>
         )}
+        <Link
+          href="/bracket"
+          className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+        >
+          See full bracket <ArrowRight className="h-4 w-4" aria-hidden />
+        </Link>
       </CardContent>
     </Card>
   );

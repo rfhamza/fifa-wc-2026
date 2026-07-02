@@ -101,6 +101,39 @@ describe("Movement surface copy is honest + non-overclaiming", () => {
   });
 });
 
+// UX-4A: /bracket surface + its pure node/label source.
+const bracketPage = read("components/bracket/bracket-page.tsx");
+const bracketLib = read("lib/ui/bracket-view.ts");
+const bracketCard = read("components/bracket/bracket-match-card.tsx");
+
+describe("Bracket surface copy is honest + human-readable", () => {
+  it("uses human slot placeholders, not raw slot/provider codes", () => {
+    expect(bracketLib).toContain("Winner of Match");
+    expect(bracketLib).toContain("Runner-up Group");
+    expect(bracketLib).toContain("Third-place qualifier");
+    expect(bracketLib).toContain("Awaiting teams");
+  });
+
+  it("reuses the shared provenance labels (retrospective never rendered as pre-match)", () => {
+    // The bracket maps to the shared label helper rather than hardcoding provenance copy.
+    expect(bracketLib).toContain("matchProvenanceLabel");
+    expect(bracketLib).not.toContain("captured before kickoff");
+  });
+
+  it("renders public 'Match N' labels, not bare provider ids", () => {
+    expect(bracketCard).toContain("Match {node.matchNumber}");
+    for (const bad of ["vercel-storage", "BLOB_READ_WRITE_TOKEN"]) {
+      expect(bracketPage.includes(bad)).toBe(false);
+      expect(bracketLib.includes(bad)).toBe(false);
+    }
+  });
+
+  it("links to the Match Forecast Centre and Tournament State", () => {
+    expect(bracketPage).toContain("/matches");
+    expect(bracketPage).toContain("/live");
+  });
+});
+
 describe("footer provenance labels are scoped, not a broad 'Data: Candidate'", () => {
   it("uses per-concern labels and avoids the over-broad label", () => {
     expect(footer).not.toContain("Data: ");
