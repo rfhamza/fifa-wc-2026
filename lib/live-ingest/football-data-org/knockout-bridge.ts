@@ -18,9 +18,10 @@ import {
   officialKnockoutSchedule,
   type OfficialKnockoutScheduleRow,
 } from "@/data/official/knockout-schedule";
+import type { KnockoutStage } from "@/lib/types";
 import type { LiveBracketState, LiveMatchState } from "@/lib/live-state/types";
 import type { FdMatchesResponse } from "./types";
-import { resolveFdStage, resolveFdStatus } from "./mapping";
+import { resolveFdStage, resolveFdStatus, resolveFdTeamId } from "./mapping";
 
 export interface KnockoutBridgeDiagnostics {
   providerKnockoutRows: number;
@@ -96,6 +97,90 @@ export function buildKnockoutMatchIdMap(
     knockoutMatchIdMap: map,
     diagnostics: { providerKnockoutRows, mapped, unmatched, unmatchedPlayable, unmatchedByStage },
   };
+}
+
+/** A knockout row recovered by RESOLVED-TEAM identity when the exact time-join missed it. */
+export interface KnockoutTeamRecovery {
+  /** Provider-native match id (provenance only; kept in-memory/log-only, never persisted). */
+  providerId: string;
+  matchNumber: number;
+  stage: KnockoutStage;
+  teamA: string;
+  teamB: string;
+}
+
+export interface KnockoutMapAugmentation {
+  /** `existingMap` plus any recovered `providerId -> matchNumber` entries (a NEW object). */
+  knockoutMatchIdMap: Record<string, number>;
+  recovered: KnockoutTeamRecovery[];
+}
+
+/** Result-risk = a played/active/ambiguous status (mirrors normalize's blocking predicate). */
+const isResultRiskStatus = (status: string): boolean =>
+  status === "in-progress" || status === "complete" || status === "unknown";
+
+const teamPairKey = (stage: string, a: string, b: string): string =>
+  `${stage}|${[a, b].sort().join("~")}`;
+
+/**
+ * Recover knockout rows the exact `(round,kickoffUtc)` join missed, by RESOLVED-TEAM
+ * identity against the internally derived bracket.
+ *
+ * Motivation: a genuine finished/active knockout whose provider `utcDate` drifted from the
+ * transcribed official `kickoffUtc` (e.g. FIFA moved a kickoff after the schedule PDF) would
+ * otherwise be an unmappable result and HARD-BLOCK the write - even though its participants
+ * unambiguously identify the official slot. Teams are the canonical identity (the same basis
+ * as `findKnockoutTeamConflicts`), so this never weakens safety:
+ *   - only result-risk rows (in-progress/complete/unknown) are recovered; scheduled shells
+ *     stay advisories and never need a mapping;
+ *   - BOTH provider sides must resolve to app team ids;
+ *   - the `(stage, unordered pair)` must match EXACTLY ONE resolved bracket slot that is not
+ *     already a mapping target (ambiguity, or an already-taken target, leaves it unmapped).
+ * A row whose teams match no resolved slot stays unmapped and still fails closed in
+ * `normalize` (a real, unidentifiable completed result MUST block). Pure; no I/O.
+ */
+export function augmentKnockoutMapByTeams(
+  payload: FdMatchesResponse,
+  existingMap: Record<string, number>,
+  bracket: LiveBracketState,
+): KnockoutMapAugmentation {
+  // Index resolved bracket slots by (stage, unordered team pair) -> matchNumber. Skip slots
+  // that are unresolved (either side null) or already a time-join target. A duplicate pair
+  // key (should never happen in single-elimination) is marked ambiguous and never used.
+  const takenTargets = new Set<number>(Object.values(existingMap));
+  const slotByPair = new Map<string, number>();
+  const ambiguousPairs = new Set<string>();
+  for (const b of bracket.matches) {
+    if (b.homeTeamId == null || b.awayTeamId == null) continue;
+    if (takenTargets.has(b.matchNumber)) continue;
+    const key = teamPairKey(b.stage, b.homeTeamId, b.awayTeamId);
+    if (slotByPair.has(key)) ambiguousPairs.add(key);
+    else slotByPair.set(key, b.matchNumber);
+  }
+
+  const knockoutMatchIdMap = { ...existingMap };
+  const recovered: KnockoutTeamRecovery[] = [];
+  const usedTargets = new Set<number>(takenTargets);
+
+  for (const fd of payload.matches ?? []) {
+    const stage = resolveFdStage(fd.stage);
+    if (!stage || stage === "group") continue;
+    const pid = String(fd.id);
+    if (knockoutMatchIdMap[pid] != null) continue; // already mapped by the time-join
+    if (!isResultRiskStatus(resolveFdStatus(fd.status))) continue; // scheduled shells never need this
+    const teamA = resolveFdTeamId(fd.homeTeam);
+    const teamB = resolveFdTeamId(fd.awayTeam);
+    if (!teamA || !teamB) continue; // unidentifiable participants -> cannot recover (still blocks)
+    const key = teamPairKey(stage, teamA, teamB);
+    if (ambiguousPairs.has(key)) continue;
+    const matchNumber = slotByPair.get(key);
+    if (matchNumber == null || usedTargets.has(matchNumber)) continue;
+    knockoutMatchIdMap[pid] = matchNumber;
+    usedTargets.add(matchNumber);
+    recovered.push({ providerId: pid, matchNumber, stage: stage as KnockoutStage, teamA, teamB });
+  }
+
+  return { knockoutMatchIdMap, recovered };
 }
 
 export interface KnockoutTeamConflict {

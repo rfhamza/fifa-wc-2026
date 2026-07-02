@@ -339,6 +339,31 @@ describe("manual writer", () => {
     expect(r.reason).toContain("unmapped");
     expect(Object.keys(store.objects)).toHaveLength(0); // last-known-good preserved
   });
+
+  it("logs a redacted per-blocker diagnostic (code/stage/status/utcDate) with no secrets", async () => {
+    const finishedUnmappedKo = {
+      ...scheduledKnockoutShell, id: 9600, status: "FINISHED",
+      score: { winner: "HOME_TEAM", duration: "REGULAR", fullTime: { home: 2, away: 1 } },
+    };
+    const payload = { competition: { code: "WC" }, matches: [...finishedGroupWin.matches, finishedUnmappedKo] };
+    const logs: string[] = [];
+    const r = await runWritePublicSafeBlob({
+      ...baseDeps, source: "football-data", dryRun: false, allowPartial: true, store: fakeStore(),
+      blobToken: "blob-secret", providerToken: "fd-secret",
+      fetchImpl: matchesFetch(payload), log: (l) => logs.push(l),
+    });
+    expect(r.action).toBe("blocked");
+    const out = logs.join("\n");
+    // The maintainer/CI log now pinpoints the offending row (not just a count).
+    expect(out).toContain("BLOCKING normalization issues:");
+    expect(out).toContain("code=knockout-mapping-unavailable");
+    expect(out).toContain("stage=LAST_32");
+    expect(out).toContain("status=FINISHED");
+    expect(out).toContain("utcDate=2026-06-30T19:00:00Z");
+    // No tokens leak into the diagnostics.
+    expect(out).not.toContain("fd-secret");
+    expect(out).not.toContain("blob-secret");
+  });
 });
 
 describe("route wiring (real resolver, default env)", () => {
