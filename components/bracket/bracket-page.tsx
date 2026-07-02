@@ -8,6 +8,8 @@ import { SourceBadge } from "@/components/ui/source-badge";
 import { BracketRound } from "@/components/bracket/bracket-round";
 import { BracketMatchCard } from "@/components/bracket/bracket-match-card";
 import { BracketMatchDetail } from "@/components/bracket/bracket-match-detail";
+import { BracketTeamPicker } from "@/components/bracket/bracket-team-picker";
+import { BracketTeamPathSummary } from "@/components/bracket/bracket-team-path-summary";
 import {
   fetchPublicSafeLiveState,
   type LiveViewBracketMatch,
@@ -18,6 +20,7 @@ import type { ForecastSourceKind } from "@/lib/ui/forecast-hero-data";
 import { formatAsOf } from "@/lib/ui/forecast-hero-data";
 import { buildBracketView } from "@/lib/ui/bracket-view";
 import { buildBracketDetailModel } from "@/lib/ui/bracket-detail";
+import { buildTeamBracketPath, teamPathMatchNumbers } from "@/lib/ui/bracket-path";
 import type { KnockoutMatchDefinition } from "@/lib/types";
 import type { MatchForecastProvenance } from "@/lib/model/match-forecast";
 import type { CentreRuntimeEntry } from "@/lib/ui/match-centre";
@@ -45,7 +48,9 @@ export function BracketPage({
 }) {
   const [live, setLive] = useState<LiveBracketData | null>(null);
   const [selectedMatchNumber, setSelectedMatchNumber] = useState<number | null>(null);
+  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const panelRef = useRef<HTMLElement>(null);
+  const summaryRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     let alive = true;
@@ -93,6 +98,13 @@ export function BracketPage({
     });
   }, [selectedNode, forecastByMatch, live, matchesObjectAvailable]);
 
+  // Selected-team path (independent of match selection). Highlights + summary; no forecast math.
+  const teamPath = useMemo(() => {
+    if (selectedTeamId == null) return null;
+    return buildTeamBracketPath({ teamId: selectedTeamId, view, graph: { matches: skeleton }, team: teams[selectedTeamId] });
+  }, [selectedTeamId, view, skeleton]);
+  const pathSet = useMemo(() => (teamPath ? teamPathMatchNumbers(teamPath) : undefined), [teamPath]);
+
   // Scroll the panel into view + focus its heading region when a match is selected.
   useEffect(() => {
     if (selectedMatchNumber == null || !panelRef.current) return;
@@ -102,6 +114,16 @@ export function BracketPage({
     panelRef.current.focus({ preventScroll: true });
     panelRef.current.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
   }, [selectedMatchNumber]);
+
+  // Scroll the path summary into view + focus it when a team is traced (separate from match).
+  useEffect(() => {
+    if (selectedTeamId == null || !summaryRef.current) return;
+    const reduce =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    summaryRef.current.focus({ preventScroll: true });
+    summaryRef.current.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "nearest" });
+  }, [selectedTeamId]);
 
   const handleSelect = (matchNumber: number) =>
     setSelectedMatchNumber((prev) => (prev === matchNumber ? null : matchNumber));
@@ -113,6 +135,10 @@ export function BracketPage({
       document.getElementById(`bracket-card-${previous}`)?.focus();
     }
   };
+
+  const handleClearTeam = () => setSelectedTeamId(null);
+
+  const currentPathLabel = teamPath?.status === "active" ? "Current match" : "Last match";
 
   const asOfLabel = formatAsOf(live?.asOf ?? null);
 
@@ -138,6 +164,15 @@ export function BracketPage({
         </div>
       </header>
 
+      {/* Trace a team → path summary + highlighting (independent of match selection). */}
+      <BracketTeamPicker
+        teams={teams}
+        selectedTeamId={selectedTeamId}
+        onSelectTeam={setSelectedTeamId}
+        onClear={handleClearTeam}
+      />
+      {teamPath ? <BracketTeamPathSummary path={teamPath} onClear={handleClearTeam} summaryRef={summaryRef} /> : null}
+
       {/* Main title tree: stacked round sections on mobile, columns at xl+. */}
       <div className="grid gap-6 xl:grid-cols-5">
         {view.rounds.map((round) => (
@@ -146,6 +181,9 @@ export function BracketPage({
             round={round}
             selectedMatchNumber={selectedMatchNumber}
             onSelect={handleSelect}
+            pathMatchNumbers={pathSet}
+            currentPathMatch={teamPath?.currentMatchNumber ?? null}
+            currentPathLabel={currentPathLabel}
           />
         ))}
       </div>
@@ -159,6 +197,9 @@ export function BracketPage({
               node={view.thirdPlace}
               selected={selectedMatchNumber === view.thirdPlace.matchNumber}
               onSelect={handleSelect}
+              pathMatchNumbers={pathSet}
+              currentPathMatch={teamPath?.currentMatchNumber ?? null}
+              currentPathLabel={currentPathLabel}
             />
           </div>
         </section>

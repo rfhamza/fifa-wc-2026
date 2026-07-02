@@ -6,10 +6,16 @@ export function BracketRound({
   round,
   selectedMatchNumber,
   onSelect,
+  pathMatchNumbers,
+  currentPathMatch = null,
+  currentPathLabel = "Current match",
 }: {
   round: BracketRoundModel;
   selectedMatchNumber: number | null;
   onSelect: (matchNumber: number) => void;
+  pathMatchNumbers?: Set<number>;
+  currentPathMatch?: number | null;
+  currentPathLabel?: string;
 }) {
   const resolved = round.nodes.filter((n) => n.state === "completed" || n.state === "live").length;
   return (
@@ -27,6 +33,9 @@ export function BracketRound({
             node={node}
             selected={selectedMatchNumber === node.matchNumber}
             onSelect={onSelect}
+            pathMatchNumbers={pathMatchNumbers}
+            currentPathMatch={currentPathMatch}
+            currentPathLabel={currentPathLabel}
           />
         ))}
       </div>

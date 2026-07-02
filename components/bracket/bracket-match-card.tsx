@@ -60,21 +60,39 @@ export function BracketMatchCard({
   node,
   selected = false,
   onSelect,
+  pathMatchNumbers,
+  currentPathMatch = null,
+  currentPathLabel = "Current match",
 }: {
   node: BracketNode;
   selected?: boolean;
   onSelect?: (matchNumber: number) => void;
+  /** Match numbers on the traced team's path (for soft highlight); undefined when none traced. */
+  pathMatchNumbers?: Set<number>;
+  currentPathMatch?: number | null;
+  /** Label for the traced team's current/last node ("Current match" vs "Last match"). */
+  currentPathLabel?: string;
 }) {
   const highlight = node.state === "live";
+  const onPath = pathMatchNumbers?.has(node.matchNumber) ?? false;
+  const pathRole: "current" | "on-path" | null = onPath
+    ? node.matchNumber === currentPathMatch
+      ? "current"
+      : "on-path"
+    : null;
   return (
     <div
       className={cn(
         "rounded-xl border bg-card p-3 shadow-sm transition-colors",
         selected
           ? "border-primary ring-2 ring-primary/30"
-          : highlight
-            ? "border-primary/50 ring-1 ring-primary/20"
-            : "border-border/60",
+          : pathRole === "current"
+            ? "border-accent ring-2 ring-accent/40"
+            : pathRole === "on-path"
+              ? "border-accent/50 ring-1 ring-accent/20"
+              : highlight
+                ? "border-primary/50 ring-1 ring-primary/20"
+                : "border-border/60",
       )}
     >
       <button
@@ -90,6 +108,11 @@ export function BracketMatchCard({
         </span>
         <BracketStatusBadge state={node.state} />
       </button>
+      {pathRole ? (
+        <div className="mb-1.5 text-[10px] font-medium uppercase tracking-wide text-accent">
+          {pathRole === "current" ? currentPathLabel : "On path"}
+        </div>
+      ) : null}
       <div className="space-y-1.5">
         <ParticipantLine node={node} p={node.home} side="home" />
         <ParticipantLine node={node} p={node.away} side="away" />
