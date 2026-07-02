@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Check } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { FlagGlyph } from "@/components/flag-glyph";
 import { BracketStatusBadge } from "@/components/bracket/bracket-status-badge";
@@ -100,13 +100,19 @@ export function BracketMatchCard({
         id={`bracket-card-${node.matchNumber}`}
         aria-expanded={selected}
         aria-controls="bracket-detail-panel"
+        title="View match detail"
         onClick={() => onSelect?.(node.matchNumber)}
-        className="mb-2 flex w-full items-center justify-between gap-2 rounded text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="group mb-2 flex w-full items-center gap-2 rounded text-left transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
           Match {node.matchNumber}
         </span>
         <BracketStatusBadge state={node.state} />
+        <span className="ml-auto inline-flex items-center gap-0.5 text-[10px] font-medium text-muted-foreground group-hover:text-primary">
+          <span className="hidden sm:inline xl:hidden">Details</span>
+          <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", selected && "rotate-180")} aria-hidden />
+        </span>
+        <span className="sr-only">View match detail</span>
       </button>
       {pathRole ? (
         <div className="mb-1.5 text-[10px] font-medium uppercase tracking-wide text-accent">

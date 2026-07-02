@@ -30,11 +30,16 @@ export function BracketTeamPicker({
   }, [teams, query]);
 
   return (
-    <div className="space-y-2">
-      <label htmlFor="bracket-team-search" className="text-sm font-medium">
-        Trace a team
-      </label>
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="space-y-2 rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
+      <div className="space-y-0.5">
+        <label htmlFor="bracket-team-search" className="text-base font-semibold">
+          Trace a team&rsquo;s path
+        </label>
+        <p className="text-sm text-muted-foreground">
+          Pick a team to highlight its current path through the knockout bracket.
+        </p>
+      </div>
+      <div className="flex flex-wrap items-center gap-2 pt-1">
         <input
           id="bracket-team-search"
           type="search"

@@ -8,6 +8,7 @@ import { LIVE_STATE_UI_ENABLED } from "@/lib/live-client/config";
 
 const NAV = [
   { href: "/", label: "Forecast" },
+  { href: "/bracket", label: "Knockout Bracket" },
   { href: "/matches", label: "Matches" },
   { href: "/teams", label: "Teams" },
   { href: "/scenario", label: "Scenario Lab" },
@@ -17,8 +18,9 @@ const NAV = [
 
 export function SiteHeader() {
   const pathname = usePathname();
+  // Home ("/") is active only on the exact route; other links match the route or a subpath.
   const isActive = (href: string) =>
-    href === "/" ? pathname === "/" : pathname.startsWith(href);
+    href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-md">

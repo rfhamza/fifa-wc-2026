@@ -191,6 +191,51 @@ describe("Bracket team-path copy is deterministic + non-overclaiming", () => {
   });
 });
 
+// Corrective bracket pass — nav item, discoverability cues, deterministic copy.
+const siteHeader = read("components/site-header.tsx");
+const bracketPageSrc = read("components/bracket/bracket-page.tsx");
+const bracketCardSrc = read("components/bracket/bracket-match-card.tsx");
+const bracketPickerSrc = read("components/bracket/bracket-team-picker.tsx");
+
+describe("Knockout Bracket nav + active-state", () => {
+  it("adds a Knockout Bracket item at /bracket between Forecast and Matches", () => {
+    expect(siteHeader).toContain('label: "Knockout Bracket"');
+    expect(siteHeader).toContain('href: "/bracket"');
+    const forecast = siteHeader.indexOf('href: "/"');
+    const bracket = siteHeader.indexOf('href: "/bracket"');
+    const matches = siteHeader.indexOf('href: "/matches"');
+    expect(forecast).toBeLessThan(bracket);
+    expect(bracket).toBeLessThan(matches);
+  });
+  it("keeps other nav items and hardens active-state (home not active on every route)", () => {
+    for (const item of ["Matches", "Teams", "Scenario Lab", "Methodology"]) {
+      expect(siteHeader).toContain(item);
+    }
+    expect(siteHeader).toContain('pathname === "/"');
+    expect(siteHeader).toContain("startsWith(`${href}/`)");
+  });
+});
+
+describe("Bracket discoverability cues + deterministic copy", () => {
+  it("surfaces the match-detail affordance and the trace-a-team card", () => {
+    expect(bracketCardSrc).toContain("View match detail");
+    expect(bracketCardSrc).toContain('aria-controls="bracket-detail-panel"');
+    expect(bracketPickerSrc).toContain("Trace a team");
+    expect(bracketPickerSrc).toContain("Pick a team to highlight its current path through the knockout bracket.");
+    expect(bracketPageSrc).toContain("Select a match for its forecast detail");
+  });
+  it("node stays lightweight — no forecast visuals inside the card", () => {
+    expect(bracketCardSrc.includes("ProbabilityBar")).toBe(false);
+    expect(bracketCardSrc.includes("chance to advance")).toBe(false);
+  });
+  it("no path-difficulty / causal / betting claims in bracket surfaces", () => {
+    const src = `${bracketPageSrc} ${bracketPickerSrc} ${read("components/bracket/bracket-tree.tsx")}`.toLowerCase();
+    for (const bad of ["easier path", "harder path", "will face", "guaranteed", "path became", "win %", "final %"]) {
+      expect(src, `bracket copy overclaims: "${bad}"`).not.toContain(bad);
+    }
+  });
+});
+
 describe("footer provenance labels are scoped, not a broad 'Data: Candidate'", () => {
   it("uses per-concern labels and avoids the over-broad label", () => {
     expect(footer).not.toContain("Data: ");

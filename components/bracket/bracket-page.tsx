@@ -5,8 +5,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { SourceBadge } from "@/components/ui/source-badge";
-import { BracketRound } from "@/components/bracket/bracket-round";
-import { BracketMatchCard } from "@/components/bracket/bracket-match-card";
+import { BracketTree } from "@/components/bracket/bracket-tree";
 import { BracketMatchDetail } from "@/components/bracket/bracket-match-detail";
 import { BracketTeamPicker } from "@/components/bracket/bracket-team-picker";
 import { BracketTeamPathSummary } from "@/components/bracket/bracket-team-path-summary";
@@ -19,6 +18,7 @@ import {
 import type { ForecastSourceKind } from "@/lib/ui/forecast-hero-data";
 import { formatAsOf } from "@/lib/ui/forecast-hero-data";
 import { buildBracketView } from "@/lib/ui/bracket-view";
+import { buildBracketLayout } from "@/lib/ui/bracket-layout";
 import { buildBracketDetailModel } from "@/lib/ui/bracket-detail";
 import { buildTeamBracketPath, teamPathMatchNumbers } from "@/lib/ui/bracket-path";
 import type { KnockoutMatchDefinition } from "@/lib/types";
@@ -78,6 +78,8 @@ export function BracketPage({
     [skeleton, live, provenanceByMatch, matchesObjectAvailable, teams],
   );
 
+  const layout = useMemo(() => buildBracketLayout(view, { matches: skeleton }), [view, skeleton]);
+
   const selectedNode = useMemo(() => {
     if (selectedMatchNumber == null) return null;
     for (const round of view.rounds) {
@@ -102,7 +104,7 @@ export function BracketPage({
   const teamPath = useMemo(() => {
     if (selectedTeamId == null) return null;
     return buildTeamBracketPath({ teamId: selectedTeamId, view, graph: { matches: skeleton }, team: teams[selectedTeamId] });
-  }, [selectedTeamId, view, skeleton]);
+  }, [selectedTeamId, view, skeleton, teams]);
   const pathSet = useMemo(() => (teamPath ? teamPathMatchNumbers(teamPath) : undefined), [teamPath]);
 
   // Scroll the panel into view + focus its heading region when a match is selected.
@@ -148,8 +150,12 @@ export function BracketPage({
         <Badge variant="accent">Bracket</Badge>
         <h1 className="text-3xl font-bold tracking-tight lg:text-4xl">Knockout bracket</h1>
         <p className="max-w-2xl text-muted-foreground">
-          The official Round of 32 through the Final. Teams and results fill in as matches are locked;
+          The official Round of 32 through the Final. Two halves converge into the Final (Match 104);
+          the third-place match (Match 103) is separate. Teams and results fill in as matches are locked;
           slots yet to be decided show who they&apos;re waiting on.
+        </p>
+        <p className="max-w-2xl text-sm text-muted-foreground">
+          Select a match for its forecast detail · Trace a team to highlight its path.
         </p>
         <div className="flex flex-wrap items-center gap-2">
           <SourceBadge source={source} asOfLabel={asOfLabel} />
@@ -173,37 +179,17 @@ export function BracketPage({
       />
       {teamPath ? <BracketTeamPathSummary path={teamPath} onClear={handleClearTeam} summaryRef={summaryRef} /> : null}
 
-      {/* Main title tree: stacked round sections on mobile, columns at xl+. */}
-      <div className="grid gap-6 xl:grid-cols-5">
-        {view.rounds.map((round) => (
-          <BracketRound
-            key={round.stage}
-            round={round}
-            selectedMatchNumber={selectedMatchNumber}
-            onSelect={handleSelect}
-            pathMatchNumbers={pathSet}
-            currentPathMatch={teamPath?.currentMatchNumber ?? null}
-            currentPathLabel={currentPathLabel}
-          />
-        ))}
-      </div>
-
-      {/* Third-place play-off — its own section, never in the title tree. */}
-      {view.thirdPlace ? (
-        <section className="space-y-3 border-t border-border/60 pt-6">
-          <h2 className="text-sm font-semibold tracking-tight">Third place</h2>
-          <div className="max-w-sm">
-            <BracketMatchCard
-              node={view.thirdPlace}
-              selected={selectedMatchNumber === view.thirdPlace.matchNumber}
-              onSelect={handleSelect}
-              pathMatchNumbers={pathSet}
-              currentPathMatch={teamPath?.currentMatchNumber ?? null}
-              currentPathLabel={currentPathLabel}
-            />
-          </div>
-        </section>
-      ) : null}
+      {/* True two-sided knockout bracket: left half → centered Final ← right half. */}
+      <BracketTree
+        layout={layout}
+        selection={{
+          selectedMatchNumber,
+          onSelect: handleSelect,
+          pathMatchNumbers: pathSet,
+          currentPathMatch: teamPath?.currentMatchNumber ?? null,
+          currentPathLabel,
+        }}
+      />
 
       {/* Selected-match detail panel — progressive disclosure, one at a time. */}
       {detail ? <BracketMatchDetail model={detail} onClose={handleClear} panelRef={panelRef} /> : null}
