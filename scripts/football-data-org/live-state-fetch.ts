@@ -17,10 +17,17 @@
  * standings stay COMPARISON-ONLY; canonical `matchNumber`/`M{n}` stays internal.
  */
 import { normalizeFootballDataMatches, extractFootballDataStandings } from "@/lib/live-ingest/football-data-org/normalize";
-import { buildKnockoutMatchIdMap, findKnockoutTeamConflicts } from "@/lib/live-ingest/football-data-org/knockout-bridge";
+import {
+  augmentKnockoutMapByTeams,
+  buildKnockoutMatchIdMap,
+  findKnockoutTeamConflicts,
+  type KnockoutTeamRecovery,
+} from "@/lib/live-ingest/football-data-org/knockout-bridge";
+import { resolveFdTeamId } from "@/lib/live-ingest/football-data-org/mapping";
 import { buildOfficialReference, ingestLiveSnapshot } from "@/lib/live-state/ingest";
 import type { LiveStateReference, LiveTournamentState } from "@/lib/live-state/types";
-import type { FdMatchesResponse, FdStandingsResponse } from "@/lib/live-ingest/football-data-org/types";
+import type { NormalizationIssue } from "@/lib/live-ingest/types";
+import type { FdMatch, FdMatchesResponse, FdStandingsResponse } from "@/lib/live-ingest/football-data-org/types";
 
 export const FOOTBALL_DATA_BASE = "https://api.football-data.org/v4";
 export const MATCHES_PATH = "/competitions/WC/matches?season=2026";
@@ -85,8 +92,12 @@ export interface FetchSummary {
   knockoutShellAdvisories: Record<string, number>;
   /** Phase 1.28R bridge: knockout provider rows mapped to canonical M{n} by official kickoff. */
   knockoutBridgeMapped: number;
-  /** Bridge: knockout rows with no official (round,kickoffUtc) match that are playable. */
+  /** Bridge: knockout rows with no official (round,kickoffUtc) match that are playable
+   * AND could not be recovered by team identity (these still block). */
   knockoutBridgeUnmatchedPlayable: number;
+  /** Bridge: playable knockout rows the time-join missed but recovered by resolved-team
+   * identity vs the derived bracket (kickoff drifted from the official schedule). */
+  knockoutBridgeRecoveredByTeams: number;
   validationWarnings: number;
   derivedStandingsSource: "results";
   providerStandingsComparisonOnly: boolean;
@@ -193,6 +204,30 @@ function tallyCodes(codes: string[]): Record<string, number> {
   return out;
 }
 
+/**
+ * A concise, REDACTED one-line description of a blocking provider row (for maintainer/CI
+ * logs). Includes only public, non-secret fields: the normalization code, the public
+ * provider fixture id, stage/status/kickoff, and team names + the app id they resolve to
+ * (or "unresolved"/"TBD"). Never prints tokens, the Blob URL, scores, or the raw payload.
+ */
+export function formatBlockerDiagnostic(issue: NormalizationIssue, fd?: FdMatch): string {
+  if (!fd) return `code=${issue.code} providerId=${issue.providerId} (row not found in payload)`;
+  const side = (t: FdMatch["homeTeam"]): string => {
+    const name = t?.name ?? (t && t.id == null ? "TBD" : "?");
+    const id = resolveFdTeamId(t) ?? "unresolved";
+    return `"${name}"(${id})`;
+  };
+  return [
+    `code=${issue.code}`,
+    `providerId=${issue.providerId}`,
+    `stage=${fd.stage}`,
+    `status=${fd.status}`,
+    `utcDate=${fd.utcDate}`,
+    `home=${side(fd.homeTeam)}`,
+    `away=${side(fd.awayTeam)}`,
+  ].join(" ");
+}
+
 async function readJson(res: FetchResponseLike): Promise<unknown> {
   const raw = await res.text();
   return JSON.parse(raw) as unknown;
@@ -270,25 +305,55 @@ export async function runFetchLiveState(deps: FetchDeps): Promise<RunResult> {
     return { exitCode: 1, error: "knockout-bridge-failed" };
   }
 
-  // --- normalize (fails closed on non-WC / count mismatch / schema drift) ---
-  let normalized: ReturnType<typeof normalizeFootballDataMatches>;
-  try {
-    normalized = normalizeFootballDataMatches(matchesPayload, {
+  const normalizeWith = (knockoutMatchIdMap: Record<string, number>) =>
+    normalizeFootballDataMatches(matchesPayload, {
       reference,
       expectFullTournament: options.expectFullTournament,
       asOf: fetchedAt,
-      knockoutMatchIdMap: knockoutBridge.knockoutMatchIdMap,
+      knockoutMatchIdMap,
     });
+  const deriveFrom = (n: ReturnType<typeof normalizeFootballDataMatches>) =>
+    ingestLiveSnapshot(n.snapshot, reference, { generatedAt: fetchedAt, staleAfterSeconds: 24 * 60 * 60 });
+
+  // --- normalize (fails closed on non-WC / count mismatch / schema drift) ---
+  let knockoutMatchIdMap = knockoutBridge.knockoutMatchIdMap;
+  let normalized: ReturnType<typeof normalizeFootballDataMatches>;
+  try {
+    normalized = normalizeWith(knockoutMatchIdMap);
   } catch (e) {
     log(`ERROR: normalization failed: ${e instanceof Error ? e.message : "unknown"}`);
     return { exitCode: 1, error: "normalize-failed" };
   }
 
   // --- validate + derive internally ---
-  const state = ingestLiveSnapshot(normalized.snapshot, reference, {
-    generatedAt: fetchedAt,
-    staleAfterSeconds: 24 * 60 * 60,
-  });
+  let state = deriveFrom(normalized);
+
+  // Recovery pass (Phase 1.28S): a finished/active knockout the exact (round,kickoffUtc)
+  // join missed - e.g. a kickoff rescheduled after the official PDF - can still be
+  // identified by its RESOLVED team pair against the internally derived bracket. This keeps
+  // a genuine result from spuriously hard-blocking the write, while a truly unidentifiable
+  // completed result still fails closed (team pair matches no resolved slot -> stays unmapped).
+  let recoveredByTeams: KnockoutTeamRecovery[] = [];
+  if (knockoutBridge.diagnostics.unmatchedPlayable > 0) {
+    const aug = augmentKnockoutMapByTeams(matchesPayload, knockoutMatchIdMap, state.bracket);
+    if (aug.recovered.length > 0) {
+      knockoutMatchIdMap = aug.knockoutMatchIdMap;
+      recoveredByTeams = aug.recovered;
+      for (const r of aug.recovered) {
+        log(
+          `RECOVERED knockout by team identity: providerId=${r.providerId} ${r.stage} -> M${r.matchNumber} ` +
+            `[${r.teamA} v ${r.teamB}] (kickoff drifted from the official schedule; identified by participants).`,
+        );
+      }
+      try {
+        normalized = normalizeWith(knockoutMatchIdMap);
+      } catch (e) {
+        log(`ERROR: normalization failed after knockout team-identity recovery: ${e instanceof Error ? e.message : "unknown"}`);
+        return { exitCode: 1, error: "normalize-failed" };
+      }
+      state = deriveFrom(normalized);
+    }
+  }
 
   // Cross-check: bridged knockout matches with resolved teams must agree with the
   // internally derived bracket slot. A conflict means a mis-map -> fail closed (no write).
@@ -301,6 +366,17 @@ export async function runFetchLiveState(deps: FetchDeps): Promise<RunResult> {
   writeIf("live-state.json", JSON.stringify(state));
 
   const errorCodes = normalized.errors.map((x) => x.code);
+
+  // Per-blocker diagnostics (redacted): surface EXACTLY which provider row hard-blocks the
+  // write so a scheduler failure is diagnosable from the logs alone - without leaking tokens,
+  // the Blob URL, or the raw payload. Provider match ids are public fixture ids (not secrets)
+  // and go to the console log only, never to persisted state/artifacts.
+  const blockers = normalized.errors.filter((e) => UNMAPPED_CODES.has(e.code));
+  if (blockers.length > 0) {
+    const rowById = new Map((matchesPayload.matches ?? []).map((m) => [String(m.id), m]));
+    log(`BLOCKING normalization issues: ${blockers.length} (write will be prevented)`);
+    for (const b of blockers) log(`  - ${formatBlockerDiagnostic(b, rowById.get(b.providerId))}`);
+  }
 
   // --- standings (comparison-only), gated by rate limit ---
   let standingsFetched = false;
@@ -347,8 +423,9 @@ export async function runFetchLiveState(deps: FetchDeps): Promise<RunResult> {
     unmappedCount: errorCodes.filter((c) => UNMAPPED_CODES.has(c)).length,
     normalizationErrorCodes: tallyCodes(errorCodes),
     knockoutShellAdvisories: tallyCodes(errorCodes.filter((c) => KNOCKOUT_ADVISORY_CODES.has(c))),
-    knockoutBridgeMapped: knockoutBridge.diagnostics.mapped,
-    knockoutBridgeUnmatchedPlayable: knockoutBridge.diagnostics.unmatchedPlayable,
+    knockoutBridgeMapped: knockoutBridge.diagnostics.mapped + recoveredByTeams.length,
+    knockoutBridgeUnmatchedPlayable: knockoutBridge.diagnostics.unmatchedPlayable - recoveredByTeams.length,
+    knockoutBridgeRecoveredByTeams: recoveredByTeams.length,
     validationWarnings: state.warnings.length,
     derivedStandingsSource: "results",
     providerStandingsComparisonOnly: true,
@@ -380,7 +457,7 @@ export function formatSummary(s: FetchSummary): string {
     `  statusCounts:        ${JSON.stringify(s.statusCounts)}`,
     `  stageCounts:         ${JSON.stringify(s.stageCounts)}`,
     `  mapped -> M{n}:      ${s.mappedCount}`,
-    `  knockout bridge mapped: ${s.knockoutBridgeMapped} (unmatched playable: ${s.knockoutBridgeUnmatchedPlayable})`,
+    `  knockout bridge mapped: ${s.knockoutBridgeMapped} (unmatched playable: ${s.knockoutBridgeUnmatchedPlayable}, recovered by teams: ${s.knockoutBridgeRecoveredByTeams})`,
     `  unmapped/unknown blockers: ${s.unmappedCount}`,
     `  knockout shell advisories: ${JSON.stringify(s.knockoutShellAdvisories)}`,
     `  normalization codes: ${JSON.stringify(s.normalizationErrorCodes)}`,
