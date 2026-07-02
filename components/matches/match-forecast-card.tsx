@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { FlagGlyph } from "@/components/flag-glyph";
 import { Badge } from "@/components/ui/badge";
 import { ProbabilityBar } from "@/components/charts/probability-bar";
@@ -126,6 +127,16 @@ export function MatchForecastCard({
               : "Forecast unavailable right now."}
         </p>
       )}
+
+      {/* Knockout rows (M73–M104) deep-link into the bracket view. */}
+      {row.stage !== "group" ? (
+        <Link
+          href={`/bracket?match=${row.matchNumber}`}
+          className="text-xs font-medium text-primary hover:underline"
+        >
+          View in bracket
+        </Link>
+      ) : null}
     </div>
   );
 }

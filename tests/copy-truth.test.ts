@@ -247,3 +247,55 @@ describe("footer provenance labels are scoped, not a broad 'Data: Candidate'", (
     expect(footer).toContain("Probabilities: model estimates");
   });
 });
+
+// UX-4D: bracket deep-linking, copy-link, and integration links — deterministic copy only.
+const bracketCopyLink = read("components/bracket/bracket-copy-link.tsx");
+const bracketPageUx4d = read("components/bracket/bracket-page.tsx");
+const forecastHero = read("components/home/forecast-hero.tsx");
+const matchCardUx4d = read("components/matches/match-forecast-card.tsx");
+const teamDetailPage = read("app/teams/[teamId]/page.tsx");
+
+describe("Bracket deep-link + copy-link copy is deterministic (UX-4D)", () => {
+  it("copy-link uses the allowed labels + graceful fallbacks, no external SDK", () => {
+    expect(bracketCopyLink).toContain("Copy bracket view link");
+    expect(bracketCopyLink).toContain("Link copied");
+    expect(bracketCopyLink).toContain("Copy from address bar");
+    expect(bracketCopyLink).toContain("Copy failed");
+    // Builds a canonical share URL from validated state (not raw window.location.href).
+    expect(bracketCopyLink).toContain("serializeBracketSearchParams");
+    expect(bracketCopyLink).not.toContain("window.location.href");
+    // No analytics / external SDK / Blob.
+    for (const bad of ["@vercel/blob", "vercel-storage", "analytics", "gtag", "mixpanel"]) {
+      expect(bracketCopyLink.includes(bad)).toBe(false);
+    }
+    // Accessible live feedback, not colour-only.
+    expect(bracketCopyLink).toContain('role="status"');
+    expect(bracketCopyLink).toContain('aria-live="polite"');
+  });
+
+  it("bracket page reads match/team query params and mirrors with replace (not push)", () => {
+    expect(bracketPageUx4d).toContain("useSearchParams");
+    expect(bracketPageUx4d).toContain("parseBracketSearchParams");
+    expect(bracketPageUx4d).toContain("router.replace");
+    expect(bracketPageUx4d).not.toContain("router.push");
+    // Distinct, safe invalid-param notices.
+    expect(bracketPageUx4d).toContain("Match not found");
+    expect(bracketPageUx4d).toContain("Team not found");
+  });
+
+  it("integration links are deterministic and point into the bracket", () => {
+    expect(forecastHero).toContain("Explore the knockout bracket");
+    expect(forecastHero).toContain('href="/bracket"');
+    expect(matchCardUx4d).toContain("View in bracket");
+    expect(matchCardUx4d).toContain("/bracket?match=");
+    expect(teamDetailPage).toContain("Trace path in bracket");
+    expect(teamDetailPage).toContain("/bracket?team=");
+  });
+
+  it("no path-difficulty / causal / betting claims in the new surfaces", () => {
+    const src = `${bracketCopyLink} ${forecastHero} ${matchCardUx4d} ${teamDetailPage}`.toLowerCase();
+    for (const bad of ["easier path", "harder path", "will face", "guaranteed", "path became", "win %", "final %"]) {
+      expect(src, `UX-4D copy overclaims: "${bad}"`).not.toContain(bad);
+    }
+  });
+});

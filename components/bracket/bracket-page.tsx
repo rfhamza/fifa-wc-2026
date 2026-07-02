@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { SourceBadge } from "@/components/ui/source-badge";
@@ -9,6 +10,11 @@ import { BracketTree } from "@/components/bracket/bracket-tree";
 import { BracketMatchDetail } from "@/components/bracket/bracket-match-detail";
 import { BracketTeamPicker } from "@/components/bracket/bracket-team-picker";
 import { BracketTeamPathSummary } from "@/components/bracket/bracket-team-path-summary";
+import { BracketCopyLink } from "@/components/bracket/bracket-copy-link";
+import {
+  parseBracketSearchParams,
+  updateBracketSearchParams,
+} from "@/lib/ui/bracket-url-state";
 import {
   fetchPublicSafeLiveState,
   type LiveViewBracketMatch,
@@ -46,11 +52,56 @@ export function BracketPage({
   source: ForecastSourceKind;
   teams: TeamLookup;
 }) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // Injected validity for the pure URL-state helper (keeps it data-free + testable).
+  const validMatchNumbers = useMemo(() => new Set(skeleton.map((m) => m.matchNumber)), [skeleton]);
+  const validTeamIds = useMemo(() => new Set(Object.keys(teams)), [teams]);
+
   const [live, setLive] = useState<LiveBracketData | null>(null);
-  const [selectedMatchNumber, setSelectedMatchNumber] = useState<number | null>(null);
-  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
+  // Seed selection from the URL on first render (deep link), then keep it reactively in sync.
+  const [selectedMatchNumber, setSelectedMatchNumber] = useState<number | null>(
+    () => parseBracketSearchParams(searchParams, { validMatchNumbers, validTeamIds }).matchNumber,
+  );
+  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(
+    () => parseBracketSearchParams(searchParams, { validMatchNumbers, validTeamIds }).teamId,
+  );
+  // A param that was present but invalid → a small "not found" notice (never a random selection).
+  const [notFound, setNotFound] = useState<{ match: boolean; team: boolean }>(() => {
+    const p = parseBracketSearchParams(searchParams, { validMatchNumbers, validTeamIds });
+    return { match: p.invalidMatch, team: p.invalidTeam };
+  });
   const panelRef = useRef<HTMLElement>(null);
   const summaryRef = useRef<HTMLElement>(null);
+  // Focus/scroll only on a USER-initiated selection — never when hydrating from the URL
+  // (deep link, browser back/forward, external query change), so a shared link never steals focus.
+  const focusPanelOnSelect = useRef(false);
+  const focusSummaryOnSelect = useRef(false);
+
+  // Reactive URL → state sync: handles deep links, browser back/forward, and same-route query
+  // navigation. Guarded functional updates make our own `router.replace` mirror a no-op (the
+  // parsed values already equal state), so there is no update loop.
+  useEffect(() => {
+    const p = parseBracketSearchParams(searchParams, { validMatchNumbers, validTeamIds });
+    setSelectedMatchNumber((cur) => (cur === p.matchNumber ? cur : p.matchNumber));
+    setSelectedTeamId((cur) => (cur === p.teamId ? cur : p.teamId));
+    setNotFound((cur) =>
+      cur.match === p.invalidMatch && cur.team === p.invalidTeam ? cur : { match: p.invalidMatch, team: p.invalidTeam },
+    );
+  }, [searchParams, validMatchNumbers, validTeamIds]);
+
+  // Mirror the selection into the address bar, PRESERVING any unknown params. `replace` (not
+  // `push`) keeps a shareable/bookmarkable URL current without a history entry per selection.
+  const syncUrl = (nextMatch: number | null, nextTeam: string | null) => {
+    const params = updateBracketSearchParams(new URLSearchParams(searchParams.toString()), {
+      matchNumber: nextMatch,
+      teamId: nextTeam,
+    });
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
 
   useEffect(() => {
     let alive = true;
@@ -107,9 +158,11 @@ export function BracketPage({
   }, [selectedTeamId, view, skeleton, teams]);
   const pathSet = useMemo(() => (teamPath ? teamPathMatchNumbers(teamPath) : undefined), [teamPath]);
 
-  // Scroll the panel into view + focus its heading region when a match is selected.
+  // Scroll the panel into view + focus its heading region — ONLY on a user selection.
   useEffect(() => {
     if (selectedMatchNumber == null || !panelRef.current) return;
+    if (!focusPanelOnSelect.current) return; // URL-driven hydration → do not steal focus
+    focusPanelOnSelect.current = false;
     const reduce =
       typeof window !== "undefined" &&
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -117,9 +170,11 @@ export function BracketPage({
     panelRef.current.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
   }, [selectedMatchNumber]);
 
-  // Scroll the path summary into view + focus it when a team is traced (separate from match).
+  // Scroll the path summary into view + focus it — ONLY on a user trace (separate from match).
   useEffect(() => {
     if (selectedTeamId == null || !summaryRef.current) return;
+    if (!focusSummaryOnSelect.current) return; // URL-driven hydration → do not steal focus
+    focusSummaryOnSelect.current = false;
     const reduce =
       typeof window !== "undefined" &&
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -127,18 +182,32 @@ export function BracketPage({
     summaryRef.current.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "nearest" });
   }, [selectedTeamId]);
 
-  const handleSelect = (matchNumber: number) =>
-    setSelectedMatchNumber((prev) => (prev === matchNumber ? null : matchNumber));
+  const handleSelect = (matchNumber: number) => {
+    const next = selectedMatchNumber === matchNumber ? null : matchNumber;
+    focusPanelOnSelect.current = next != null; // focus only when opening a panel
+    setSelectedMatchNumber(next);
+    syncUrl(next, selectedTeamId);
+  };
 
   const handleClear = () => {
     const previous = selectedMatchNumber;
     setSelectedMatchNumber(null);
+    syncUrl(null, selectedTeamId);
     if (previous != null) {
       document.getElementById(`bracket-card-${previous}`)?.focus();
     }
   };
 
-  const handleClearTeam = () => setSelectedTeamId(null);
+  const handleSelectTeam = (teamId: string) => {
+    focusSummaryOnSelect.current = true;
+    setSelectedTeamId(teamId);
+    syncUrl(selectedMatchNumber, teamId);
+  };
+
+  const handleClearTeam = () => {
+    setSelectedTeamId(null);
+    syncUrl(selectedMatchNumber, null);
+  };
 
   const currentPathLabel = teamPath?.status === "active" ? "Current match" : "Last match";
 
@@ -168,13 +237,22 @@ export function BracketPage({
             Tournament State <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
         </div>
+        {/* Share the current bracket view (selected match and/or traced team) as a link. */}
+        <BracketCopyLink matchNumber={selectedMatchNumber} teamId={selectedTeamId} />
+        {notFound.match || notFound.team ? (
+          <p role="status" className="text-sm text-muted-foreground">
+            {notFound.match ? "Match not found." : null}
+            {notFound.match && notFound.team ? " " : null}
+            {notFound.team ? "Team not found." : null}
+          </p>
+        ) : null}
       </header>
 
       {/* Trace a team → path summary + highlighting (independent of match selection). */}
       <BracketTeamPicker
         teams={teams}
         selectedTeamId={selectedTeamId}
-        onSelectTeam={setSelectedTeamId}
+        onSelectTeam={handleSelectTeam}
         onClear={handleClearTeam}
       />
       {teamPath ? <BracketTeamPathSummary path={teamPath} onClear={handleClearTeam} summaryRef={summaryRef} /> : null}

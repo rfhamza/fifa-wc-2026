@@ -67,12 +67,20 @@ export default function TeamPage({ params }: { params: { teamId: string } }) {
 
   return (
     <div className="space-y-8 animate-fade-in">
-      <Link
-        href="/teams"
-        className="text-sm text-muted-foreground hover:text-foreground"
-      >
-        ← All teams
-      </Link>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Link
+          href="/teams"
+          className="text-sm text-muted-foreground hover:text-foreground"
+        >
+          ← All teams
+        </Link>
+        <Link
+          href={`/bracket?team=${team.id}`}
+          className="text-sm font-medium text-primary hover:underline"
+        >
+          Trace path in bracket
+        </Link>
+      </div>
 
       {/* Overview */}
       <header className="flex flex-wrap items-center gap-4">
