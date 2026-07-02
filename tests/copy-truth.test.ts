@@ -162,6 +162,35 @@ describe("Bracket detail reuses shared provenance/aged-well truth (no hardcoding
   });
 });
 
+// UX-4C: /bracket selected-team path — deterministic, no path-difficulty/causal claims.
+const bracketPathLib = read("lib/ui/bracket-path.ts");
+const bracketPathSummary = read("components/bracket/bracket-team-path-summary.tsx");
+const bracketTeamPicker = read("components/bracket/bracket-team-picker.tsx");
+
+describe("Bracket team-path copy is deterministic + non-overclaiming", () => {
+  it("never claims path difficulty or causal/fixture certainty", () => {
+    const sources = `${bracketPathLib} ${bracketPathSummary} ${bracketTeamPicker}`.toLowerCase();
+    for (const bad of ["easier path", "harder path", "will face", "guaranteed", "because", "path became"]) {
+      expect(sources, `bracket path copy overclaims: "${bad}"`).not.toContain(bad);
+    }
+  });
+
+  it("uses cautious, deterministic labels", () => {
+    expect(bracketTeamPicker).toContain("Trace a team");
+    expect(bracketTeamPicker).toContain("Clear team path");
+    // Status/endpoint wording is deterministic (from graph + live-state), not probabilistic.
+    for (const ok of ["Champion", "Eliminated", "Third-place match"]) {
+      expect(bracketPathSummary.includes(ok)).toBe(true);
+    }
+  });
+
+  it("reuses human slot placeholders (via slotLabel), never raw slot codes", () => {
+    // The path helper labels unresolved opponents through the shared slotLabel helper.
+    expect(bracketPathLib).toContain("slotLabel");
+    expect(bracketPathLib).not.toContain("groupPosition:");
+  });
+});
+
 describe("footer provenance labels are scoped, not a broad 'Data: Candidate'", () => {
   it("uses per-concern labels and avoids the over-broad label", () => {
     expect(footer).not.toContain("Data: ");
