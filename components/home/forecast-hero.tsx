@@ -73,6 +73,12 @@ export function ForecastHero({ data }: { data: ForecastHeroData }) {
             >
               How this works
             </Link>
+            <Link
+              href="/bracket"
+              className={cn(buttonVariants({ variant: "outline", size: "lg" }))}
+            >
+              Explore the knockout bracket
+            </Link>
           </div>
         </div>
 
