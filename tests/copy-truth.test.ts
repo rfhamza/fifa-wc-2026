@@ -134,6 +134,34 @@ describe("Bracket surface copy is honest + human-readable", () => {
   });
 });
 
+// UX-4B: /bracket selected-match detail — reuse shared truth, never hardcode/overclaim.
+const bracketDetailLib = read("lib/ui/bracket-detail.ts");
+const bracketDetailPanel = read("components/bracket/bracket-match-detail.tsx");
+
+describe("Bracket detail reuses shared provenance/aged-well truth (no hardcoding/overclaim)", () => {
+  it("resolves provenance + aged-well via the shared helpers, not hardcoded strings", () => {
+    expect(bracketDetailLib).toContain("matchProvenanceLabel");
+    expect(bracketDetailLib).toContain("agedWellVerdict");
+    expect(bracketDetailLib).toContain("resolveCentreForecast");
+    // Never re-derive the provenance copy in the bracket layer.
+    expect(bracketDetailLib).not.toContain("captured before kickoff");
+    expect(bracketDetailLib).not.toContain("Retrospective model estimate");
+    expect(bracketDetailPanel).not.toContain("captured before kickoff");
+  });
+
+  it("aged-well verdict is gated on the model flag, never shown for a retrospective label directly", () => {
+    // The panel renders 'Called it'/'Missed' only from model.agedWell (set by agedWellVerdict).
+    expect(bracketDetailPanel).toContain("agedWell");
+    expect(bracketDetailPanel).toContain("Called it");
+  });
+
+  it("uses clear labels, not bare win%/final%, and links to the Match Forecast Centre", () => {
+    expect(bracketDetailPanel).toContain("/matches");
+    expect(bracketDetailPanel.includes("win %")).toBe(false);
+    expect(bracketDetailPanel.includes("final %")).toBe(false);
+  });
+});
+
 describe("footer provenance labels are scoped, not a broad 'Data: Candidate'", () => {
   it("uses per-concern labels and avoids the over-broad label", () => {
     expect(footer).not.toContain("Data: ");

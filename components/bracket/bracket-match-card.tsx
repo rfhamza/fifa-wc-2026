@@ -50,22 +50,46 @@ function ParticipantLine({ node, p, side }: { node: BracketNode; p: BracketParti
   );
 }
 
-/** One knockout match node: teams/placeholders, status, score + winner, forecast badge. */
-export function BracketMatchCard({ node }: { node: BracketNode }) {
+/**
+ * One knockout match node: teams/placeholders, status, score + winner, forecast badge.
+ * Lightweight — the rich forecast lives in the selected-match detail panel. The header row
+ * is a real button that opens/closes the detail panel; team links stay siblings of it (no
+ * nested interactive elements).
+ */
+export function BracketMatchCard({
+  node,
+  selected = false,
+  onSelect,
+}: {
+  node: BracketNode;
+  selected?: boolean;
+  onSelect?: (matchNumber: number) => void;
+}) {
   const highlight = node.state === "live";
   return (
     <div
       className={cn(
-        "rounded-xl border bg-card p-3 shadow-sm",
-        highlight ? "border-primary/50 ring-1 ring-primary/20" : "border-border/60",
+        "rounded-xl border bg-card p-3 shadow-sm transition-colors",
+        selected
+          ? "border-primary ring-2 ring-primary/30"
+          : highlight
+            ? "border-primary/50 ring-1 ring-primary/20"
+            : "border-border/60",
       )}
     >
-      <div className="mb-2 flex items-center justify-between gap-2">
+      <button
+        type="button"
+        id={`bracket-card-${node.matchNumber}`}
+        aria-expanded={selected}
+        aria-controls="bracket-detail-panel"
+        onClick={() => onSelect?.(node.matchNumber)}
+        className="mb-2 flex w-full items-center justify-between gap-2 rounded text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
         <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
           Match {node.matchNumber}
         </span>
         <BracketStatusBadge state={node.state} />
-      </div>
+      </button>
       <div className="space-y-1.5">
         <ParticipantLine node={node} p={node.home} side="home" />
         <ParticipantLine node={node} p={node.away} side="away" />
