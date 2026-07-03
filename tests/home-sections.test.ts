@@ -159,6 +159,7 @@ describe("home composition + isolation", () => {
       "components/home/home-matches.tsx",
       "components/home/home-contenders.tsx",
       "components/home/trust-strip.tsx",
+      "components/home/home-forecast-race-chart.tsx",
     ]) {
       const imports = read(file)
         .split("\n")
