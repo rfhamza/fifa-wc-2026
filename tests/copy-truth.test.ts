@@ -362,3 +362,56 @@ describe("Team forecast trajectory copy is honest (UX-6)", () => {
     expect(teamPageUx6).toContain("/bracket?team=");
   });
 });
+
+// Home forecast race — multi-team public checkpoint comparison; same policy as UX-6.
+const raceLib = read("lib/ui/home-trajectory-comparison.ts");
+const raceChart = read("components/home/home-forecast-race-chart.tsx");
+
+describe("Home forecast race copy is honest (checkpoints, not every match)", () => {
+  it("uses the allowed race labels + metric/top-N copy", () => {
+    expect(raceChart).toContain("Forecast race");
+    expect(raceChart).toContain("Compare top teams");
+    // Top-N options render `Top ${n}` from RACE_TOP_N_OPTIONS = [5, 10, 15].
+    expect(raceChart).toContain("Top ${n}");
+    expect(raceLib).toContain("RACE_TOP_N_OPTIONS = [5, 10, 15]");
+    expect(raceLib).toContain("Tournament start");
+    expect(raceLib).toContain("Group stage complete");
+    expect(raceLib).toContain("Current projection");
+    // Stage labels come from the shared movement options (Title chance / Reach final / …).
+    expect(raceLib).toContain("RACE_STAGE_OPTIONS");
+    expect(raceChart).toContain("percentage points");
+    expect(raceChart).toContain("This chart compares retained forecast checkpoints, not every match.");
+    // The single allowed after-every-match mention is the explicit clarification.
+    // (`read` collapses whitespace, so JSX line-wraps become single spaces.)
+    expect(raceChart).toContain("It is not an after-every-match timeline.");
+  });
+
+  it("never surfaces the non-public 54/73 checkpoints or match-by-match wording", () => {
+    const src = `${raceLib} ${raceChart}`;
+    for (const bad of ["After Match 54", "After Match 73", "M54", "M73", "match-by-match", "after-match-054", "after-match-073"]) {
+      expect(src.includes(bad), `Home race leaks non-public wording: "${bad}"`).toBe(false);
+    }
+    // "after-every-match" appears ONLY once, in the explicit clarification.
+    expect(raceChart.split("after-every-match").length - 1).toBe(1);
+    expect(raceLib.includes("after-every-match")).toBe(false);
+  });
+
+  it("no causal / betting / ambiguous-metric claims or leaks", () => {
+    const src = `${raceLib} ${raceChart}`.toLowerCase();
+    for (const bad of ["because", "caused by", "probability rose", "guaranteed", "will face", "easier path", "harder path", "path became", "win %", "final %", "vercel-storage", "blob_read_write_token", "providerid"]) {
+      expect(src, `Home race copy overclaims/leaks: "${bad}"`).not.toContain(bad);
+    }
+  });
+
+  it("home page wires the race chart below the hero", () => {
+    const page = read("app/page.tsx");
+    expect(page).toContain("HomeForecastRaceChart");
+    expect(page).toContain("buildHomeForecastRaceModel");
+    // Placed after the hero, before the match/contender lists.
+    const hero = page.indexOf("<ForecastHero");
+    const race = page.indexOf("<HomeForecastRaceChart");
+    const matches = page.indexOf("<HomeMatches");
+    expect(hero).toBeLessThan(race);
+    expect(race).toBeLessThan(matches);
+  });
+});

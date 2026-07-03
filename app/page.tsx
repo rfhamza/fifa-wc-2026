@@ -1,4 +1,5 @@
 import { ForecastHero } from "@/components/home/forecast-hero";
+import { HomeForecastRaceChart } from "@/components/home/home-forecast-race-chart";
 import { HomeMatches } from "@/components/home/home-matches";
 import { HomeContenders } from "@/components/home/home-contenders";
 import { TrustStrip } from "@/components/home/trust-strip";
@@ -9,6 +10,8 @@ import {
   getRuntimeCurrentVsBaselineMovers,
   getRuntimeMatchForecasts,
 } from "@/lib/model/forecast-runtime-store";
+import { getBaselineSnapshot, listForecastSnapshots } from "@/lib/model/forecast-snapshot-store";
+import { buildHomeForecastRaceModel } from "@/lib/ui/home-trajectory-comparison";
 import { buildForecastHeroData } from "@/lib/ui/forecast-hero-data";
 import {
   buildContenders,
@@ -52,9 +55,21 @@ export default async function DashboardPage() {
   const matchForecastIndex = buildMatchForecastIndex(matchForecasts);
   const teamContextIndex = buildTeamContextIndex(current);
 
+  // Multi-team forecast race across the public checkpoints (baseline + group-stage
+  // complete from the committed chain; the current projection is appended from the
+  // runtime current when it is a live Blob read). Committed dev checkpoints are filtered.
+  const raceModel = buildHomeForecastRaceModel({
+    baseline: getBaselineSnapshot(),
+    groupStageComplete: listForecastSnapshots().find((s) => s.meta.completedMatchesLocked === 72) ?? null,
+    current,
+    source: policy.currentSource,
+    resolveTeam: safeTeam,
+  });
+
   return (
     <div className="space-y-10 animate-fade-in">
       <ForecastHero data={heroData} />
+      <HomeForecastRaceChart model={raceModel} />
       <HomeMatches forecasts={matchForecastIndex} context={teamContextIndex} teams={TEAM_LOOKUP} />
       <HomeContenders rows={contenders} />
       <TrustStrip />
