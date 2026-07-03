@@ -20,21 +20,100 @@ import { climateSuitabilityTo100 } from "@/lib/model/climate-suitability";
 import { StageFunnelChart } from "@/components/charts/stage-funnel-chart";
 import { ProbabilityBar } from "@/components/charts/probability-bar";
 import { FlagGlyph } from "@/components/flag-glyph";
-import { teams, teamById, getTeam, getVenue, getFixturesForTeam } from "@/lib/data";
+import { teamById, getTeam, getVenue, getFixturesForTeam } from "@/lib/data";
 import {
   getStageProbability,
   predictFixture,
 } from "@/lib/model/forecast";
+import {
+  getRuntimeCurrentForecastSnapshot,
+  getRuntimeCurrentSnapshotPolicy,
+  getRuntimeCurrentVsBaselineComparison,
+  getRuntimeMatchForecasts,
+} from "@/lib/model/forecast-runtime-store";
+import {
+  getBaselineSnapshot,
+  getTeamForecastTrajectory,
+} from "@/lib/model/forecast-snapshot-store";
+import {
+  buildTeamHeroModel,
+  buildTeamMatchHistoryRows,
+  buildTeamTrajectoryModel,
+  type TeamMatchForecastInput,
+} from "@/lib/ui/team-trajectory";
+import { TeamTrajectorySurface } from "@/components/teams/team-trajectory-surface";
 import { pct } from "@/lib/utils";
 import { Users, ThermometerSun } from "lucide-react";
 
-export function generateStaticParams() {
-  return teams.map((t) => ({ teamId: t.id }));
-}
+// Live-aware page (UX-6): reads the rolling runtime current forecast per request, so it
+// must opt out of static generation — the same pattern as /teams, /movement and /bracket.
+// The legacy predictFixture cards keep their process-memoized baseline simulation; the
+// first request per server process pays that cost once (precedent: /matches).
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-export default function TeamPage({ params }: { params: { teamId: string } }) {
+export default async function TeamPage({ params }: { params: { teamId: string } }) {
   const team = teamById.get(params.teamId);
   if (!team) notFound();
+
+  // Live-aware trajectory inputs: runtime current + comparison + policy + match
+  // forecasts (Blob, server-only), plus the committed snapshot chain (static imports).
+  const [current, comparison, policy, matchForecasts] = await Promise.all([
+    getRuntimeCurrentForecastSnapshot(),
+    getRuntimeCurrentVsBaselineComparison(),
+    getRuntimeCurrentSnapshotPolicy(),
+    getRuntimeMatchForecasts(),
+  ]);
+  const baseline = getBaselineSnapshot();
+  const trajectory = getTeamForecastTrajectory(team.id);
+
+  const hero = buildTeamHeroModel({
+    teamId: team.id,
+    current,
+    baseline,
+    comparison,
+    source: policy.currentSource,
+  });
+  const trajectoryModel = buildTeamTrajectoryModel({
+    trajectory,
+    runtimeCurrent: current,
+    runtimeSource: policy.currentSource,
+  });
+
+  // Public-safe projection of the team's match-forecast entries (no scorelines/ids
+  // beyond what the history rows render) — the same idiom as /bracket's page shell.
+  const matchesObjectAvailable = matchForecasts !== null;
+  const teamEntries: TeamMatchForecastInput[] | null = matchForecasts
+    ? matchForecasts.matchForecasts
+        .filter((e) => e.homeTeamId === team.id || e.awayTeamId === team.id)
+        .map((e) => ({
+          matchNumber: e.matchNumber,
+          stage: e.stage,
+          forecastProvenance: e.forecastProvenance,
+          homeTeamId: e.homeTeamId,
+          awayTeamId: e.awayTeamId,
+          homeWin: e.homeWin,
+          draw: e.draw,
+          awayWin: e.awayWin,
+          ...(typeof e.homeAdvance === "number" ? { homeAdvance: e.homeAdvance } : {}),
+          ...(typeof e.awayAdvance === "number" ? { awayAdvance: e.awayAdvance } : {}),
+        }))
+    : null;
+  const matchHistory = buildTeamMatchHistoryRows({
+    teamId: team.id,
+    fixtures: getFixturesForTeam(team.id)
+      .filter((f): f is typeof f & { matchNumber: number } => typeof f.matchNumber === "number")
+      .map((f) => ({
+        matchNumber: f.matchNumber,
+        homeTeamId: f.homeTeamId,
+        awayTeamId: f.awayTeamId,
+      })),
+    entries: teamEntries,
+    resolveTeam: (id) => {
+      const t = teamById.get(id);
+      return t ? { id: t.id, name: t.name, flag: t.flag, countryCode: t.countryCode } : null;
+    },
+  });
 
   const prob = getStageProbability(team.id);
   const fixtures = getFixturesForTeam(team.id);
@@ -100,6 +179,17 @@ export default function TeamPage({ params }: { params: { teamId: string } }) {
         </div>
       </header>
 
+      {/* Forecast trajectory (UX-6): current vs tournament start, public checkpoints,
+          movement summary, live match context, match forecast history, trust note. */}
+      <TeamTrajectorySurface
+        teamId={team.id}
+        teamName={team.name}
+        hero={hero}
+        model={trajectoryModel}
+        matchHistory={matchHistory}
+        matchesObjectAvailable={matchesObjectAvailable}
+      />
+
       {/* Core metrics (model inputs carry an honest source status; Phase 1.7) */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {fifa && (
@@ -131,8 +221,8 @@ export default function TeamPage({ params }: { params: { teamId: string } }) {
           value={`${(population / 1_000_000).toFixed(1)}M`}
           hint={structuralHint}
         />
-        <StatTile label="Win title" value={pct(prob?.winner ?? 0, 1)} />
-        <StatTile label="Reach last 16" value={pct(prob?.roundOf16 ?? 0, 0)} />
+        <StatTile label="Baseline title chance" value={pct(prob?.winner ?? 0, 1)} />
+        <StatTile label="Baseline reach round of 16" value={pct(prob?.roundOf16 ?? 0, 0)} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -193,8 +283,8 @@ export default function TeamPage({ params }: { params: { teamId: string } }) {
         <CardHeader>
           <CardTitle>Stage probabilities</CardTitle>
           <CardDescription>
-            Share of simulated tournaments in which {team.name} reaches each
-            stage.
+            Share of simulated tournaments in which {team.name} reaches each stage
+            in the pre-tournament baseline.
           </CardDescription>
         </CardHeader>
         <CardContent>
