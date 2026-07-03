@@ -407,11 +407,66 @@ describe("Home forecast race copy is honest (checkpoints, not every match)", () 
     const page = read("app/page.tsx");
     expect(page).toContain("HomeForecastRaceChart");
     expect(page).toContain("buildHomeForecastRaceModel");
-    // Placed after the hero, before the match/contender lists.
+    // Placed after the hero (and the radial), before the match/contender lists.
     const hero = page.indexOf("<ForecastHero");
     const race = page.indexOf("<HomeForecastRaceChart");
     const matches = page.indexOf("<HomeMatches");
     expect(hero).toBeLessThan(race);
+    expect(race).toBeLessThan(matches);
+  });
+});
+
+describe("Home knockout radial copy is honest (Road to the trophy)", () => {
+  const radialChart = read("components/home/home-knockout-radial.tsx");
+  const radialLib = read("lib/ui/bracket-radial.ts");
+
+  it("uses the allowed section, legend and caption copy", () => {
+    expect(radialChart).toContain("Road to the trophy");
+    expect(radialChart).toContain("Winners move inward. Faded teams are out. Open the full bracket for details.");
+    expect(radialChart).toContain("Open the full bracket");
+    // Legend carries state without relying on colour alone.
+    expect(radialChart).toContain("Solid — still in the running");
+    expect(radialChart).toContain("Faded, dashed — eliminated");
+    expect(radialChart).toContain("Hollow — awaiting teams");
+    // Third-place is not on the rings — it points to the full bracket instead.
+    expect(radialChart).toContain("Third-place match is shown in the full bracket.");
+    // Deep links reuse the shared /bracket URL-state helper.
+    expect(radialChart).toContain("serializeBracketSearchParams");
+    expect(radialChart).toContain('href="/bracket"');
+    expect(radialChart).toContain('href="/bracket?match=104"');
+  });
+
+  it("carries no scores, forecast bars, betting/path-difficulty, or leaks", () => {
+    const src = `${radialLib} ${radialChart}`.toLowerCase();
+    for (const bad of [
+      "will face",
+      "guaranteed",
+      "easier path",
+      "harder path",
+      "path became",
+      "because",
+      "caused by",
+      "win %",
+      "final %",
+      "likely scoreline",
+      "vercel-storage",
+      "blob_read_write_token",
+      "providerid",
+    ]) {
+      expect(src, `Home radial copy overclaims/leaks: "${bad}"`).not.toContain(bad);
+    }
+  });
+
+  it("home page wires the radial between the hero and the race chart", () => {
+    const page = read("app/page.tsx");
+    expect(page).toContain("HomeKnockoutRadial");
+    expect(page).toContain("officialKnockoutGraph");
+    const hero = page.indexOf("<ForecastHero");
+    const radial = page.indexOf("<HomeKnockoutRadial");
+    const race = page.indexOf("<HomeForecastRaceChart");
+    const matches = page.indexOf("<HomeMatches");
+    expect(hero).toBeLessThan(radial);
+    expect(radial).toBeLessThan(race);
     expect(race).toBeLessThan(matches);
   });
 });
