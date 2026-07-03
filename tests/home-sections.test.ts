@@ -149,9 +149,18 @@ describe("home composition + isolation", () => {
     for (const removed of ["WinnerTable", "ModelSummary", "StandoutContenders", "WinnerBarChart"]) {
       expect(page.includes(removed)).toBe(false);
     }
-    for (const kept of ["ForecastHero", "HomeMatches", "HomeContenders", "TrustStrip"]) {
+    for (const kept of ["ForecastHero", "HomeKnockoutRadial", "HomeMatches", "HomeContenders", "TrustStrip"]) {
       expect(page.includes(kept)).toBe(true);
     }
+  });
+
+  it("renders the home sections in the intended order", () => {
+    const page = read("app/page.tsx");
+    const order = ["<ForecastHero", "<HomeKnockoutRadial", "<HomeForecastRaceChart", "<HomeMatches", "<HomeContenders", "<TrustStrip"];
+    const positions = order.map((tag) => page.indexOf(tag));
+    for (const p of positions) expect(p).toBeGreaterThan(-1);
+    const sorted = [...positions].sort((a, b) => a - b);
+    expect(positions).toEqual(sorted);
   });
 
   it("home components import no server-only forecast modules or the Blob SDK", () => {
@@ -160,6 +169,7 @@ describe("home composition + isolation", () => {
       "components/home/home-contenders.tsx",
       "components/home/trust-strip.tsx",
       "components/home/home-forecast-race-chart.tsx",
+      "components/home/home-knockout-radial.tsx",
     ]) {
       const imports = read(file)
         .split("\n")

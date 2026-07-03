@@ -1,8 +1,10 @@
 import { ForecastHero } from "@/components/home/forecast-hero";
+import { HomeKnockoutRadial } from "@/components/home/home-knockout-radial";
 import { HomeForecastRaceChart } from "@/components/home/home-forecast-race-chart";
 import { HomeMatches } from "@/components/home/home-matches";
 import { HomeContenders } from "@/components/home/home-contenders";
 import { TrustStrip } from "@/components/home/trust-strip";
+import { officialKnockoutGraph } from "@/data/official/knockout-graph";
 import {
   getRuntimeCurrentForecastSnapshot,
   getRuntimeCurrentSnapshotPolicy,
@@ -69,6 +71,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-10 animate-fade-in">
       <ForecastHero data={heroData} />
+      <HomeKnockoutRadial skeleton={officialKnockoutGraph.matches} teams={TEAM_LOOKUP} />
       <HomeForecastRaceChart model={raceModel} />
       <HomeMatches forecasts={matchForecastIndex} context={teamContextIndex} teams={TEAM_LOOKUP} />
       <HomeContenders rows={contenders} />
