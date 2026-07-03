@@ -13,6 +13,28 @@
       "notes": "Frozen pre-tournament reference forecast; seed 20260611, 2000 iterations, no completed results locked."
     },
     {
+      "snapshotId": "snapshot-2026-06-18-after-match-024",
+      "file": "snapshot-2026-06-18-after-match-024.json",
+      "snapshotType": "post-match",
+      "asOf": "2026-06-18",
+      "label": "Group matchday 1 complete (after 24 group matches, 2026-06-18)",
+      "completedMatchesLocked": 24,
+      "isBaseline": false,
+      "previousSnapshotId": "baseline-2026-06-11.pre-tournament",
+      "notes": "Backfilled live-aware forecast reconstructed from the committed M72 provider-public-delayed ledger truncated to the first 24 completed group-stage matches (group matchday 1 complete); seed 20260611, 2000 iterations. Public group-matchday-1 checkpoint."
+    },
+    {
+      "snapshotId": "snapshot-2026-06-24-after-match-048",
+      "file": "snapshot-2026-06-24-after-match-048.json",
+      "snapshotType": "post-match",
+      "asOf": "2026-06-24",
+      "label": "Group matchday 2 complete (after 48 group matches, 2026-06-24)",
+      "completedMatchesLocked": 48,
+      "isBaseline": false,
+      "previousSnapshotId": "snapshot-2026-06-18-after-match-024",
+      "notes": "Backfilled live-aware forecast reconstructed from the committed M72 provider-public-delayed ledger truncated to the first 48 completed group-stage matches (group matchday 2 complete); seed 20260611, 2000 iterations. Public group-matchday-2 checkpoint."
+    },
+    {
       "snapshotId": "snapshot-2026-06-25-after-match-054",
       "file": "snapshot-2026-06-25-after-match-054.json",
       "snapshotType": "post-match",
@@ -20,8 +42,8 @@
       "label": "Historical manual checkpoint (after M54, 2026-06-25)",
       "completedMatchesLocked": 54,
       "isBaseline": false,
-      "previousSnapshotId": "baseline-2026-06-11.pre-tournament",
-      "notes": "Live-aware forecast from the committed public-safe manual sample as of 2026-06-25 after 54 completed group-stage matches; seed 20260611, 2000 iterations. Historical/manual checkpoint, not the latest provider-derived live-state."
+      "previousSnapshotId": "snapshot-2026-06-24-after-match-048",
+      "notes": "Live-aware forecast from the committed public-safe manual sample as of 2026-06-25 after 54 completed group-stage matches; seed 20260611, 2000 iterations. Historical/manual checkpoint, not the latest provider-derived live-state. Internal historical artifact only — excluded from the public checkpoint policy."
     },
     {
       "snapshotId": "snapshot-2026-06-29-after-match-072",

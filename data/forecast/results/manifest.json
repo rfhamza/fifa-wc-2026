@@ -2,6 +2,22 @@
   "schemaVersion": "1.0.0",
   "ledgers": [
     {
+      "ledgerId": "results-as-of-2026-06-18-after-match-024",
+      "file": "results-as-of-2026-06-18-after-match-024.json",
+      "asOf": "2026-06-18T02:00:00Z",
+      "label": "Backfilled milestone results (first 24 group matches, matchday 1 complete)",
+      "resultCount": 24,
+      "notes": "Committed M72 provider-public-delayed ledger truncated to the first 24 completed group-stage matches. Backfilled reconstruction for the public group-matchday 1 checkpoint; sanitized public-safe results only."
+    },
+    {
+      "ledgerId": "results-as-of-2026-06-24-after-match-048",
+      "file": "results-as-of-2026-06-24-after-match-048.json",
+      "asOf": "2026-06-24T02:00:00Z",
+      "label": "Backfilled milestone results (first 48 group matches, matchday 2 complete)",
+      "resultCount": 48,
+      "notes": "Committed M72 provider-public-delayed ledger truncated to the first 48 completed group-stage matches. Backfilled reconstruction for the public group-matchday 2 checkpoint; sanitized public-safe results only."
+    },
+    {
       "ledgerId": "results-as-of-2026-06-25-after-match-054",
       "file": "results-as-of-2026-06-25-after-match-054.json",
       "asOf": "2026-06-25T12:33:09Z",

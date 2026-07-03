@@ -33,8 +33,9 @@ import {
 } from "@/lib/ui/team-trajectory";
 
 const TRAJECTORY_CAPTION =
-  "This view compares the tournament-start baseline, the group-stage-complete checkpoint, " +
-  "and the latest current projection. It is not an after-every-match timeline.";
+  "This view compares retained public forecast checkpoints — tournament start, group matchday 1, " +
+  "group matchday 2, group stage complete, and the latest current projection — plus knockout-round " +
+  "checkpoints as they are committed. It is not an after-every-match timeline.";
 
 const MODEL_CAVEAT =
   "The current forecast updates as results are locked and tournament paths change; the " +
@@ -268,6 +269,9 @@ export function TeamTrajectorySurface({
           <p>
             <span className="font-medium text-foreground">Tournament start</span> is the frozen
             pre-tournament forecast (11 Jun 2026).{" "}
+            <span className="font-medium text-foreground">Group matchday 1 complete</span> and{" "}
+            <span className="font-medium text-foreground">Group matchday 2 complete</span> are the
+            checkpoints once every team had played its first and second group match.{" "}
             <span className="font-medium text-foreground">Group stage complete</span> is the
             checkpoint captured once all 72 group matches were locked.{" "}
             <span className="font-medium text-foreground">Current projection</span> is the latest
@@ -278,9 +282,10 @@ export function TeamTrajectorySurface({
             difference between two probabilities, not a percent change.
           </p>
           <p>
-            The current forecast updates as results are locked. This view shows the tournament-start
-            baseline, the group-stage-complete checkpoint, and the latest current projection. More
-            checkpoints can be added as archived forecast snapshots are retained.
+            The current forecast updates as results are locked. This view shows retained public
+            checkpoints — tournament start, group matchday 1, group matchday 2, group stage complete —
+            and the latest current projection; knockout-round checkpoints (Round of 32 onward) appear
+            once their snapshots are committed. It shows retained checkpoints, not every match.
           </p>
           <Link
             href="/methodology"

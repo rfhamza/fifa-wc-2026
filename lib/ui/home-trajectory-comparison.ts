@@ -2,10 +2,12 @@
  * Home forecast "race" — multi-team public checkpoint comparison (pure).
  * ----------------------------------------------------------------------
  * Builds a comparison of the top teams across the SAME public forecast checkpoints
- * introduced in UX-6 — Tournament start → Group stage complete → Current projection —
- * for a selected stage probability. Reuses the UX-6 public checkpoint policy: the
- * committed development checkpoints (54 / 73 locked matches) are never included; the
- * runtime current is appended only when it validly extends the chain.
+ * introduced in UX-6 — Tournament start → Group matchday 1 → Group matchday 2 → Group
+ * stage complete → (future round milestones) → Current projection — for a selected
+ * stage probability. Reuses the shared public checkpoint policy (`isPublicMilestoneLocked`):
+ * the non-milestone committed dev checkpoints (locked counts 54 and 73) and the third-place
+ * milestone are never included; the runtime current is appended only when it validly extends
+ * the chain.
  *
  * PURE: no React, no I/O, no env, no Blob, no runtime-store import. Type-imports from
  * model modules; value imports only from other pure modules. Node-testable.
@@ -22,10 +24,10 @@ import type { Team } from "@/lib/types";
 import type { ForecastSourceKind } from "@/lib/ui/forecast-hero-data";
 import { MOVEMENT_STAGES, MOVEMENT_STAGE_OPTIONS, type MovementStage } from "@/lib/ui/forecast-movement";
 import {
-  CURRENT_PROJECTION_LABEL,
-  GROUP_STAGE_COMPLETE_LABEL,
-  TOURNAMENT_START_LABEL,
-} from "@/lib/ui/team-trajectory";
+  CURRENT_PROJECTION_MILESTONE,
+  getPublicMilestoneLabel,
+  isPublicMilestoneLocked,
+} from "@/lib/model/forecast-checkpoints";
 
 export type RaceStage = MovementStage;
 /** Metric tabs reuse the movement labels ("Title chance", "Reach final", …). */
@@ -57,13 +59,13 @@ export interface RaceTeamModel {
   currentRank: number | null;
   /** Stable palette index bound to the team (from the default title ordering). */
   colorIndex: number;
-  /** 2–3 public checkpoints, in chronological order. */
+  /** The public checkpoints, in chronological order. */
   points: RaceCheckpointPoint[];
 }
 
 export interface HomeForecastRaceModel {
   teams: RaceTeamModel[];
-  /** Shared x-axis labels actually present (2 or 3). */
+  /** Shared x-axis labels actually present, in chronological order. */
   checkpointLabels: string[];
   hasCurrentProjection: boolean;
   source: ForecastSourceKind;
@@ -76,25 +78,29 @@ const stageRecord = (t: Record<string, number>): Record<RaceStage, number> => {
 };
 
 /**
- * Assemble the ordered public checkpoints from the available snapshots. Baseline
- * (locked 0) and Group stage complete (locked 72) come from the committed chain; the
- * runtime Current projection is appended only when the source is a live Blob read and
- * it strictly extends the last selected checkpoint (more locked matches, or equal with
- * a later `asOf`) and is a distinct snapshot. Mirrors the UX-6 append rule.
+ * Assemble the ordered public checkpoints from the committed milestone snapshots.
+ * The committed points are the public milestones (baseline + title-probability
+ * milestones {24,48,72,88,96,100,102,104}) in match order — the non-milestone
+ * committed dev checkpoints (locked counts 54 and 73) and the third-place milestone
+ * are excluded by `isPublicMilestoneLocked`, and future round milestones appear
+ * automatically once committed. The runtime Current projection is appended only when the source is a
+ * live Blob read and it strictly extends the last selected checkpoint (more locked
+ * matches, or equal with a later `asOf`) and is a distinct snapshot.
  */
 function resolveCheckpoints(input: {
-  baseline: ForecastSnapshot | null;
-  groupStageComplete: ForecastSnapshot | null;
+  committedMilestones: ForecastSnapshot[];
   current: ForecastSnapshot | null;
   source: ForecastSourceKind;
 }): CheckpointSpec[] {
-  const specs: CheckpointSpec[] = [];
-  if (input.baseline) {
-    specs.push({ snapshot: input.baseline, label: TOURNAMENT_START_LABEL, shortLabel: "Start" });
-  }
-  if (input.groupStageComplete) {
-    specs.push({ snapshot: input.groupStageComplete, label: GROUP_STAGE_COMPLETE_LABEL, shortLabel: "Groups" });
-  }
+  const specs: CheckpointSpec[] = input.committedMilestones
+    .filter((s) => isPublicMilestoneLocked(s.meta.completedMatchesLocked))
+    .slice()
+    .sort((a, b) => a.meta.completedMatchesLocked - b.meta.completedMatchesLocked)
+    .map((snapshot) => {
+      const lbl = getPublicMilestoneLabel(snapshot.meta.completedMatchesLocked)!;
+      return { snapshot, label: lbl.label, shortLabel: lbl.shortLabel };
+    });
+
   const last = specs[specs.length - 1]?.snapshot ?? null;
   if (
     input.source === "blob" &&
@@ -105,7 +111,11 @@ function resolveCheckpoints(input: {
       (input.current.meta.completedMatchesLocked === last.meta.completedMatchesLocked &&
         input.current.meta.asOf > last.meta.asOf))
   ) {
-    specs.push({ snapshot: input.current, label: CURRENT_PROJECTION_LABEL, shortLabel: "Current" });
+    specs.push({
+      snapshot: input.current,
+      label: CURRENT_PROJECTION_MILESTONE.label,
+      shortLabel: CURRENT_PROJECTION_MILESTONE.shortLabel,
+    });
   }
   return specs;
 }
@@ -116,14 +126,14 @@ function resolveCheckpoints(input: {
  * latest available checkpoint, so it stays bound to each team across toggles. Pure.
  */
 export function buildHomeForecastRaceModel(input: {
-  baseline: ForecastSnapshot | null;
-  groupStageComplete: ForecastSnapshot | null;
+  /** Committed milestone snapshots (baseline + title-probability milestones), any order. */
+  committedMilestones: ForecastSnapshot[];
   current: ForecastSnapshot | null;
   source: ForecastSourceKind;
   resolveTeam: (id: string) => Team | null;
 }): HomeForecastRaceModel {
   const checkpoints = resolveCheckpoints(input);
-  const hasCurrentProjection = checkpoints.some((c) => c.label === CURRENT_PROJECTION_LABEL);
+  const hasCurrentProjection = checkpoints.some((c) => c.label === CURRENT_PROJECTION_MILESTONE.label);
   if (checkpoints.length === 0) {
     return { teams: [], checkpointLabels: [], hasCurrentProjection, source: input.source };
   }

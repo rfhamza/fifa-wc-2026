@@ -118,6 +118,54 @@ export function isTitleProbabilityMilestone(matchNumber: number): boolean {
   );
 }
 
+// --------------------------------------------------------------------------
+// PUBLIC checkpoint policy — the milestone set + non-technical labels the
+// user-facing trajectory/race visuals display. Keyed by `completedMatchesLocked`
+// (which equals the closing match number for these segments). Baseline (0) plus
+// the eight TITLE-probability milestones; the manual/dev checkpoints M54 and M73
+// and the third-place milestone M103 are NEVER public.
+// --------------------------------------------------------------------------
+
+/** Public, non-technical label + short axis label for a committed public checkpoint. */
+export interface PublicMilestoneLabel {
+  label: string;
+  shortLabel: string;
+}
+
+/** `completedMatchesLocked` -> public label. Baseline + the 8 title milestones. */
+export const PUBLIC_MILESTONE_LABELS: Readonly<Record<number, PublicMilestoneLabel>> = {
+  0: { label: "Tournament start", shortLabel: "Start" },
+  24: { label: "Group matchday 1 complete", shortLabel: "MD1" },
+  48: { label: "Group matchday 2 complete", shortLabel: "MD2" },
+  72: { label: "Group stage complete", shortLabel: "Groups" },
+  88: { label: "Round of 32 complete", shortLabel: "R32" },
+  96: { label: "Round of 16 complete", shortLabel: "R16" },
+  100: { label: "Quarter-finals complete", shortLabel: "QF" },
+  102: { label: "Semi-finals complete", shortLabel: "SF" },
+  104: { label: "Final complete", shortLabel: "Final" },
+};
+
+/** The runtime "current projection" checkpoint (appended live, never committed). */
+export const CURRENT_PROJECTION_MILESTONE: PublicMilestoneLabel = {
+  label: "Current projection",
+  shortLabel: "Current",
+};
+
+/**
+ * True when a committed snapshot's `completedMatchesLocked` is a PUBLIC checkpoint:
+ * the pre-tournament baseline (0) or a title-probability milestone
+ * ({24,48,72,88,96,100,102,104}). Excludes the manual M54 and knockout-lock-proof
+ * M73 dev checkpoints (not milestones) and the third-place M103 (not a title milestone).
+ */
+export function isPublicMilestoneLocked(completedMatchesLocked: number): boolean {
+  return completedMatchesLocked === 0 || isTitleProbabilityMilestone(completedMatchesLocked);
+}
+
+/** Public label for a committed checkpoint's locked count, or null if not public. */
+export function getPublicMilestoneLabel(completedMatchesLocked: number): PublicMilestoneLabel | null {
+  return PUBLIC_MILESTONE_LABELS[completedMatchesLocked] ?? null;
+}
+
 /** The group wave (1/2/3) a group match belongs to, or null if not M1-72. */
 export function getGroupWaveForMatchNumber(matchNumber: number): GroupWave | null {
   if (!Number.isInteger(matchNumber) || matchNumber < 1 || matchNumber > GROUP_STAGE_MAX_MATCH) {
