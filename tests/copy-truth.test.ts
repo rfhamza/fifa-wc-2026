@@ -299,3 +299,66 @@ describe("Bracket deep-link + copy-link copy is deterministic (UX-4D)", () => {
     }
   });
 });
+
+// UX-6: team forecast trajectory — public checkpoints only (Tournament start →
+// Group stage complete → Current projection); M54/M73 never rendered publicly.
+const trajectoryLib = read("lib/ui/team-trajectory.ts");
+const trajectorySurface = read("components/teams/team-trajectory-surface.tsx");
+const trajectoryChart = read("components/charts/team-trajectory-chart.tsx");
+const teamMatchHistory = read("components/teams/team-match-history.tsx");
+const teamPageUx6 = read("app/teams/[teamId]/page.tsx");
+
+describe("Team forecast trajectory copy is honest (UX-6)", () => {
+  it("uses the public checkpoint labels and the retained-checkpoint explanation", () => {
+    expect(trajectorySurface).toContain("Forecast trajectory");
+    expect(trajectoryLib).toContain("Tournament start");
+    expect(trajectoryLib).toContain("Group stage complete");
+    expect(trajectoryLib).toContain("Current projection");
+    expect(trajectorySurface).toContain("Since tournament start");
+    expect(trajectorySurface).toContain("Percentage points");
+    expect(trajectorySurface).toContain("Not enough history yet");
+    expect(trajectorySurface).toContain(
+      "More checkpoints can be added as archived forecast snapshots are retained.",
+    );
+    expect(trajectorySurface).toContain("not re-rated after every match");
+    // The single allowed after-every-match mention is the explicit clarification.
+    expect(trajectorySurface).toContain("It is not an after-every-match timeline.");
+  });
+
+  it("never surfaces the non-public M54/M73 checkpoints or arbitrary-checkpoint wording", () => {
+    const src = `${trajectoryLib} ${trajectorySurface} ${trajectoryChart} ${teamMatchHistory}`;
+    for (const bad of ["After Match 54", "After Match 73", "M54", "M73", "historical manual checkpoint", "knockout-lock proof", "arbitrary checkpoint", "match-by-match"]) {
+      expect(src.includes(bad), `UX-6 leaks non-public checkpoint wording: "${bad}"`).toBe(false);
+    }
+    // "after-every-match" may appear ONLY in the explicit clarification sentence.
+    const clarifications = trajectorySurface.split("after-every-match").length - 1;
+    expect(clarifications).toBe(1);
+    for (const f of [trajectoryLib, trajectoryChart, teamMatchHistory]) {
+      expect(f.includes("after-every-match timeline")).toBe(false);
+    }
+  });
+
+  it("no causal / betting / ambiguous-metric claims in the trajectory surfaces", () => {
+    const src = `${trajectoryLib} ${trajectorySurface} ${trajectoryChart} ${teamMatchHistory}`.toLowerCase();
+    for (const bad of ["because", "caused by", "probability rose", "guaranteed", "will face", "easier path", "harder path", "path became", "win %", "final %", "vercel-storage", "blob_read_write_token"]) {
+      expect(src, `UX-6 copy overclaims/leaks: "${bad}"`).not.toContain(bad);
+    }
+    expect(trajectoryLib).toContain("Changed between tournament start and group stage complete");
+    expect(trajectoryLib).toContain("Changed between group stage complete and current projection");
+    expect(trajectoryLib).toContain("Changed since tournament start");
+  });
+
+  it("the team page is live-aware and wires the trajectory (no static re-freeze)", () => {
+    expect(teamPageUx6).toContain('dynamic = "force-dynamic"');
+    expect(teamPageUx6).toContain("getTeamForecastTrajectory");
+    expect(teamPageUx6).toContain("TeamTrajectorySurface");
+    expect(teamPageUx6).not.toContain("generateStaticParams");
+    // Relabelled baseline tiles + funnel clarification.
+    expect(teamPageUx6).toContain("Baseline title chance");
+    expect(teamPageUx6).toContain("Baseline reach round of 16");
+    expect(teamPageUx6).toContain("pre-tournament baseline");
+    // UX-4D pins that must survive.
+    expect(teamPageUx6).toContain("Trace path in bracket");
+    expect(teamPageUx6).toContain("/bracket?team=");
+  });
+});
