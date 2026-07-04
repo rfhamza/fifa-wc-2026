@@ -13,7 +13,7 @@ import { teams } from "@/lib/data";
 import type { TeamLookup } from "@/lib/live-client/public-safe-view.client";
 
 export const metadata = {
-  title: "Match Forecast Centre · World Cup Probability Lab",
+  title: "Match Forecast Centre · BeyondVAR",
 };
 
 // The centre reads the runtime match-forecast archive + live-state, so it must not be

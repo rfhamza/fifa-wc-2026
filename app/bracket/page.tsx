@@ -10,7 +10,7 @@ import type { MatchForecastProvenance } from "@/lib/model/match-forecast";
 import type { CentreRuntimeEntry } from "@/lib/ui/match-centre";
 
 export const metadata = {
-  title: "Knockout Bracket · World Cup Probability Lab",
+  title: "Knockout Bracket · BeyondVAR",
 };
 
 // The bracket overlays live-state + the runtime match-forecast archive on the official

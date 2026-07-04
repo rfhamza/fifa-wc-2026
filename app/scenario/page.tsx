@@ -7,7 +7,7 @@ import { GROUP_IDS, getTeamsInGroup, getFixturesForGroup, getTeam } from "@/lib/
 import { predictFixture } from "@/lib/model/forecast";
 
 export const metadata = {
-  title: "Scenario Lab · World Cup Probability Lab",
+  title: "Scenario Lab · BeyondVAR",
 };
 
 export default function ScenarioPage() {

@@ -481,3 +481,97 @@ describe("Home knockout radial copy is honest (Road to the trophy)", () => {
     expect(race).toBeLessThan(matches);
   });
 });
+
+// ---------------------------------------------------------------------------
+// BeyondVAR brand identity — header, hero, metadata, disclaimer, IP safety.
+// ---------------------------------------------------------------------------
+const brandMark = read("components/brand-mark.tsx");
+const rootLayout = read("app/layout.tsx");
+
+const DISCLAIMER =
+  "Independent forecasting project. Not affiliated with, endorsed by, or sponsored by FIFA.";
+
+describe("BeyondVAR brand identity (header, hero, metadata)", () => {
+  it("header carries the BeyondVAR wordmark + local BrandMark, not the old name", () => {
+    expect(siteHeader).toContain("BeyondVAR");
+    expect(siteHeader).toContain("BrandMark");
+    expect(siteHeader.includes("World Cup Probability Lab")).toBe(false);
+    expect(siteHeader.includes("WC Lab")).toBe(false);
+    // The old trophy icon is no longer the brand mark.
+    expect(siteHeader.includes("Trophy")).toBe(false);
+  });
+
+  it("homepage hero uses the BeyondVAR title, exact subtitle, and the brand promise", () => {
+    expect(forecastHero).toContain("BeyondVAR");
+    expect(forecastHero).toContain("The World Cup intelligence layer beyond the score.");
+    expect(forecastHero).toContain(
+      "Follow how every result reshapes title chances, knockout paths, and the road to the trophy.",
+    );
+    expect(forecastHero.includes("World Cup Probability Lab")).toBe(false);
+    expect(forecastHero.includes("Who is favoured now?")).toBe(false);
+    // The honest not-re-rated caveat survives the rebrand.
+    expect(forecastHero).toContain("not re-rated after every match");
+  });
+
+  it("metadata + footer use the new brand and the exact disclaimer", () => {
+    expect(rootLayout).toContain("BeyondVAR — World Cup intelligence beyond the score");
+    expect(rootLayout).toContain(
+      "Independent World Cup forecasting and tournament intelligence, tracking how every result reshapes probabilities, paths, and knockout state.",
+    );
+    expect(rootLayout).toContain("openGraph");
+    expect(rootLayout).toContain(DISCLAIMER);
+    expect(rootLayout.includes("World Cup Probability Lab")).toBe(false);
+    // Methodology carries the disclaimer + new name too.
+    expect(methodology).toContain("BeyondVAR");
+    expect(methodology).toContain(DISCLAIMER);
+    expect(methodology.includes("World Cup Probability Lab")).toBe(false);
+  });
+
+  it("every page title uses BeyondVAR (no page still titled with the old name)", () => {
+    for (const p of [
+      "app/methodology/page.tsx",
+      "app/teams/page.tsx",
+      "app/movement/page.tsx",
+      "app/bracket/page.tsx",
+      "app/matches/page.tsx",
+      "app/scenario/page.tsx",
+      "app/live/page.tsx",
+    ]) {
+      const src = read(p);
+      expect(src, `${p} title should carry BeyondVAR`).toContain("· BeyondVAR");
+      expect(src.includes("Probability Lab"), `${p} still references the old name`).toBe(false);
+    }
+  });
+
+  it("the app mark is original, local SVG — no external/scraped assets, no FIFA marks", () => {
+    expect(brandMark).toContain("<svg");
+    expect(brandMark).toContain("currentColor");
+    for (const bad of ["http://", "https://", "next/image", ".png", ".jpg", ".jpeg", ".webp", ".gif", "lucide-react", "FIFA", "fifa"]) {
+      expect(brandMark.includes(bad), `brand mark must not reference: "${bad}"`).toBe(false);
+    }
+    // The header imports the local mark, not an image asset.
+    expect(siteHeader).toContain('from "@/components/brand-mark"');
+  });
+
+  it("no affiliation/endorsement claims anywhere in the brand surfaces", () => {
+    // Brand surfaces only: methodology's factual "official FIFA match schedule (v17…)"
+    // provenance statement describes the DATA, not the app, and is checked elsewhere.
+    // Strip the explicit NEGATED disclaimer before scanning, so "…or sponsored by FIFA"
+    // inside "Not affiliated with, endorsed by, or sponsored by FIFA" never false-positives.
+    const src = [siteHeader, forecastHero, rootLayout, brandMark]
+      .join(" ")
+      .split(DISCLAIMER)
+      .join(" ")
+      .toLowerCase();
+    for (const bad of [
+      "official fifa",
+      "official world cup",
+      "endorsed by fifa",
+      "sponsored by fifa",
+      "partner of fifa",
+      "affiliated with fifa",
+    ]) {
+      expect(src, `brand surfaces imply affiliation: "${bad}"`).not.toContain(bad);
+    }
+  });
+});

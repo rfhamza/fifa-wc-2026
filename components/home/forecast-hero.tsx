@@ -27,9 +27,14 @@ export function ForecastHero({ data }: { data: ForecastHeroData }) {
             <SourceBadge source={source} asOfLabel={asOfLabel} />
           </div>
 
-          <h1 className="text-balance text-4xl font-bold tracking-tight lg:text-6xl">
-            Who is favoured now?
-          </h1>
+          <div className="space-y-2">
+            <h1 className="text-balance text-4xl font-bold tracking-tight lg:text-6xl">
+              BeyondVAR
+            </h1>
+            <p className="text-balance text-lg font-medium text-muted-foreground lg:text-xl">
+              The World Cup intelligence layer beyond the score.
+            </p>
+          </div>
 
           {favourite ? (
             <div className="flex flex-wrap items-end gap-x-6 gap-y-2">
@@ -59,8 +64,9 @@ export function ForecastHero({ data }: { data: ForecastHeroData }) {
           )}
 
           <p className="max-w-xl text-balance text-sm text-muted-foreground">
-            The current forecast updates as results are locked and the path changes; the
-            underlying team-strength model is not re-rated after every match.
+            Follow how every result reshapes title chances, knockout paths, and the road to
+            the trophy. The current forecast updates as results are locked and the path
+            changes; the underlying team-strength model is not re-rated after every match.
           </p>
 
           <div className="flex flex-wrap gap-3 pt-1">
