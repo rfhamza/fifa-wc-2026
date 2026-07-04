@@ -60,7 +60,7 @@ export default function MethodologyPage() {
           <li><strong>Host &amp; regional advantage</strong> - {MODEL_WEIGHTS.host} pts (co-host), {MODEL_WEIGHTS.regional} pts (region). Status: {MODEL_INPUT_SOURCES.hostAdvantage.status} / {MODEL_INPUT_SOURCES.regionalAdvantage.status} (both exercised in the backtest).</li>
           <li><strong>Climate suitability</strong> - {MODEL_WEIGHTS.climate} pts per playability point, capped at +/-{CLIMATE_CONTRIBUTION_CAP}. Status: {MODEL_INPUT_SOURCES.climateFamiliarity.status} (a 12-month home-climate playability score from CCKP 1991-2020 normals; England &amp; Scotland from Met Office / HadUK-Grid - a candidate heuristic, not a tournament-acclimatization score) - <em>not yet backtested</em>.</li>
           <li><strong>Structural prior (economic)</strong> - up to {MODEL_WEIGHTS.structural} pts across the 0-1 range, blended from log-scaled GDP per capita and population. An <em>experimental weak prior</em>, deliberately small and <em>not yet backtested</em>. Status: {MODEL_INPUT_SOURCES.structural.status} (World Bank WDI {MODEL_INPUT_SOURCES.structural.sourceDate}; 46 economies source-backed, England &amp; Scotland official-derived from ONS / Scottish Government figures - no separate World Bank economy).</li>
-          <li><strong>Tournament context</strong> - up to {TOURNAMENT_CONTEXT_CONTRIBUTION_CAP} pts (capped), a signed group-stage logistics prior (travel/rest/altitude/time-zone/venue-continuity) consumed pairwise, excluding host/regional. Status: {MODEL_INPUT_SOURCES.tournamentContext.status} - <em>experimental, not yet backtested</em>.</li>
+          <li><strong>Tournament context</strong> - up to {TOURNAMENT_CONTEXT_CONTRIBUTION_CAP} pts (capped), a signed group-stage logistics prior (travel/rest/altitude/time-zone/venue-continuity) consumed pairwise, excluding host/regional. Status: {MODEL_INPUT_SOURCES.tournamentContext.status} - <em>experimental, not yet backtested</em>. Tournament context refers to <strong>static draw and logistics factors</strong> such as travel, rest, altitude, time-zone shift, and venue continuity; it does not mean live in-tournament form.</li>
         </ul>
       </Section>
 
@@ -110,6 +110,12 @@ export default function MethodologyPage() {
           third-placed teams, then simulate the knockout bracket. Counting how
           often each team reaches each stage gives the probabilities you see. The
           simulation is seeded, so results are reproducible.
+        </p>
+        <p>
+          Because this is a sampling process, the published percentages carry a
+          small amount of <strong>Monte Carlo noise</strong> (on the order of a
+          percentage point). Read teams within a point or two of each other as{" "}
+          <strong>approximately level</strong> rather than strictly ordered.
         </p>
       </Section>
 
@@ -188,6 +194,35 @@ export default function MethodologyPage() {
           internally from FIFA rules. The published probabilities are still baseline{" "}
           <strong>model estimates</strong> and are <strong>not</strong> yet
           recalculated from live results.
+        </p>
+      </Section>
+
+      <Section title="What updates during the tournament, and what does not">
+        <p>
+          BeyondVAR updates tournament probabilities <strong>as official
+          results are locked</strong>. Those updates reflect the{" "}
+          <strong>tournament state</strong>: standings, points, goal
+          difference, qualification status, third-place ranking, knockout
+          slots, eliminations, and the set of remaining possible paths. In
+          short, <strong>locked results reshape standings, qualification, and
+          bracket paths</strong> - a tournament-state update, not a change to
+          how strong the model thinks a team is.
+        </p>
+        <p>
+          The underlying team strength is still a <strong>baseline
+          team-strength model</strong>; it is <strong>not yet a live
+          team-strength re-rating model</strong>. It is <strong>not yet
+          re-rated from in-tournament form</strong>, margin of victory,
+          opponent-adjusted performance, or strength of schedule during the
+          tournament. So a 5-0 win and a 1-0 win can change standings and
+          tiebreakers differently, but they do not yet change that
+          team&apos;s underlying future match strength except through
+          tournament state.
+        </p>
+        <p>
+          In-tournament form and margin-adjusted performance are{" "}
+          <strong>planned modelling upgrades</strong>, not active drivers
+          today.
         </p>
       </Section>
 

@@ -50,6 +50,76 @@ describe("methodology copy reflects current truth", () => {
   });
 });
 
+describe("methodology distinguishes tournament-state updates from team-strength re-rating", () => {
+  const lc = methodology.toLowerCase();
+
+  it("says probabilities update as official results are locked", () => {
+    expect(lc).toContain("as official results are locked");
+    // The updates are tournament-state, spelled out.
+    expect(lc).toContain("tournament state");
+  });
+
+  it("says locked results reshape standings, qualification, bracket paths, and eliminations", () => {
+    expect(methodology).toContain(
+      "locked results reshape standings, qualification, and bracket paths",
+    );
+    expect(lc).toContain("eliminations");
+    expect(lc).toContain("qualification status");
+  });
+
+  it("says the underlying team strength is NOT yet re-rated from in-tournament form", () => {
+    expect(methodology).toContain("baseline team-strength model");
+    expect(methodology).toContain("not yet a live team-strength re-rating model");
+    expect(methodology).toContain("not yet re-rated from in-tournament form");
+  });
+
+  it("says margin of victory / opponent-adjusted performance is not yet active", () => {
+    expect(lc).toContain("margin of victory");
+    expect(lc).toContain("opponent-adjusted performance");
+    // Framed as planned upgrades, not active drivers.
+    expect(lc).toContain("planned modelling upgrades");
+    expect(lc).toContain("margin-adjusted performance");
+  });
+
+  it("clarifies tournamentContext means static logistics/draw context, not live form", () => {
+    expect(methodology).toContain(
+      "Tournament context refers to",
+    );
+    expect(lc).toContain("static draw and logistics factors");
+    expect(lc).toContain("does not mean live in-tournament form");
+  });
+
+  it("adds an honest Monte Carlo uncertainty / close-rankings note", () => {
+    expect(lc).toContain("monte carlo noise");
+    expect(lc).toContain("approximately level");
+  });
+
+  it("never implies live form-adjusted / performance-reactive probabilities", () => {
+    // Strip the negated FIFA disclaimer so its wording never false-positives.
+    const DISCLAIMER =
+      "Independent forecasting project. Not affiliated with, endorsed by, or sponsored by FIFA.";
+    const scrubbed = methodology.split(DISCLAIMER).join(" ").toLowerCase();
+    for (const bad of [
+      "live form-adjusted",
+      "current-form adjusted",
+      "re-rated based on",
+      "performance-reactive",
+      "updated based on how teams are playing",
+      "the model now knows",
+      "guaranteed",
+      "will beat",
+      "betting odds",
+      // No affirmative FIFA endorsement outside the negated disclaimer.
+      "endorsed by fifa",
+      "sponsored by fifa",
+      "affiliated with fifa",
+      "partner of fifa",
+    ]) {
+      expect(scrubbed, `methodology implies/overclaims: "${bad}"`).not.toContain(bad);
+    }
+  });
+});
+
 describe("Match Forecast Centre copy reflects current truth", () => {
   it("drops stale position-generated/no-kickoff phrasing", () => {
     for (const phrase of STALE_ON_PAGES) {
