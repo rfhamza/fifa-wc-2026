@@ -77,8 +77,9 @@ export function HomeForecastRaceChart({ model }: { model: HomeForecastRaceModel 
       <CardHeader>
         <CardTitle>Forecast race</CardTitle>
         <CardDescription>
-          Compare top teams across the tournament-start baseline, the group-stage-complete
-          checkpoint and the current projection. This chart compares retained forecast
+          Compare top teams across retained public forecast checkpoints — tournament start, group
+          matchday 1, group matchday 2, group stage complete, and the current projection — with
+          knockout-round checkpoints added as they are committed. This chart compares retained
           checkpoints, not every match.
         </CardDescription>
       </CardHeader>

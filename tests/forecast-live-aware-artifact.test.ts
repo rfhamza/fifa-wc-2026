@@ -70,14 +70,15 @@ describe("manifests reference the real artifacts", () => {
     expect(entry!.resultCount).toBe(54);
   });
 
-  it("snapshot manifest references the live-aware snapshot as a non-baseline child of the baseline", () => {
+  it("snapshot manifest references the live-aware snapshot as a non-baseline child in the chain", () => {
     const manifest = loadForecastManifest(read(join(SNAPSHOTS_DIR, "manifest.json")));
     const entry = manifest.snapshots.find((s) => s.snapshotId === SNAPSHOT_ID);
     expect(entry).toBeDefined();
     expect(entry!.file).toBe(SNAPSHOT_FILE);
     expect(entry!.isBaseline).toBe(false);
     expect(entry!.completedMatchesLocked).toBe(54);
-    expect(entry!.previousSnapshotId).toBe("baseline-2026-06-11.pre-tournament");
+    // The M24/M48 milestone backfills were inserted before M54 in the chain.
+    expect(entry!.previousSnapshotId).toBe("snapshot-2026-06-24-after-match-048");
   });
 });
 

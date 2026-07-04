@@ -22,9 +22,10 @@ import {
 
 /**
  * UX-6: pure team-trajectory models. Env `node`, no DOM/network/Blob. The PUBLIC
- * checkpoint policy is the core contract under test: only Tournament start (baseline),
- * Group stage complete (72 locked), and a validly-appended Current projection are ever
- * rendered — committed points at 54/73 locked stay in the data but never in the output.
+ * checkpoint policy is the core contract under test: the milestone checkpoints
+ * (Tournament start / Group matchday 1 / Group matchday 2 / Group stage complete, and
+ * future round milestones once committed) plus a validly-appended Current projection —
+ * committed points at 54/73 locked stay in the data but never in the output.
  */
 
 const STAGES = { winner: 0.2, final: 0.35, semiFinal: 0.5, quarterFinal: 0.65, roundOf16: 0.8, roundOf32: 0.9, qualifyTop2: 0.7, qualifyThird: 0.1 };
@@ -43,11 +44,16 @@ const fullTrajectory = (): TeamForecastTrajectory => ({
   teamId: "canada",
   points: [
     point("baseline-2026-06-11.pre-tournament", 0, 0.1, "2026-06-11T00:00:00Z"),
+    point("snapshot-2026-06-18-after-match-024", 24, 0.12, "2026-06-18T02:00:00Z"),
+    point("snapshot-2026-06-24-after-match-048", 48, 0.14, "2026-06-24T02:00:00Z"),
     point("snapshot-2026-06-25-after-match-054", 54, 0.13, "2026-06-25T12:00:00Z"),
     point("snapshot-2026-06-29-after-match-072", 72, 0.16, "2026-06-29T07:00:00Z"),
     point("snapshot-2026-06-29-after-match-073", 73, 0.18, "2026-06-29T08:00:00Z"),
   ],
 });
+
+const MD1_LABEL = "Group matchday 1 complete";
+const MD2_LABEL = "Group matchday 2 complete";
 
 const runtimeSnapshot = (snapshotId: string, locked: number, winner: number, asOf: string): ForecastSnapshot =>
   ({
@@ -56,14 +62,24 @@ const runtimeSnapshot = (snapshotId: string, locked: number, winner: number, asO
   } as unknown as ForecastSnapshot);
 
 describe("buildTeamTrajectoryModel — public checkpoint filter", () => {
-  it("filters out locked 54 AND locked 73; keeps baseline + group stage complete", () => {
+  it("keeps the milestone checkpoints (0/24/48/72) and filters out locked 54 AND 73", () => {
     const model = buildTeamTrajectoryModel({ trajectory: fullTrajectory(), runtimeCurrent: null, runtimeSource: "committed-fallback" });
-    expect(model.points.map((p) => p.completedMatchesLocked)).toEqual([0, 72]);
-    expect(model.points.map((p) => p.label)).toEqual([TOURNAMENT_START_LABEL, GROUP_STAGE_COMPLETE_LABEL]);
+    expect(model.points.map((p) => p.completedMatchesLocked)).toEqual([0, 24, 48, 72]);
+    expect(model.points.map((p) => p.label)).toEqual([TOURNAMENT_START_LABEL, MD1_LABEL, MD2_LABEL, GROUP_STAGE_COMPLETE_LABEL]);
     expect(model.points.some((p) => p.completedMatchesLocked === 54)).toBe(false);
     expect(model.points.some((p) => p.completedMatchesLocked === 73)).toBe(false);
     expect(model.hasEnoughHistory).toBe(true);
     expect(model.hasGroupStageCheckpoint).toBe(true);
+  });
+
+  it("auto-includes a future round milestone (Round of 32, locked 88) once committed", () => {
+    const withR32: TeamForecastTrajectory = {
+      teamId: "canada",
+      points: [...fullTrajectory().points, point("snapshot-2026-07-05-after-match-088", 88, 0.22, "2026-07-05T02:00:00Z")],
+    };
+    const model = buildTeamTrajectoryModel({ trajectory: withR32, runtimeCurrent: null, runtimeSource: "committed-fallback" });
+    expect(model.points.map((p) => p.completedMatchesLocked)).toEqual([0, 24, 48, 72, 88]);
+    expect(model.points.map((p) => p.shortLabel)).toEqual(["Start", "MD1", "MD2", "Groups", "R32"]);
   });
 
   it("no public label ever says After Match", () => {
@@ -80,9 +96,9 @@ describe("buildTeamTrajectoryModel — public checkpoint filter", () => {
     const current = runtimeSnapshot("current-2026-07-02-after-match-082", 82, 0.2, "2026-07-02T19:00:00Z");
     const model = buildTeamTrajectoryModel({ trajectory: fullTrajectory(), runtimeCurrent: current, runtimeSource: "blob" });
     expect(model.points.map((p) => p.label)).toEqual([
-      TOURNAMENT_START_LABEL, GROUP_STAGE_COMPLETE_LABEL, CURRENT_PROJECTION_LABEL,
+      TOURNAMENT_START_LABEL, MD1_LABEL, MD2_LABEL, GROUP_STAGE_COMPLETE_LABEL, CURRENT_PROJECTION_LABEL,
     ]);
-    const live = model.points[2]!;
+    const live = model.points[4]!;
     expect(live.pointSource).toBe("live");
     expect(live.isLatest).toBe(true);
     expect(live.stages.winner).toBe(0.2);
@@ -91,24 +107,24 @@ describe("buildTeamTrajectoryModel — public checkpoint filter", () => {
   it("does NOT append on committed-fallback source (no duplicate chain tail)", () => {
     const current = runtimeSnapshot("snapshot-2026-06-29-after-match-073", 73, 0.18, "2026-06-29T08:00:00Z");
     const model = buildTeamTrajectoryModel({ trajectory: fullTrajectory(), runtimeCurrent: current, runtimeSource: "committed-fallback" });
-    expect(model.points).toHaveLength(2);
+    expect(model.points).toHaveLength(4);
   });
 
   it("does NOT append a duplicate snapshotId or a stale/equal point", () => {
     const dupOfGsc = runtimeSnapshot("snapshot-2026-06-29-after-match-072", 72, 0.16, "2026-06-29T07:00:00Z");
-    expect(buildTeamTrajectoryModel({ trajectory: fullTrajectory(), runtimeCurrent: dupOfGsc, runtimeSource: "blob" }).points).toHaveLength(2);
+    expect(buildTeamTrajectoryModel({ trajectory: fullTrajectory(), runtimeCurrent: dupOfGsc, runtimeSource: "blob" }).points).toHaveLength(4);
     const stale = runtimeSnapshot("current-old", 60, 0.14, "2026-06-26T00:00:00Z");
-    expect(buildTeamTrajectoryModel({ trajectory: fullTrajectory(), runtimeCurrent: stale, runtimeSource: "blob" }).points).toHaveLength(2);
+    expect(buildTeamTrajectoryModel({ trajectory: fullTrajectory(), runtimeCurrent: stale, runtimeSource: "blob" }).points).toHaveLength(4);
     const equalLockedNotLater = runtimeSnapshot("current-x", 72, 0.16, "2026-06-29T07:00:00Z");
-    expect(buildTeamTrajectoryModel({ trajectory: fullTrajectory(), runtimeCurrent: equalLockedNotLater, runtimeSource: "blob" }).points).toHaveLength(2);
+    expect(buildTeamTrajectoryModel({ trajectory: fullTrajectory(), runtimeCurrent: equalLockedNotLater, runtimeSource: "blob" }).points).toHaveLength(4);
     // Equal locked but strictly later asOf DOES extend (a re-published later read).
     const equalLockedLater = runtimeSnapshot("current-y", 72, 0.17, "2026-06-30T00:00:00Z");
-    expect(buildTeamTrajectoryModel({ trajectory: fullTrajectory(), runtimeCurrent: equalLockedLater, runtimeSource: "blob" }).points).toHaveLength(3);
+    expect(buildTeamTrajectoryModel({ trajectory: fullTrajectory(), runtimeCurrent: equalLockedLater, runtimeSource: "blob" }).points).toHaveLength(5);
   });
 
   it("does NOT append when the team is missing from the runtime snapshot", () => {
     const current = { meta: { snapshotId: "c", asOf: "2026-07-02T19:00:00Z", completedMatchesLocked: 82 }, teams: [] } as unknown as ForecastSnapshot;
-    expect(buildTeamTrajectoryModel({ trajectory: fullTrajectory(), runtimeCurrent: current, runtimeSource: "blob" }).points).toHaveLength(2);
+    expect(buildTeamTrajectoryModel({ trajectory: fullTrajectory(), runtimeCurrent: current, runtimeSource: "blob" }).points).toHaveLength(4);
   });
 
   it("fallback: group-stage checkpoint unavailable → baseline + current, flag false", () => {
@@ -137,10 +153,11 @@ describe("selectTrajectorySeries + aria summary", () => {
 
   it("rounds to display percent and computes delta vs Tournament start", () => {
     const series = selectTrajectorySeries(model, "winner");
-    expect(series.map((p) => p.valuePct)).toEqual([10, 16, 20.4]);
-    expect(series.map((p) => p.deltaPpSinceBaseline)).toEqual([0, 6, 10.4]);
+    // Public points: Start 0.1, MD1 0.12, MD2 0.14, Groups 0.16, Current 0.204.
+    expect(series.map((p) => p.valuePct)).toEqual([10, 12, 14, 16, 20.4]);
+    expect(series.map((p) => p.deltaPpSinceBaseline)).toEqual([0, 2, 4, 6, 10.4]);
     expect(series[0]!.isBaseline).toBe(true);
-    expect(series[2]!.isLatest).toBe(true);
+    expect(series[series.length - 1]!.isLatest).toBe(true);
   });
 
   it("selects per stage", () => {
@@ -159,33 +176,45 @@ describe("selectTrajectorySeries + aria summary", () => {
 describe("selectKeyMovements — deterministic public intervals only", () => {
   const current = runtimeSnapshot("current-82", 82, 0.2, "2026-07-02T19:00:00Z");
 
-  it("returns the three fixed rows when all points exist", () => {
+  it("returns consecutive milestone intervals plus the anchored total", () => {
     const model = buildTeamTrajectoryModel({ trajectory: fullTrajectory(), runtimeCurrent: current, runtimeSource: "blob" });
     const rows = selectKeyMovements(model, "winner");
     expect(rows.map((r) => `${r.fromLabel} → ${r.toLabel}`)).toEqual([
-      "Tournament start → Group stage complete",
+      "Tournament start → Group matchday 1 complete",
+      "Group matchday 1 complete → Group matchday 2 complete",
+      "Group matchday 2 complete → Group stage complete",
       "Group stage complete → Current projection",
       "Tournament start → Current projection",
     ]);
-    expect(rows.map((r) => r.deltaPp)).toEqual([6, 4, 10]);
-    expect(rows[0]!.sentence).toBe("Changed between tournament start and group stage complete");
-    expect(rows[1]!.sentence).toBe("Changed between group stage complete and current projection");
-    expect(rows[2]!.sentence).toBe("Changed since tournament start");
+    // winner 0.1→0.12→0.14→0.16→0.2 → +2,+2,+2,+4 pp, total +10.
+    expect(rows.map((r) => r.deltaPp)).toEqual([2, 2, 2, 4, 10]);
+    expect(rows[0]!.sentence).toBe("Changed between tournament start and group matchday 1 complete");
+    expect(rows[3]!.sentence).toBe("Changed between group stage complete and current projection");
+    expect(rows[4]!.sentence).toBe("Changed since tournament start");
     for (const r of rows) {
       expect(`${r.fromLabel}${r.toLabel}${r.sentence}`.includes("After Match")).toBe(false);
+      expect(`${r.fromLabel}${r.toLabel}${r.sentence}`.includes("54")).toBe(false);
+      expect(`${r.fromLabel}${r.toLabel}${r.sentence}`.includes("73")).toBe(false);
     }
   });
 
-  it("no current → only start → group stage complete", () => {
+  it("no current → consecutive committed intervals + anchored total (no 54/73 rows)", () => {
     const model = buildTeamTrajectoryModel({ trajectory: fullTrajectory(), runtimeCurrent: null, runtimeSource: "committed-fallback" });
     const rows = selectKeyMovements(model, "winner");
-    expect(rows.map((r) => r.sentence)).toEqual(["Changed between tournament start and group stage complete"]);
+    expect(rows.map((r) => r.sentence)).toEqual([
+      "Changed between tournament start and group matchday 1 complete",
+      "Changed between group matchday 1 complete and group matchday 2 complete",
+      "Changed between group matchday 2 complete and group stage complete",
+      "Changed since tournament start",
+    ]);
   });
 
-  it("no group-stage checkpoint but current → only changed since tournament start", () => {
+  it("no group-stage checkpoint but current → single baseline→current interval", () => {
     const noGsc: TeamForecastTrajectory = { teamId: "canada", points: [point("baseline-2026-06-11.pre-tournament", 0, 0.1, "2026-06-11T00:00:00Z")] };
     const model = buildTeamTrajectoryModel({ trajectory: noGsc, runtimeCurrent: current, runtimeSource: "blob" });
-    expect(selectKeyMovements(model, "winner").map((r) => r.sentence)).toEqual(["Changed since tournament start"]);
+    expect(selectKeyMovements(model, "winner").map((r) => r.sentence)).toEqual([
+      "Changed between tournament start and current projection",
+    ]);
   });
 
   it("only baseline → no rows; neutral movement keeps the row with ±0 delta", () => {

@@ -13,9 +13,10 @@ import {
 } from "@/lib/ui/home-trajectory-comparison";
 
 /**
- * Home forecast race — pure comparison model. Env `node`. Reuses the UX-6 public
- * checkpoint policy: only Tournament start / Group stage complete / Current projection;
- * the committed 54 and 73 locked-match checkpoints are never included.
+ * Home forecast race — pure comparison model. Env `node`. Uses the shared public
+ * checkpoint policy: baseline + title-probability milestones (24/48/72/88/…) +
+ * Current projection; the committed 54 and 73 locked-match dev checkpoints are never
+ * included, and future round milestones appear automatically once committed.
  */
 
 const STAGE_BASE = { qualifyTop2: 0.7, qualifyThird: 0.1, roundOf32: 0.9 };
@@ -42,51 +43,59 @@ const resolveTeam = (id: string): Team | null =>
   IDS.includes(id) ? ({ id, name: NAMES[id]!, flag: "🏳️", countryCode: id.toUpperCase() } as unknown as Team) : null;
 
 const baseline = () => snap("baseline-2026-06-11.pre-tournament", 0, "2026-06-11T00:00:00Z", {});
+const md1 = () => snap("snapshot-2026-06-18-after-match-024", 24, "2026-06-18T02:00:00Z", {});
+const md2 = () => snap("snapshot-2026-06-24-after-match-048", 48, "2026-06-24T02:00:00Z", {});
 const gsc = () => snap("snapshot-2026-06-29-after-match-072", 72, "2026-06-29T07:00:00Z", {});
 const current = () => snap("current-2026-07-02-after-match-082", 82, "2026-07-02T19:00:00Z", {});
-// The non-public dev checkpoints — must never be passed in / never rendered.
+// The non-public dev checkpoints — present in the chain but never rendered publicly.
 const m54 = () => snap("snapshot-2026-06-25-after-match-054", 54, "2026-06-25T12:00:00Z", {});
 const m73 = () => snap("snapshot-2026-06-29-after-match-073", 73, "2026-06-29T08:00:00Z", {});
+// A future round milestone (Round of 32 complete) — auto-recognized once committed.
+const r32 = () => snap("snapshot-2026-07-05-after-match-088", 88, "2026-07-05T02:00:00Z", {});
 
-describe("buildHomeForecastRaceModel — public checkpoints", () => {
-  it("includes Tournament start + Group stage complete; appends Current projection on blob", () => {
-    const model = buildHomeForecastRaceModel({ baseline: baseline(), groupStageComplete: gsc(), current: current(), source: "blob", resolveTeam });
-    expect(model.checkpointLabels).toEqual(["Start", "Groups", "Current"]);
+// The committed milestone chain the home page passes (unordered, incl. dev checkpoints).
+const chain = () => [gsc(), baseline(), m73(), md2(), m54(), md1()];
+
+describe("buildHomeForecastRaceModel — public milestone checkpoints", () => {
+  it("includes Start/MD1/MD2/Groups and appends Current projection on blob", () => {
+    const model = buildHomeForecastRaceModel({ committedMilestones: chain(), current: current(), source: "blob", resolveTeam });
+    expect(model.checkpointLabels).toEqual(["Start", "MD1", "MD2", "Groups", "Current"]);
     expect(model.hasCurrentProjection).toBe(true);
     for (const t of model.teams) {
       expect(t.points.map((p) => p.label)).toEqual([
-        "Tournament start", "Group stage complete", "Current projection",
+        "Tournament start", "Group matchday 1 complete", "Group matchday 2 complete", "Group stage complete", "Current projection",
       ]);
     }
   });
 
   it("does not append Current projection on committed-fallback (no fake current)", () => {
-    const model = buildHomeForecastRaceModel({ baseline: baseline(), groupStageComplete: gsc(), current: current(), source: "committed-fallback", resolveTeam });
-    expect(model.checkpointLabels).toEqual(["Start", "Groups"]);
+    const model = buildHomeForecastRaceModel({ committedMilestones: chain(), current: current(), source: "committed-fallback", resolveTeam });
+    expect(model.checkpointLabels).toEqual(["Start", "MD1", "MD2", "Groups"]);
     expect(model.hasCurrentProjection).toBe(false);
   });
 
-  it("never renders the 54/73 dev checkpoints even if a caller passed them as 'current'", () => {
-    // The builder only accepts baseline/groupStageComplete/current; a stale/duplicate
-    // current (e.g. the 73 snapshot) must not append (locked 73 > 72 but only appends on blob AND distinct).
-    const modelM73 = buildHomeForecastRaceModel({ baseline: baseline(), groupStageComplete: gsc(), current: m73(), source: "blob", resolveTeam });
-    // 73 > 72 and distinct id → it WOULD append as "Current projection" (generic latest), but its
-    // label is Current projection, never "After Match 73"; and no 54/73 wording is produced.
-    const json = JSON.stringify(modelM73);
-    expect(json).not.toContain("after-match-073".replace("0", "0")); // snapshotId retained internally only in meta? it is not stored
-    for (const t of modelM73.teams) for (const p of t.points) {
-      expect(p.label.includes("After Match")).toBe(false);
-      expect(p.label.includes("73")).toBe(false);
-      expect(p.label.includes("54")).toBe(false);
+  it("excludes the 54 and 73 dev checkpoints from the public model even though they are in the chain", () => {
+    const model = buildHomeForecastRaceModel({ committedMilestones: chain(), current: null, source: "unavailable", resolveTeam });
+    expect(model.checkpointLabels).toEqual(["Start", "MD1", "MD2", "Groups"]);
+    const json = JSON.stringify(model);
+    for (const bad of ["After Match 54", "After Match 73", "M54", "M73", "after-match-054", "after-match-073", "54", "73"]) {
+      expect(model.checkpointLabels.join(" ").includes(bad)).toBe(false);
     }
-    // A model built WITHOUT current (m54 is irrelevant — never a builder input) shows only 2 public points.
-    const modelNoCurrent = buildHomeForecastRaceModel({ baseline: baseline(), groupStageComplete: gsc(), current: null, source: "unavailable", resolveTeam });
-    expect(modelNoCurrent.checkpointLabels).toEqual(["Start", "Groups"]);
-    void m54;
+    for (const t of model.teams) for (const p of t.points) {
+      expect(p.label.includes("54")).toBe(false);
+      expect(p.label.includes("73")).toBe(false);
+      expect(p.label.includes("After Match")).toBe(false);
+    }
+    void json;
+  });
+
+  it("auto-recognizes a future round milestone (Round of 32) once committed", () => {
+    const model = buildHomeForecastRaceModel({ committedMilestones: [...chain(), r32()], current: null, source: "unavailable", resolveTeam });
+    expect(model.checkpointLabels).toEqual(["Start", "MD1", "MD2", "Groups", "R32"]);
   });
 
   it("no snapshotId / provider wording leaks into the serialized model", () => {
-    const model = buildHomeForecastRaceModel({ baseline: baseline(), groupStageComplete: gsc(), current: current(), source: "blob", resolveTeam });
+    const model = buildHomeForecastRaceModel({ committedMilestones: chain(), current: current(), source: "blob", resolveTeam });
     const json = JSON.stringify(model);
     for (const bad of ["after-match-054", "after-match-073", "vercel-storage", "BLOB_READ_WRITE_TOKEN", "https://", "http://", "snapshotId"]) {
       expect(json.includes(bad)).toBe(false);
@@ -96,13 +105,11 @@ describe("buildHomeForecastRaceModel — public checkpoints", () => {
 
 describe("ranking is by the selected metric, not always title chance", () => {
   it("ranks by the chosen stage at the latest point", () => {
-    // Give team 'p' a low title chance but the highest reach-final at current.
     const cur = snap("current-x", 82, "2026-07-02T19:00:00Z", {});
-    // override p's final to be the max
     const pEntry = cur.teams.find((t) => t.teamId === "p")!;
     (pEntry as unknown as Record<string, number>).final = 0.99;
     (pEntry as unknown as Record<string, number>).winner = 0.01;
-    const model = buildHomeForecastRaceModel({ baseline: baseline(), groupStageComplete: gsc(), current: cur, source: "blob", resolveTeam });
+    const model = buildHomeForecastRaceModel({ committedMilestones: chain(), current: cur, source: "blob", resolveTeam });
     const byTitle = selectRaceRanking(model, "winner").map((t) => t.teamId);
     const byFinal = selectRaceRanking(model, "final").map((t) => t.teamId);
     expect(byTitle[0]).toBe("a"); // highest winner
@@ -110,9 +117,8 @@ describe("ranking is by the selected metric, not always title chance", () => {
   });
 
   it("colour index is stable across metrics (survivors keep colour)", () => {
-    const model = buildHomeForecastRaceModel({ baseline: baseline(), groupStageComplete: gsc(), current: current(), source: "blob", resolveTeam });
+    const model = buildHomeForecastRaceModel({ committedMilestones: chain(), current: current(), source: "blob", resolveTeam });
     const colourById = new Map(model.teams.map((t) => [t.teamId, t.colorIndex]));
-    // colorIndex must be identical regardless of which metric the client selects.
     const finalView = selectRaceView(model, "final", 15);
     for (const s of finalView.series) expect(s.colorIndex).toBe(colourById.get(s.teamId));
     const titleView = selectRaceView(model, "winner", 15);
@@ -121,15 +127,14 @@ describe("ranking is by the selected metric, not always title chance", () => {
 
   it("deterministic tie-breaker: equal metric → current rank then name", () => {
     const flat = snap("current-flat", 82, "2026-07-02T19:00:00Z", Object.fromEntries(IDS.map((id) => [id, 0.2])));
-    const model = buildHomeForecastRaceModel({ baseline: baseline(), groupStageComplete: gsc(), current: flat, source: "blob", resolveTeam });
+    const model = buildHomeForecastRaceModel({ committedMilestones: chain(), current: flat, source: "blob", resolveTeam });
     const order = selectRaceRanking(model, "winner").map((t) => t.teamId);
-    // all winners equal → tie-break by currentRank (a=1..p=16)
     expect(order).toEqual(IDS);
   });
 });
 
 describe("selectRaceView — Top-N + series", () => {
-  const model = () => buildHomeForecastRaceModel({ baseline: baseline(), groupStageComplete: gsc(), current: current(), source: "blob", resolveTeam });
+  const model = () => buildHomeForecastRaceModel({ committedMilestones: chain(), current: current(), source: "blob", resolveTeam });
 
   it("Top 5 / Top 10 / Top 15 return the right counts", () => {
     expect(RACE_TOP_N_OPTIONS).toEqual([5, 10, 15]);
@@ -141,9 +146,9 @@ describe("selectRaceView — Top-N + series", () => {
   it("series values are percentages; legend carries value + delta since start + position", () => {
     const view = selectRaceView(model(), "winner", 5);
     const top = view.series[0]!;
-    expect(top.points.map((p) => p.shortLabel)).toEqual(["Start", "Groups", "Current"]);
+    expect(top.points.map((p) => p.shortLabel)).toEqual(["Start", "MD1", "MD2", "Groups", "Current"]);
     expect(top.points.every((p) => p.valuePct >= 0 && p.valuePct <= 100)).toBe(true);
-    expect(top.endValuePct).toBe(top.points[2]!.valuePct);
+    expect(top.endValuePct).toBe(top.points[top.points.length - 1]!.valuePct);
     const legendTop = view.legend[0]!;
     expect(legendTop.position).toBe(1);
     expect(legendTop.currentValuePct).toBe(top.endValuePct);
@@ -154,7 +159,7 @@ describe("selectRaceView — Top-N + series", () => {
     const s = raceAriaSummary(selectRaceView(model(), "final", 10));
     expect(s).toContain("Reach final");
     expect(s).toContain("top 10");
-    const empty = buildHomeForecastRaceModel({ baseline: null, groupStageComplete: null, current: null, source: "unavailable", resolveTeam });
+    const empty = buildHomeForecastRaceModel({ committedMilestones: [], current: null, source: "unavailable", resolveTeam });
     expect(raceAriaSummary(selectRaceView(empty, "winner", 5))).toContain("Not enough history yet");
   });
 });
@@ -163,14 +168,14 @@ describe("fallback ranking point + stage options", () => {
   it("ranks by group-stage-complete when current is unavailable", () => {
     const gscHi = snap("snapshot-2026-06-29-after-match-072", 72, "2026-06-29T07:00:00Z", {});
     (gscHi.teams.find((t) => t.teamId === "h")! as unknown as Record<string, number>).winner = 0.99;
-    const model = buildHomeForecastRaceModel({ baseline: baseline(), groupStageComplete: gscHi, current: null, source: "unavailable", resolveTeam });
+    const model = buildHomeForecastRaceModel({ committedMilestones: [baseline(), md1(), md2(), gscHi], current: null, source: "unavailable", resolveTeam });
     expect(selectRaceRanking(model, "winner")[0]!.teamId).toBe("h"); // ranked by the latest available (Groups)
   });
 
   it("ranks by tournament start when only baseline exists", () => {
     const baseHi = snap("baseline-2026-06-11.pre-tournament", 0, "2026-06-11T00:00:00Z", {});
     (baseHi.teams.find((t) => t.teamId === "k")! as unknown as Record<string, number>).winner = 0.99;
-    const model = buildHomeForecastRaceModel({ baseline: baseHi, groupStageComplete: null, current: null, source: "unavailable", resolveTeam });
+    const model = buildHomeForecastRaceModel({ committedMilestones: [baseHi], current: null, source: "unavailable", resolveTeam });
     expect(model.checkpointLabels).toEqual(["Start"]);
     expect(selectRaceRanking(model, "winner")[0]!.teamId).toBe("k");
   });

@@ -45,6 +45,8 @@ import {
 // Static JSON imports of the committed artifacts (build-safe, no fs).
 import manifestJson from "@/data/forecast/snapshots/manifest.json";
 import baselineSnapshot from "@/data/forecast/snapshots/baseline-2026-06-11.pre-tournament.json";
+import snapshot024 from "@/data/forecast/snapshots/snapshot-2026-06-18-after-match-024.json";
+import snapshot048 from "@/data/forecast/snapshots/snapshot-2026-06-24-after-match-048.json";
 import snapshot054 from "@/data/forecast/snapshots/snapshot-2026-06-25-after-match-054.json";
 import snapshot072 from "@/data/forecast/snapshots/snapshot-2026-06-29-after-match-072.json";
 import snapshot073 from "@/data/forecast/snapshots/snapshot-2026-06-29-after-match-073.json";
@@ -55,6 +57,8 @@ export type SnapshotRegistry = Map<string, unknown>;
 /** The committed registry. New committed snapshots must be added here (a test enforces it). */
 export const COMMITTED_SNAPSHOT_REGISTRY: SnapshotRegistry = new Map<string, unknown>([
   ["baseline-2026-06-11.pre-tournament.json", baselineSnapshot],
+  ["snapshot-2026-06-18-after-match-024.json", snapshot024],
+  ["snapshot-2026-06-24-after-match-048.json", snapshot048],
   ["snapshot-2026-06-25-after-match-054.json", snapshot054],
   ["snapshot-2026-06-29-after-match-072.json", snapshot072],
   ["snapshot-2026-06-29-after-match-073.json", snapshot073],

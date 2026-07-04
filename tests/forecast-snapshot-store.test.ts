@@ -77,12 +77,14 @@ describe("committed forecast store", () => {
   it("lists snapshots and a timeline in chain order", () => {
     expect(listForecastSnapshots().map((s) => s.meta.snapshotId)).toEqual([
       BASELINE_ID,
+      "snapshot-2026-06-18-after-match-024",
+      "snapshot-2026-06-24-after-match-048",
       "snapshot-2026-06-25-after-match-054",
       "snapshot-2026-06-29-after-match-072",
       CURRENT_ID,
     ]);
     const timeline = getSnapshotTimeline();
-    expect(timeline.map((t) => t.index)).toEqual([0, 1, 2, 3]);
+    expect(timeline.map((t) => t.index)).toEqual([0, 1, 2, 3, 4, 5]);
     expect(timeline.filter((t) => t.isCurrent).map((t) => t.snapshotId)).toEqual([CURRENT_ID]);
     expect(timeline[0]!.isBaseline).toBe(true);
   });
@@ -95,13 +97,13 @@ describe("committed forecast store", () => {
     expect(Array.isArray(movers.fallers)).toBe(true);
 
     const traj = getTeamForecastTrajectory("spain");
-    expect(traj.points).toHaveLength(4);
+    expect(traj.points).toHaveLength(6);
     const stageTraj = getStageForecastTrajectory("winner");
-    expect(stageTraj.teams[0]!.series).toHaveLength(4);
+    expect(stageTraj.teams[0]!.series).toHaveLength(6);
   });
 
   it("the manifest and every committed snapshot validate", () => {
-    expect(getForecastSnapshotManifest()?.snapshots).toHaveLength(4);
+    expect(getForecastSnapshotManifest()?.snapshots).toHaveLength(6);
     for (const raw of COMMITTED_SNAPSHOT_REGISTRY.values()) {
       expect(validateForecastSnapshot(loadForecastSnapshot(raw))).toEqual([]);
     }

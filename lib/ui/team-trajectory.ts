@@ -5,17 +5,19 @@
  * chain, the runtime current snapshot, and the baseline↔current comparison.
  *
  * PUBLIC CHECKPOINT POLICY (deliberate product decision): the public trajectory
- * shows ONLY (1) the pre-tournament baseline ("Tournament start"), (2) the
- * group-stage-complete checkpoint at 72 locked matches ("Group stage complete"),
- * and (3) the runtime current snapshot when it validly extends the chain
- * ("Current projection"). Other committed snapshots (e.g. locked counts 54 or 73)
- * remain in the underlying data/manifest but are NEVER rendered publicly here —
- * `buildTeamTrajectoryModel` is the filter. Widening the public set later is a
- * one-line policy change in `selectPublicPoints`.
+ * shows the committed milestone checkpoints — Tournament start (baseline), Group
+ * matchday 1 / matchday 2 (M24 / M48), Group stage complete (M72), and the future
+ * round-completion milestones (M88/M96/M100/M102/M104) once their snapshots are
+ * committed — plus the runtime current snapshot ("Current projection") when it
+ * validly extends the chain. The public set is `isPublicMilestoneLocked` from
+ * `lib/model/forecast-checkpoints.ts`; the non-milestone committed dev checkpoints
+ * (locked counts 54 and 73) and the third-place milestone are NEVER public. Other
+ * committed snapshots remain in the data/manifest but are filtered out here —
+ * `selectPublicPoints` is the single filter.
  *
- * The movement summary is likewise deterministic: at most three fixed intervals
- * (start→group stage complete, group stage complete→current, start→current) —
- * never a ranking of arbitrary consecutive snapshots.
+ * The movement summary is likewise deterministic: consecutive public-milestone
+ * intervals plus the anchored "since tournament start" total — never a ranking of
+ * arbitrary consecutive snapshots, and never a non-public interval.
  *
  * PURE: no React, no I/O, no env, no Blob, no runtime-store import. Type-imports
  * from model modules; value imports only from other pure modules. Node-testable
@@ -39,6 +41,12 @@ import {
   type MovementStage,
 } from "@/lib/ui/forecast-movement";
 import { matchProvenanceLabel, stageLabel } from "@/lib/ui/match-centre";
+import {
+  CURRENT_PROJECTION_MILESTONE,
+  PUBLIC_MILESTONE_LABELS,
+  getPublicMilestoneLabel,
+  isPublicMilestoneLocked,
+} from "@/lib/model/forecast-checkpoints";
 
 /** The five knockout-reach stages the trajectory chart can show. */
 export type TrajectoryStage = MovementStage;
@@ -48,9 +56,9 @@ export const trajectoryStageLabel = movementStageLabel;
 
 const GROUP_STAGE_COMPLETE_LOCKED = 72;
 
-export const TOURNAMENT_START_LABEL = "Tournament start";
-export const GROUP_STAGE_COMPLETE_LABEL = "Group stage complete";
-export const CURRENT_PROJECTION_LABEL = "Current projection";
+export const TOURNAMENT_START_LABEL = PUBLIC_MILESTONE_LABELS[0]!.label;
+export const GROUP_STAGE_COMPLETE_LABEL = PUBLIC_MILESTONE_LABELS[72]!.label;
+export const CURRENT_PROJECTION_LABEL = CURRENT_PROJECTION_MILESTONE.label;
 
 /* ----------------------------------------------------------------------------
  * Trajectory model (the public checkpoint filter).
@@ -105,38 +113,52 @@ const pickStages = (stages: Record<string, number>): Record<TrajectoryStage, num
   return out;
 };
 
-const isBaselinePoint = (p: RawPoint): boolean =>
-  p.completedMatchesLocked === 0 || p.snapshotId.startsWith("baseline");
-const isGroupStageCompletePoint = (p: RawPoint): boolean =>
-  p.completedMatchesLocked === GROUP_STAGE_COMPLETE_LOCKED ||
-  p.snapshotId.includes("after-match-072");
-
-/** The public-point selector — the ONLY place the public checkpoint policy lives. */
-function selectPublicPoints(points: RawPoint[]): { baseline: RawPoint | null; groupStageComplete: RawPoint | null } {
-  return {
-    baseline: points.find(isBaselinePoint) ?? null,
-    groupStageComplete: points.find(isGroupStageCompletePoint) ?? null,
-  };
+interface SelectedCommittedPoint {
+  raw: RawPoint;
+  label: string;
+  shortLabel: string;
+  isBaseline: boolean;
 }
 
 /**
- * Build the PUBLIC trajectory for one team: Tournament start → Group stage complete →
- * Current projection. Committed points at other locked counts (54, 73, …) are never
+ * The public-point selector — the ONLY place the public checkpoint policy lives.
+ * Returns the committed milestone points (baseline + title-probability milestones
+ * {24,48,72,88,96,100,102,104}) in match order, each with its public label. The
+ * non-milestone committed dev checkpoints (locked counts 54 and 73) and the
+ * third-place milestone are excluded by `isPublicMilestoneLocked`; future round
+ * milestones are picked up automatically once their snapshot is committed.
+ */
+function selectPublicPoints(points: RawPoint[]): SelectedCommittedPoint[] {
+  return points
+    .filter((p) => isPublicMilestoneLocked(p.completedMatchesLocked))
+    .slice()
+    .sort((a, b) => a.completedMatchesLocked - b.completedMatchesLocked)
+    .map((raw) => {
+      const lbl = getPublicMilestoneLabel(raw.completedMatchesLocked)!;
+      return { raw, label: lbl.label, shortLabel: lbl.shortLabel, isBaseline: raw.completedMatchesLocked === 0 };
+    });
+}
+
+/**
+ * Build the PUBLIC trajectory for one team: Tournament start → Group matchday 1 →
+ * Group matchday 2 → Group stage complete (→ future round milestones) → Current
+ * projection. Committed points at non-milestone locked counts (54, 73, …) are never
  * included. The runtime current is appended only when it is a live Blob read, carries
- * this team, is not the group-stage checkpoint re-served, and strictly extends the
+ * this team, is not the last committed checkpoint re-served, and strictly extends the
  * selected chain (more locked matches, or equal locked with a later asOf). Pure.
  */
 export function buildTeamTrajectoryModel(input: BuildTeamTrajectoryModelInput): TeamTrajectoryModel {
   const { trajectory, runtimeCurrent, runtimeSource } = input;
-  const { baseline, groupStageComplete } = selectPublicPoints(trajectory.points);
+  const committed = selectPublicPoints(trajectory.points);
 
-  const selected: Array<{ raw: SelectablePoint; label: string; shortLabel: string; isBaseline: boolean; pointSource: "committed" | "live" }> = [];
-  if (baseline) {
-    selected.push({ raw: baseline, label: TOURNAMENT_START_LABEL, shortLabel: "Start", isBaseline: true, pointSource: "committed" });
-  }
-  if (groupStageComplete) {
-    selected.push({ raw: groupStageComplete, label: GROUP_STAGE_COMPLETE_LABEL, shortLabel: "Groups", isBaseline: false, pointSource: "committed" });
-  }
+  const selected: Array<{ raw: SelectablePoint; label: string; shortLabel: string; isBaseline: boolean; pointSource: "committed" | "live" }> =
+    committed.map((c) => ({
+      raw: c.raw,
+      label: c.label,
+      shortLabel: c.shortLabel,
+      isBaseline: c.isBaseline,
+      pointSource: "committed" as const,
+    }));
 
   // Current projection: append only when the runtime read is live ("blob") and it
   // strictly extends the selected public chain. A committed-fallback current is by
@@ -186,7 +208,7 @@ export function buildTeamTrajectoryModel(input: BuildTeamTrajectoryModelInput): 
     teamId: trajectory.teamId,
     points,
     hasEnoughHistory: points.length >= 2,
-    hasGroupStageCheckpoint: groupStageComplete != null,
+    hasGroupStageCheckpoint: committed.some((c) => c.raw.completedMatchesLocked === GROUP_STAGE_COMPLETE_LOCKED),
   };
 }
 
@@ -336,18 +358,18 @@ export interface TeamMovementRow {
 }
 
 /**
- * The public movement summary: at most three fixed rows, built ONLY from the filtered
- * public points — (1) start→group stage complete, (2) group stage complete→current,
- * (3) start→current. Rows appear only when both endpoints exist; the order is fixed.
- * Never ranks arbitrary consecutive snapshots. Pure.
+ * The public movement summary: one row per adjacent pair of retained public
+ * checkpoints (Tournament start → Group matchday 1 → Group matchday 2 → Group stage
+ * complete → … → Current projection), plus an anchored "since tournament start"
+ * total when there are three or more points. Built ONLY from the filtered public
+ * points — never a ranking of arbitrary consecutive snapshots, and never a 54/73
+ * interval (those points are not in the model). Pure.
  */
 export function selectKeyMovements(
   model: TeamTrajectoryModel,
   stage: TrajectoryStage,
 ): TeamMovementRow[] {
-  const baseline = model.points.find((p) => p.isBaseline) ?? null;
-  const gsc = model.points.find((p) => p.label === GROUP_STAGE_COMPLETE_LABEL) ?? null;
-  const current = model.points.find((p) => p.label === CURRENT_PROJECTION_LABEL) ?? null;
+  const points = model.points;
 
   const row = (
     from: TeamTrajectoryPoint,
@@ -364,14 +386,17 @@ export function selectKeyMovements(
   });
 
   const rows: TeamMovementRow[] = [];
-  if (baseline && gsc) {
-    rows.push(row(baseline, gsc, "Changed between tournament start and group stage complete"));
+  // Adjacent public-checkpoint intervals, in order.
+  for (let i = 0; i < points.length - 1; i++) {
+    const from = points[i]!;
+    const to = points[i + 1]!;
+    rows.push(row(from, to, `Changed between ${from.label.toLowerCase()} and ${to.label.toLowerCase()}`));
   }
-  if (gsc && current) {
-    rows.push(row(gsc, current, "Changed between group stage complete and current projection"));
-  }
-  if (baseline && current) {
-    rows.push(row(baseline, current, "Changed since tournament start"));
+  // Anchored total (distinct from a single interval only when there are 3+ points).
+  const baseline = points.find((p) => p.isBaseline) ?? null;
+  const lastPoint = points[points.length - 1] ?? null;
+  if (baseline && lastPoint && lastPoint !== baseline && points.length >= 3) {
+    rows.push(row(baseline, lastPoint, "Changed since tournament start"));
   }
   return rows;
 }

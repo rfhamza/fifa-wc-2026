@@ -12,7 +12,7 @@ import {
   getRuntimeCurrentVsBaselineMovers,
   getRuntimeMatchForecasts,
 } from "@/lib/model/forecast-runtime-store";
-import { getBaselineSnapshot, listForecastSnapshots } from "@/lib/model/forecast-snapshot-store";
+import { listForecastSnapshots } from "@/lib/model/forecast-snapshot-store";
 import { buildHomeForecastRaceModel } from "@/lib/ui/home-trajectory-comparison";
 import { buildForecastHeroData } from "@/lib/ui/forecast-hero-data";
 import {
@@ -57,12 +57,13 @@ export default async function DashboardPage() {
   const matchForecastIndex = buildMatchForecastIndex(matchForecasts);
   const teamContextIndex = buildTeamContextIndex(current);
 
-  // Multi-team forecast race across the public checkpoints (baseline + group-stage
-  // complete from the committed chain; the current projection is appended from the
-  // runtime current when it is a live Blob read). Committed dev checkpoints are filtered.
+  // Multi-team forecast race across the public milestone checkpoints (Tournament start,
+  // Group matchday 1 / 2, Group stage complete, and future round milestones as they are
+  // committed) from the committed chain; the current projection is appended from the
+  // runtime current when it is a live Blob read. The non-milestone committed dev
+  // checkpoints (locked counts 54 and 73) are filtered out by the public policy.
   const raceModel = buildHomeForecastRaceModel({
-    baseline: getBaselineSnapshot(),
-    groupStageComplete: listForecastSnapshots().find((s) => s.meta.completedMatchesLocked === 72) ?? null,
+    committedMilestones: listForecastSnapshots(),
     current,
     source: policy.currentSource,
     resolveTeam: safeTeam,

@@ -9,10 +9,14 @@ import { officialKnockoutGraph } from "@/data/official/knockout-graph";
 import {
   GROUP_WAVE_BOUNDARIES,
   FORECAST_MILESTONES,
+  PUBLIC_MILESTONE_LABELS,
+  CURRENT_PROJECTION_MILESTONE,
   getForecastCheckpointForMatchNumber,
   getGroupWaveForMatchNumber,
   getKnockoutRoundForMatchNumber,
+  getPublicMilestoneLabel,
   isForecastMilestoneMatchNumber,
+  isPublicMilestoneLocked,
   isTitleProbabilityMilestone,
   listForecastMilestones,
   listTitleProbabilityMilestones,
@@ -116,5 +120,42 @@ describe("milestones", () => {
     const a = listForecastMilestones();
     a.pop();
     expect(listForecastMilestones()).toHaveLength(FORECAST_MILESTONES.length);
+  });
+});
+
+describe("public checkpoint policy (isPublicMilestoneLocked + labels)", () => {
+  it("includes baseline (0) and the eight title-probability milestones", () => {
+    for (const locked of [0, 24, 48, 72, 88, 96, 100, 102, 104]) {
+      expect(isPublicMilestoneLocked(locked), `locked ${locked} should be public`).toBe(true);
+    }
+  });
+
+  it("excludes the manual/dev checkpoints (54, 73) and the third-place milestone (103)", () => {
+    for (const locked of [54, 73, 103]) {
+      expect(isPublicMilestoneLocked(locked), `locked ${locked} must NOT be public`).toBe(false);
+    }
+    // And arbitrary non-milestone counts.
+    for (const locked of [1, 12, 60, 90, 101]) expect(isPublicMilestoneLocked(locked)).toBe(false);
+  });
+
+  it("labels every public milestone with the non-technical wording", () => {
+    expect(PUBLIC_MILESTONE_LABELS[0]).toEqual({ label: "Tournament start", shortLabel: "Start" });
+    expect(PUBLIC_MILESTONE_LABELS[24]).toEqual({ label: "Group matchday 1 complete", shortLabel: "MD1" });
+    expect(PUBLIC_MILESTONE_LABELS[48]).toEqual({ label: "Group matchday 2 complete", shortLabel: "MD2" });
+    expect(PUBLIC_MILESTONE_LABELS[72]).toEqual({ label: "Group stage complete", shortLabel: "Groups" });
+    expect(PUBLIC_MILESTONE_LABELS[88]).toEqual({ label: "Round of 32 complete", shortLabel: "R32" });
+    expect(PUBLIC_MILESTONE_LABELS[96]).toEqual({ label: "Round of 16 complete", shortLabel: "R16" });
+    expect(PUBLIC_MILESTONE_LABELS[100]).toEqual({ label: "Quarter-finals complete", shortLabel: "QF" });
+    expect(PUBLIC_MILESTONE_LABELS[102]).toEqual({ label: "Semi-finals complete", shortLabel: "SF" });
+    expect(PUBLIC_MILESTONE_LABELS[104]).toEqual({ label: "Final complete", shortLabel: "Final" });
+    expect(CURRENT_PROJECTION_MILESTONE).toEqual({ label: "Current projection", shortLabel: "Current" });
+    // No public label exists for the excluded checkpoints.
+    expect(getPublicMilestoneLabel(54)).toBeNull();
+    expect(getPublicMilestoneLabel(73)).toBeNull();
+    expect(getPublicMilestoneLabel(103)).toBeNull();
+    // Every public locked count has a label, and vice-versa.
+    for (const locked of [0, 24, 48, 72, 88, 96, 100, 102, 104]) {
+      expect(getPublicMilestoneLabel(locked)).not.toBeNull();
+    }
   });
 });

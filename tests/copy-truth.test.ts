@@ -303,6 +303,8 @@ describe("Bracket deep-link + copy-link copy is deterministic (UX-4D)", () => {
 // UX-6: team forecast trajectory — public checkpoints only (Tournament start →
 // Group stage complete → Current projection); M54/M73 never rendered publicly.
 const trajectoryLib = read("lib/ui/team-trajectory.ts");
+// Public checkpoint labels now live in the shared policy module.
+const trajectoryChkpt = read("lib/model/forecast-checkpoints.ts");
 const trajectorySurface = read("components/teams/team-trajectory-surface.tsx");
 const trajectoryChart = read("components/charts/team-trajectory-chart.tsx");
 const teamMatchHistory = read("components/teams/team-match-history.tsx");
@@ -311,14 +313,18 @@ const teamPageUx6 = read("app/teams/[teamId]/page.tsx");
 describe("Team forecast trajectory copy is honest (UX-6)", () => {
   it("uses the public checkpoint labels and the retained-checkpoint explanation", () => {
     expect(trajectorySurface).toContain("Forecast trajectory");
-    expect(trajectoryLib).toContain("Tournament start");
-    expect(trajectoryLib).toContain("Group stage complete");
-    expect(trajectoryLib).toContain("Current projection");
+    expect(trajectoryChkpt).toContain("Tournament start");
+    expect(trajectoryChkpt).toContain("Group matchday 1 complete");
+    expect(trajectoryChkpt).toContain("Group matchday 2 complete");
+    expect(trajectoryChkpt).toContain("Group stage complete");
+    expect(trajectoryChkpt).toContain("Current projection");
+    expect(trajectorySurface).toContain("Group matchday 1 complete");
+    expect(trajectorySurface).toContain("Group matchday 2 complete");
     expect(trajectorySurface).toContain("Since tournament start");
     expect(trajectorySurface).toContain("Percentage points");
     expect(trajectorySurface).toContain("Not enough history yet");
     expect(trajectorySurface).toContain(
-      "More checkpoints can be added as archived forecast snapshots are retained.",
+      "knockout-round checkpoints (Round of 32 onward) appear once their snapshots are committed",
     );
     expect(trajectorySurface).toContain("not re-rated after every match");
     // The single allowed after-every-match mention is the explicit clarification.
@@ -343,8 +349,9 @@ describe("Team forecast trajectory copy is honest (UX-6)", () => {
     for (const bad of ["because", "caused by", "probability rose", "guaranteed", "will face", "easier path", "harder path", "path became", "win %", "final %", "vercel-storage", "blob_read_write_token"]) {
       expect(src, `UX-6 copy overclaims/leaks: "${bad}"`).not.toContain(bad);
     }
-    expect(trajectoryLib).toContain("Changed between tournament start and group stage complete");
-    expect(trajectoryLib).toContain("Changed between group stage complete and current projection");
+    // Movement sentences are built from public-milestone labels ("Changed between {from}
+    // and {to}") plus the anchored total; no non-public interval wording appears.
+    expect(trajectoryLib).toContain("Changed between ${from.label.toLowerCase()} and ${to.label.toLowerCase()}");
     expect(trajectoryLib).toContain("Changed since tournament start");
   });
 
@@ -374,13 +381,17 @@ describe("Home forecast race copy is honest (checkpoints, not every match)", () 
     // Top-N options render `Top ${n}` from RACE_TOP_N_OPTIONS = [5, 10, 15].
     expect(raceChart).toContain("Top ${n}");
     expect(raceLib).toContain("RACE_TOP_N_OPTIONS = [5, 10, 15]");
-    expect(raceLib).toContain("Tournament start");
-    expect(raceLib).toContain("Group stage complete");
-    expect(raceLib).toContain("Current projection");
+    // Public checkpoint labels live in the shared policy module.
+    expect(trajectoryChkpt).toContain("Tournament start");
+    expect(trajectoryChkpt).toContain("Group stage complete");
+    expect(trajectoryChkpt).toContain("Current projection");
+    // The race card names the milestone checkpoints.
+    expect(raceChart).toContain("group matchday 1");
+    expect(raceChart).toContain("group matchday 2");
     // Stage labels come from the shared movement options (Title chance / Reach final / …).
     expect(raceLib).toContain("RACE_STAGE_OPTIONS");
     expect(raceChart).toContain("percentage points");
-    expect(raceChart).toContain("This chart compares retained forecast checkpoints, not every match.");
+    expect(raceChart).toContain("This chart compares retained checkpoints, not every match.");
     // The single allowed after-every-match mention is the explicit clarification.
     // (`read` collapses whitespace, so JSX line-wraps become single spaces.)
     expect(raceChart).toContain("It is not an after-every-match timeline.");
