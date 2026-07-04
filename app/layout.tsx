@@ -4,9 +4,14 @@ import { SiteHeader } from "@/components/site-header";
 import { DataSourceBadge } from "@/components/data-source-badge";
 
 export const metadata: Metadata = {
-  title: "World Cup Probability Lab",
+  title: "BeyondVAR — World Cup intelligence beyond the score",
   description:
-    "An explainable FIFA World Cup 2026 prediction and Monte Carlo simulation lab. Educational forecasting — not betting advice.",
+    "Independent World Cup forecasting and tournament intelligence, tracking how every result reshapes probabilities, paths, and knockout state.",
+  openGraph: {
+    title: "BeyondVAR — World Cup intelligence beyond the score",
+    description:
+      "Independent World Cup forecasting and tournament intelligence, tracking how every result reshapes probabilities, paths, and knockout state.",
+  },
 };
 
 export default function RootLayout({
@@ -23,9 +28,10 @@ export default function RootLayout({
           <div className="container flex flex-col gap-2 text-xs text-muted-foreground">
             <DataSourceBadge />
             <p>
-              World Cup Probability Lab — an educational forecasting project.
-              All figures are model estimates, not predictions of certainty and
-              not betting advice.
+              BeyondVAR — The World Cup intelligence layer beyond the score. Independent
+              forecasting project. Not affiliated with, endorsed by, or sponsored by FIFA.
+              All figures are model estimates, not predictions of certainty and not betting
+              advice.
             </p>
             <p>Deterministic model + Monte Carlo. Model feature values (Elo, economy, squad, form) remain placeholders.</p>
           </div>

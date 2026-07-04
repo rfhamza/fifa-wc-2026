@@ -59,8 +59,9 @@ export function ForecastHero({ data }: { data: ForecastHeroData }) {
           )}
 
           <p className="max-w-xl text-balance text-sm text-muted-foreground">
-            The current forecast updates as results are locked and the path changes; the
-            underlying team-strength model is not re-rated after every match.
+            Follow how every result reshapes title chances, knockout paths, and the road to
+            the trophy. The current forecast updates as results are locked and the path
+            changes; the underlying team-strength model is not re-rated after every match.
           </p>
 
           <div className="flex flex-wrap gap-3 pt-1">

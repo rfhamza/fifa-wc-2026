@@ -20,7 +20,7 @@ import { bracket } from "@/lib/data";
 import { isBracketActive } from "@/lib/simulation/bracket";
 
 export const metadata = {
-  title: "Methodology - World Cup Probability Lab",
+  title: "Methodology · BeyondVAR",
 };
 
 const BRACKET_ACTIVE = isBracketActive(bracket);
@@ -246,10 +246,11 @@ export default function MethodologyPage() {
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
           <p>
-            World Cup Probability Lab is a hobby data-science project for
-            exploring and explaining football forecasting. It contains no odds,
-            no betting language, no gambling calls-to-action and no monetization.
-            Please don&apos;t use it to wager.
+            BeyondVAR is a hobby data-science project for exploring and
+            explaining football forecasting. Independent forecasting project.
+            Not affiliated with, endorsed by, or sponsored by FIFA. It contains
+            no odds, no betting language, no gambling calls-to-action and no
+            monetization. Please don&apos;t use it to wager.
           </p>
         </CardContent>
       </Card>

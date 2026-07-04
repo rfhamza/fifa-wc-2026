@@ -5,7 +5,7 @@ import { LiveTournamentState } from "@/components/live/live-tournament-state";
 import type { TeamLookup } from "@/lib/live-client/public-safe-view.client";
 
 export const metadata: Metadata = {
-  title: "Tournament State - World Cup Probability Lab",
+  title: "Tournament State · BeyondVAR",
   description:
     "Live FIFA World Cup 2026 tournament state - latest matches, internally derived group standings, Round-of-32 status, and the third-place race. Provider-backed and may be delayed.",
 };

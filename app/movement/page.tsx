@@ -11,7 +11,7 @@ import { getTeam } from "@/lib/data";
 import type { Team } from "@/lib/types";
 
 export const metadata = {
-  title: "Probability Movement · World Cup Probability Lab",
+  title: "Probability Movement · BeyondVAR",
 };
 
 // The surface reads the runtime current forecast, so it must not be frozen at build. It

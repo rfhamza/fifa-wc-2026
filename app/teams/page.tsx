@@ -10,7 +10,7 @@ import { getTeam } from "@/lib/data";
 import type { Team } from "@/lib/types";
 
 export const metadata = {
-  title: "Forecast Board · World Cup Probability Lab",
+  title: "Forecast Board · BeyondVAR",
 };
 
 // The board reads the runtime current forecast, so it must not be frozen at build. It

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 /**
@@ -213,6 +213,24 @@ describe("Knockout Bracket nav + active-state", () => {
     }
     expect(siteHeader).toContain('pathname === "/"');
     expect(siteHeader).toContain("startsWith(`${href}/`)");
+  });
+
+  it("uses a hamburger menu on mobile and the inline nav on desktop (no horizontal scroll)", () => {
+    // Desktop inline nav is gated to lg+ and hidden below it.
+    expect(siteHeader).toContain("hidden");
+    expect(siteHeader).toContain("lg:flex");
+    // The old always-on horizontal scroller is gone.
+    expect(siteHeader.includes("overflow-x-auto")).toBe(false);
+    // A mobile-only toggle button with accessible open/close state.
+    expect(siteHeader).toContain("lg:hidden");
+    expect(siteHeader).toContain("aria-expanded");
+    expect(siteHeader).toContain("aria-controls");
+    expect(siteHeader).toContain('"Open menu"');
+    expect(siteHeader).toContain('"Close menu"');
+    // A collapsible panel wired to the toggle, with client state that closes on route change.
+    expect(siteHeader).toContain('id="mobile-nav"');
+    expect(siteHeader).toContain("useState");
+    expect(siteHeader).toContain("usePathname");
   });
 });
 
@@ -479,5 +497,116 @@ describe("Home knockout radial copy is honest (Road to the trophy)", () => {
     expect(hero).toBeLessThan(radial);
     expect(radial).toBeLessThan(race);
     expect(race).toBeLessThan(matches);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// BeyondVAR brand identity — header, hero, metadata, disclaimer, IP safety.
+// ---------------------------------------------------------------------------
+const brandMark = read("components/brand-mark.tsx");
+const rootLayout = read("app/layout.tsx");
+
+const DISCLAIMER =
+  "Independent forecasting project. Not affiliated with, endorsed by, or sponsored by FIFA.";
+
+describe("BeyondVAR brand identity (header, hero, metadata)", () => {
+  it("header carries the BeyondVAR wordmark + local BrandMark, not the old name", () => {
+    expect(siteHeader).toContain("BeyondVAR");
+    expect(siteHeader).toContain("BrandMark");
+    expect(siteHeader.includes("World Cup Probability Lab")).toBe(false);
+    expect(siteHeader.includes("WC Lab")).toBe(false);
+    // The old trophy icon is no longer the brand mark.
+    expect(siteHeader.includes("Trophy")).toBe(false);
+  });
+
+  it("homepage hero keeps the question tagline and the brand promise (brand lives in the header)", () => {
+    // Product decision: the hero headline stays the editorial question; the
+    // BeyondVAR wordmark is carried by the header and the footer brand line.
+    expect(forecastHero).toContain("Who is favoured now?");
+    expect(forecastHero).toContain(
+      "Follow how every result reshapes title chances, knockout paths, and the road to the trophy.",
+    );
+    expect(forecastHero.includes("World Cup Probability Lab")).toBe(false);
+    // The honest not-re-rated caveat survives the rebrand.
+    expect(forecastHero).toContain("not re-rated after every match");
+  });
+
+  it("metadata + footer use the new brand, the exact positioning line, and the disclaimer", () => {
+    expect(rootLayout).toContain("BeyondVAR — World Cup intelligence beyond the score");
+    expect(rootLayout).toContain(
+      "Independent World Cup forecasting and tournament intelligence, tracking how every result reshapes probabilities, paths, and knockout state.",
+    );
+    expect(rootLayout).toContain("openGraph");
+    // The positioning line appears exactly, in the footer brand line.
+    expect(rootLayout).toContain("The World Cup intelligence layer beyond the score.");
+    expect(rootLayout).toContain(DISCLAIMER);
+    expect(rootLayout.includes("World Cup Probability Lab")).toBe(false);
+    // Methodology carries the disclaimer + new name too.
+    expect(methodology).toContain("BeyondVAR");
+    expect(methodology).toContain(DISCLAIMER);
+    expect(methodology.includes("World Cup Probability Lab")).toBe(false);
+  });
+
+  it("every page title uses BeyondVAR (no page still titled with the old name)", () => {
+    for (const p of [
+      "app/methodology/page.tsx",
+      "app/teams/page.tsx",
+      "app/movement/page.tsx",
+      "app/bracket/page.tsx",
+      "app/matches/page.tsx",
+      "app/scenario/page.tsx",
+      "app/live/page.tsx",
+    ]) {
+      const src = read(p);
+      expect(src, `${p} title should carry BeyondVAR`).toContain("· BeyondVAR");
+      expect(src.includes("Probability Lab"), `${p} still references the old name`).toBe(false);
+    }
+  });
+
+  it("the app mark is original, local SVG — no external/scraped assets, no FIFA marks", () => {
+    expect(brandMark).toContain("<svg");
+    expect(brandMark).toContain("currentColor");
+    for (const bad of ["http://", "https://", "next/image", ".png", ".jpg", ".jpeg", ".webp", ".gif", "lucide-react", "FIFA", "fifa"]) {
+      expect(brandMark.includes(bad), `brand mark must not reference: "${bad}"`).toBe(false);
+    }
+    // The header imports the local mark, not an image asset.
+    expect(siteHeader).toContain('from "@/components/brand-mark"');
+  });
+
+  it("the favicon / app icon is an original local asset built from the mark (no external refs)", () => {
+    // Next App Router auto-serves app/icon.svg (favicon) and app/apple-icon.png (touch icon).
+    const icon = read("app/icon.svg");
+    expect(icon).toContain("<svg");
+    // Strip the standard SVG namespace declaration (a W3C URI, not an asset reference).
+    const iconRefs = icon.replace(/xmlns(:\w+)?="[^"]*"/g, "");
+    // Pure geometry (rects + the ball circle); no external/scraped references, no FIFA marks.
+    for (const bad of ["http://", "https://", "xlink:href", "<image", "FIFA", "fifa"]) {
+      expect(iconRefs.includes(bad), `favicon must not reference: "${bad}"`).toBe(false);
+    }
+    expect(icon).toContain("<circle");
+    // The rasterised Apple touch icon exists alongside it.
+    expect(existsSync(join(process.cwd(), "app/apple-icon.png"))).toBe(true);
+  });
+
+  it("no affiliation/endorsement claims anywhere in the brand surfaces", () => {
+    // Brand surfaces only: methodology's factual "official FIFA match schedule (v17…)"
+    // provenance statement describes the DATA, not the app, and is checked elsewhere.
+    // Strip the explicit NEGATED disclaimer before scanning, so "…or sponsored by FIFA"
+    // inside "Not affiliated with, endorsed by, or sponsored by FIFA" never false-positives.
+    const src = [siteHeader, forecastHero, rootLayout, brandMark]
+      .join(" ")
+      .split(DISCLAIMER)
+      .join(" ")
+      .toLowerCase();
+    for (const bad of [
+      "official fifa",
+      "official world cup",
+      "endorsed by fifa",
+      "sponsored by fifa",
+      "partner of fifa",
+      "affiliated with fifa",
+    ]) {
+      expect(src, `brand surfaces imply affiliation: "${bad}"`).not.toContain(bad);
+    }
   });
 });
