@@ -42,8 +42,9 @@ export function SiteHeader() {
   }, [open]);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-md">
-      <div className="container flex h-16 items-center justify-between gap-4">
+    <>
+      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-md">
+        <div className="container flex h-16 items-center justify-between gap-4">
         <Link href="/" className="flex shrink-0 items-center gap-2 font-semibold">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/15 text-primary">
             <BrandMark className="h-5 w-5" />
@@ -83,15 +84,9 @@ export function SiteHeader() {
         </button>
       </div>
 
-      {/* Mobile panel — a slide-down sheet with a dimmed backdrop; closes on select,
-          outside tap, Escape, or navigation. */}
-      {open ? (
-        <>
-          <div
-            aria-hidden
-            onClick={() => setOpen(false)}
-            className="fixed inset-x-0 bottom-0 top-16 z-30 bg-foreground/10 lg:hidden"
-          />
+        {/* Mobile panel — a slide-down sheet; closes on select, outside tap, Escape,
+            or navigation. */}
+        {open ? (
           <nav
             id="mobile-nav"
             className="relative z-40 border-t border-border/60 bg-background/95 px-4 pb-3 pt-2 backdrop-blur-md lg:hidden"
@@ -116,8 +111,19 @@ export function SiteHeader() {
               ))}
             </ul>
           </nav>
-        </>
+        ) : null}
+      </header>
+
+      {/* Dimmed backdrop — rendered OUTSIDE the backdrop-blur header so `fixed`
+          resolves against the viewport (a backdrop-filter ancestor would otherwise
+          contain it). Tapping it closes the menu. */}
+      {open ? (
+        <div
+          aria-hidden
+          onClick={() => setOpen(false)}
+          className="fixed inset-x-0 bottom-0 top-16 z-30 bg-foreground/10 lg:hidden"
+        />
       ) : null}
-    </header>
+    </>
   );
 }
