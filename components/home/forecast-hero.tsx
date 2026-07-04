@@ -27,14 +27,9 @@ export function ForecastHero({ data }: { data: ForecastHeroData }) {
             <SourceBadge source={source} asOfLabel={asOfLabel} />
           </div>
 
-          <div className="space-y-2">
-            <h1 className="text-balance text-4xl font-bold tracking-tight lg:text-6xl">
-              BeyondVAR
-            </h1>
-            <p className="text-balance text-lg font-medium text-muted-foreground lg:text-xl">
-              The World Cup intelligence layer beyond the score.
-            </p>
-          </div>
+          <h1 className="text-balance text-4xl font-bold tracking-tight lg:text-6xl">
+            Who is favoured now?
+          </h1>
 
           {favourite ? (
             <div className="flex flex-wrap items-end gap-x-6 gap-y-2">

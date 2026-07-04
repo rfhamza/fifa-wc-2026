@@ -28,9 +28,10 @@ export default function RootLayout({
           <div className="container flex flex-col gap-2 text-xs text-muted-foreground">
             <DataSourceBadge />
             <p>
-              BeyondVAR — Independent forecasting project. Not affiliated with, endorsed by,
-              or sponsored by FIFA. All figures are model estimates, not predictions of
-              certainty and not betting advice.
+              BeyondVAR — The World Cup intelligence layer beyond the score. Independent
+              forecasting project. Not affiliated with, endorsed by, or sponsored by FIFA.
+              All figures are model estimates, not predictions of certainty and not betting
+              advice.
             </p>
             <p>Deterministic model + Monte Carlo. Model feature values (Elo, economy, squad, form) remain placeholders.</p>
           </div>

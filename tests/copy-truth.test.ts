@@ -501,24 +501,26 @@ describe("BeyondVAR brand identity (header, hero, metadata)", () => {
     expect(siteHeader.includes("Trophy")).toBe(false);
   });
 
-  it("homepage hero uses the BeyondVAR title, exact subtitle, and the brand promise", () => {
-    expect(forecastHero).toContain("BeyondVAR");
-    expect(forecastHero).toContain("The World Cup intelligence layer beyond the score.");
+  it("homepage hero keeps the question tagline and the brand promise (brand lives in the header)", () => {
+    // Product decision: the hero headline stays the editorial question; the
+    // BeyondVAR wordmark is carried by the header and the footer brand line.
+    expect(forecastHero).toContain("Who is favoured now?");
     expect(forecastHero).toContain(
       "Follow how every result reshapes title chances, knockout paths, and the road to the trophy.",
     );
     expect(forecastHero.includes("World Cup Probability Lab")).toBe(false);
-    expect(forecastHero.includes("Who is favoured now?")).toBe(false);
     // The honest not-re-rated caveat survives the rebrand.
     expect(forecastHero).toContain("not re-rated after every match");
   });
 
-  it("metadata + footer use the new brand and the exact disclaimer", () => {
+  it("metadata + footer use the new brand, the exact positioning line, and the disclaimer", () => {
     expect(rootLayout).toContain("BeyondVAR — World Cup intelligence beyond the score");
     expect(rootLayout).toContain(
       "Independent World Cup forecasting and tournament intelligence, tracking how every result reshapes probabilities, paths, and knockout state.",
     );
     expect(rootLayout).toContain("openGraph");
+    // The positioning line appears exactly, in the footer brand line.
+    expect(rootLayout).toContain("The World Cup intelligence layer beyond the score.");
     expect(rootLayout).toContain(DISCLAIMER);
     expect(rootLayout.includes("World Cup Probability Lab")).toBe(false);
     // Methodology carries the disclaimer + new name too.
