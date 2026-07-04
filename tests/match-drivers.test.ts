@@ -53,7 +53,7 @@ describe("selectMatchDriverChips: derivation, filtering, ranking", () => {
       awayTeamName: morocco.name,
     });
     // Every chip must trace back to a real family present in the model output.
-    const families = new Set(drivers.map((d) => d.family));
+    const families = new Set<string | undefined>(drivers.map((d) => d.family));
     for (const chip of sel.chips) expect(families.has(chip.family)).toBe(true);
     // Host edge favours the home host; Elo/FIFA favour the stronger away side — a
     // genuine mixed case, both sides represented honestly.
