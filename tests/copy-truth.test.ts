@@ -214,6 +214,24 @@ describe("Knockout Bracket nav + active-state", () => {
     expect(siteHeader).toContain('pathname === "/"');
     expect(siteHeader).toContain("startsWith(`${href}/`)");
   });
+
+  it("uses a hamburger menu on mobile and the inline nav on desktop (no horizontal scroll)", () => {
+    // Desktop inline nav is gated to lg+ and hidden below it.
+    expect(siteHeader).toContain("hidden");
+    expect(siteHeader).toContain("lg:flex");
+    // The old always-on horizontal scroller is gone.
+    expect(siteHeader.includes("overflow-x-auto")).toBe(false);
+    // A mobile-only toggle button with accessible open/close state.
+    expect(siteHeader).toContain("lg:hidden");
+    expect(siteHeader).toContain("aria-expanded");
+    expect(siteHeader).toContain("aria-controls");
+    expect(siteHeader).toContain('"Open menu"');
+    expect(siteHeader).toContain('"Close menu"');
+    // A collapsible panel wired to the toggle, with client state that closes on route change.
+    expect(siteHeader).toContain('id="mobile-nav"');
+    expect(siteHeader).toContain("useState");
+    expect(siteHeader).toContain("usePathname");
+  });
 });
 
 describe("Bracket discoverability cues + deterministic copy", () => {
