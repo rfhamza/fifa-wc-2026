@@ -1,10 +1,11 @@
 import { cn } from "@/lib/utils";
 
 /**
- * BeyondVAR app mark — original, local SVG. Two broken orbit rings, each carrying a
- * data dot, converging on a solid centre point: probability readings orbiting the
- * score and closing in on it ("beyond the score"). Drawn from scratch with plain
- * circles/arcs in `currentColor` so it inherits the surrounding text colour.
+ * BeyondVAR app mark — original, local SVG "goal heatmap". The goal mouth rendered as
+ * a 3×3 probability grid: each zone shaded by likelihood, and in the hottest zone the
+ * cell becomes the ball (a solid circle). The net mesh, the odds, and the finish in a
+ * single glyph. Drawn from scratch with plain rects/circle in `currentColor` so it
+ * inherits the surrounding text colour (opacity carries the heat gradient).
  *
  * IP-safe by construction: no trophy silhouette, no official emblem, wordmark or
  * event typeface, no federation crests, no external or scraped image assets —
@@ -18,28 +19,20 @@ export function BrandMark({ className }: { className?: string }) {
       aria-hidden
       className={cn("shrink-0", className)}
     >
-      {/* Outer orbit — open at the bottom, where its data dot sits. */}
-      <path
-        d="M 10 26.39 A 12 12 0 1 1 22 26.39"
-        stroke="currentColor"
-        strokeWidth={2}
-        strokeLinecap="round"
-        opacity={0.4}
-      />
-      <circle cx={16} cy={28} r={1.7} fill="currentColor" opacity={0.55} />
+      {/* Top row — the hottest zone (top-right) is the ball. */}
+      <rect x={4} y={8} width={7.2} height={5.2} rx={1.8} fill="currentColor" opacity={0.22} />
+      <rect x={12.4} y={8} width={7.2} height={5.2} rx={1.8} fill="currentColor" opacity={0.34} />
+      <circle cx={24.4} cy={10.6} r={3.4} fill="currentColor" />
 
-      {/* Inner orbit — open at the top, where its data dot sits. */}
-      <path
-        d="M 19.5 9.94 A 7 7 0 1 1 12.5 9.94"
-        stroke="currentColor"
-        strokeWidth={2}
-        strokeLinecap="round"
-        opacity={0.75}
-      />
-      <circle cx={16} cy={9} r={1.5} fill="currentColor" opacity={0.85} />
+      {/* Middle row. */}
+      <rect x={4} y={14.4} width={7.2} height={5.2} rx={1.8} fill="currentColor" opacity={0.14} />
+      <rect x={12.4} y={14.4} width={7.2} height={5.2} rx={1.8} fill="currentColor" opacity={0.22} />
+      <rect x={20.8} y={14.4} width={7.2} height={5.2} rx={1.8} fill="currentColor" opacity={0.3} />
 
-      {/* The centre: the score everything converges on. */}
-      <circle cx={16} cy={16} r={2.8} fill="currentColor" />
+      {/* Bottom row — coolest zones. */}
+      <rect x={4} y={20.8} width={7.2} height={5.2} rx={1.8} fill="currentColor" opacity={0.1} />
+      <rect x={12.4} y={20.8} width={7.2} height={5.2} rx={1.8} fill="currentColor" opacity={0.14} />
+      <rect x={20.8} y={20.8} width={7.2} height={5.2} rx={1.8} fill="currentColor" opacity={0.2} />
     </svg>
   );
 }
