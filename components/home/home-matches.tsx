@@ -20,10 +20,20 @@ import {
   type MatchForecastIndex,
   type TeamContextIndex,
 } from "@/lib/ui/home-sections";
+import {
+  MATCH_DRIVER_HEADING,
+  MATCH_DRIVER_EMPTY_LABEL,
+  type MatchDriverSelection,
+} from "@/lib/ui/match-drivers";
+
+/** Server-built map (matchNumber → ranked driver chips); may be empty. */
+export type MatchDriverIndex = Record<number, MatchDriverSelection>;
 
 interface HomeMatchesProps {
   /** Server-built map (matchNumber → true pre-match forecast); may be empty. */
   forecasts: MatchForecastIndex;
+  /** Server-built map (matchNumber → "why the model leans" chips); may be empty. */
+  drivers?: MatchDriverIndex;
   /** Server-built map (teamId → current tournament context); may be empty. */
   context: TeamContextIndex;
   /** Server-built team identity lookup. */
@@ -32,7 +42,7 @@ interface HomeMatchesProps {
 
 type LoadState = "loading" | LiveStateView | "unavailable";
 
-export function HomeMatches({ forecasts, context, teams }: HomeMatchesProps) {
+export function HomeMatches({ forecasts, drivers, context, teams }: HomeMatchesProps) {
   const [state, setState] = useState<LoadState>("loading");
 
   useEffect(() => {
@@ -77,7 +87,14 @@ export function HomeMatches({ forecasts, context, teams }: HomeMatchesProps) {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {selection.matches.map((m) => (
-            <MatchCard key={m.matchNumber} match={m} forecast={forecasts[m.matchNumber]} context={context} teams={teams} />
+            <MatchCard
+              key={m.matchNumber}
+              match={m}
+              forecast={forecasts[m.matchNumber]}
+              driverSelection={drivers?.[m.matchNumber]}
+              context={context}
+              teams={teams}
+            />
           ))}
         </div>
       )}
@@ -122,14 +139,43 @@ function TeamRow({
   );
 }
 
+function MatchDrivers({ selection }: { selection: MatchDriverSelection }) {
+  return (
+    <div className="space-y-1.5">
+      <div className="text-xs uppercase tracking-wide text-muted-foreground">
+        {MATCH_DRIVER_HEADING}
+      </div>
+      {selection.dominates ? (
+        <ul className="flex flex-wrap gap-1.5">
+          {selection.chips.map((chip) => (
+            <li
+              key={chip.family}
+              className="inline-flex max-w-full items-center rounded-full border border-border/60 bg-secondary/50 px-2 py-0.5 text-xs text-muted-foreground"
+            >
+              <span className="truncate">
+                <span className="font-medium text-foreground">{chip.label}</span> favours{" "}
+                {chip.favouredTeamName}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-xs text-muted-foreground">{MATCH_DRIVER_EMPTY_LABEL}</p>
+      )}
+    </div>
+  );
+}
+
 function MatchCard({
   match,
   forecast,
+  driverSelection,
   context,
   teams,
 }: {
   match: LiveViewMatch;
   forecast: HomeMatchForecast | undefined;
+  driverSelection: MatchDriverSelection | undefined;
   context: TeamContextIndex;
   teams: TeamLookup;
 }) {
@@ -214,6 +260,7 @@ function MatchCard({
                 showLabels={false}
                 className="h-2"
               />
+              {driverSelection ? <MatchDrivers selection={driverSelection} /> : null}
               {oriented.scoreA !== undefined && oriented.scoreB !== undefined && oriented.scoreP !== undefined ? (
                 <div className="text-xs text-muted-foreground tabular-nums">
                   Likely scoreline: {oriented.scoreA}–{oriented.scoreB} · {pct(oriented.scoreP, 0)}

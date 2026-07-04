@@ -515,6 +515,57 @@ describe("Home forecast race copy is honest (checkpoints, not every match)", () 
   });
 });
 
+// Home match cards — "why the model leans" driver chips (pre-tournament signals only).
+const homeMatches = read("components/home/home-matches.tsx");
+const matchDriversLib = read("lib/ui/match-drivers.ts");
+
+describe("Home match-card driver chips are honest (pre-tournament signals only)", () => {
+  it("surfaces the driver section heading + fallback and the allowed neutral labels", () => {
+    // Heading + empty-state copy come from the shared helper, not hardcoded.
+    expect(matchDriversLib).toContain('MATCH_DRIVER_HEADING = "Why the model leans"');
+    expect(matchDriversLib).toContain('MATCH_DRIVER_EMPTY_LABEL = "No single driver dominates"');
+    expect(homeMatches).toContain("MATCH_DRIVER_HEADING");
+    expect(homeMatches).toContain("MATCH_DRIVER_EMPTY_LABEL");
+    // Neutral driver labels present; chips read "<label> favours <team>".
+    for (const label of ["Elo", "FIFA ranking", "Squad signal", "Host edge", "Climate", "Tournament logistics"]) {
+      expect(matchDriversLib, `driver label missing: "${label}"`).toContain(`"${label}"`);
+    }
+    expect(homeMatches).toContain("favours");
+  });
+
+  it("never labels a driver as live / current / in-tournament form, and omits frozen recentForm", () => {
+    // recentForm + managerCohesion are omitted from the home chips.
+    expect(matchDriversLib).toContain('"recentForm"');
+    expect(matchDriversLib).toContain('"managerCohesion"');
+    expect(matchDriversLib).toContain("OMITTED_DRIVER_FAMILIES");
+    // recentForm must NOT be an allowed label (so it can never render).
+    const labelsBlock = matchDriversLib.slice(
+      matchDriversLib.indexOf("MATCH_DRIVER_LABELS"),
+      matchDriversLib.indexOf("OMITTED_DRIVER_FAMILIES"),
+    );
+    expect(labelsBlock.includes("recentForm")).toBe(false);
+  });
+
+  it("no misleading live-form / betting / certainty wording in the card or helper", () => {
+    const src = `${homeMatches} ${matchDriversLib}`.toLowerCase();
+    for (const bad of [
+      "live form",
+      "current form",
+      "current-form adjusted",
+      "in-tournament form favours",
+      "recent tournament performance",
+      "re-rated based on form",
+      "guaranteed",
+      "will beat",
+      "betting odds",
+      "easy path",
+      "hard path",
+    ]) {
+      expect(src, `home match-card copy overclaims: "${bad}"`).not.toContain(bad);
+    }
+  });
+});
+
 describe("Home knockout radial copy is honest (Road to the trophy)", () => {
   const radialChart = read("components/home/home-knockout-radial.tsx");
   const radialLib = read("lib/ui/bracket-radial.ts");
