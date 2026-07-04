@@ -170,6 +170,25 @@ describe("input registry: governance invariants", () => {
   });
 });
 
+describe("input registry: managerCohesion wording matches the true zero weight", () => {
+  const manager = getInputRegistryEntry("managerCohesion");
+
+  it("the production manager weight is actually zero (grounds the wording)", () => {
+    expect(MODEL_WEIGHTS.manager).toBe(0);
+  });
+
+  it("still references the manager weight key (completeness) but no longer claims a 'modest weight'", () => {
+    expect(manager?.weightRef).toBe("manager");
+    const prose = `${manager?.description} ${manager?.knownLimitations} ${manager?.governanceNotes}`.toLowerCase();
+    // The stale "modest weight" claim must not silently return.
+    expect(prose).not.toContain("modest weight");
+    // The wording must make the zero/disabled state explicit.
+    expect(prose).toContain("zero");
+    expect(prose).toContain("disabled");
+    expect(prose).toContain("pending");
+  });
+});
+
 describe("input registry: controlled vocabularies", () => {
   it("every entry uses valid status / phase / usage / refresh-cadence / source-type / confidence values", () => {
     const statuses = new Set<string>(INPUT_STATUSES);
