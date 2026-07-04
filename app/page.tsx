@@ -20,6 +20,12 @@ import {
   buildMatchForecastIndex,
   buildTeamContextIndex,
 } from "@/lib/ui/home-sections";
+import {
+  selectMatchDriverChips,
+  type MatchDriverSelection,
+} from "@/lib/ui/match-drivers";
+import { computeDrivers } from "@/lib/model/predict";
+import { buildFeatureSet } from "@/lib/model/features";
 import { getTeam, teams } from "@/lib/data";
 import type { Team } from "@/lib/types";
 import type { TeamLookup } from "@/lib/live-client/public-safe-view.client";
@@ -57,6 +63,25 @@ export default async function DashboardPage() {
   const matchForecastIndex = buildMatchForecastIndex(matchForecasts);
   const teamContextIndex = buildTeamContextIndex(current);
 
+  // Compact "why the model leans" chips per match, derived from the SAME driver
+  // decomposition the forecast is built from (computeDrivers). No new model
+  // calculation — it reads the existing signed contributions and the pure
+  // selector filters/ranks/labels them. Server-side so the model stays off the
+  // client bundle.
+  const matchDriverIndex: Record<number, MatchDriverSelection> = {};
+  for (const [num, f] of Object.entries(matchForecastIndex)) {
+    const home = safeTeam(f.homeTeamId);
+    const away = safeTeam(f.awayTeamId);
+    if (!home || !away) continue;
+    const drivers = computeDrivers(buildFeatureSet(home), buildFeatureSet(away));
+    matchDriverIndex[Number(num)] = selectMatchDriverChips(drivers, {
+      homeTeamId: home.id,
+      homeTeamName: home.name,
+      awayTeamId: away.id,
+      awayTeamName: away.name,
+    });
+  }
+
   // Multi-team forecast race across the public milestone checkpoints (Tournament start,
   // Group matchday 1 / 2, Group stage complete, and future round milestones as they are
   // committed) from the committed chain; the current projection is appended from the
@@ -74,7 +99,12 @@ export default async function DashboardPage() {
       <ForecastHero data={heroData} />
       <HomeKnockoutRadial skeleton={officialKnockoutGraph.matches} teams={TEAM_LOOKUP} />
       <HomeForecastRaceChart model={raceModel} />
-      <HomeMatches forecasts={matchForecastIndex} context={teamContextIndex} teams={TEAM_LOOKUP} />
+      <HomeMatches
+        forecasts={matchForecastIndex}
+        drivers={matchDriverIndex}
+        context={teamContextIndex}
+        teams={TEAM_LOOKUP}
+      />
       <HomeContenders rows={contenders} />
       <TrustStrip />
     </div>
