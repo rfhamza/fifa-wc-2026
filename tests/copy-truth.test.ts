@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 /**
@@ -571,6 +571,21 @@ describe("BeyondVAR brand identity (header, hero, metadata)", () => {
     }
     // The header imports the local mark, not an image asset.
     expect(siteHeader).toContain('from "@/components/brand-mark"');
+  });
+
+  it("the favicon / app icon is an original local asset built from the mark (no external refs)", () => {
+    // Next App Router auto-serves app/icon.svg (favicon) and app/apple-icon.png (touch icon).
+    const icon = read("app/icon.svg");
+    expect(icon).toContain("<svg");
+    // Strip the standard SVG namespace declaration (a W3C URI, not an asset reference).
+    const iconRefs = icon.replace(/xmlns(:\w+)?="[^"]*"/g, "");
+    // Pure geometry (rects + the ball circle); no external/scraped references, no FIFA marks.
+    for (const bad of ["http://", "https://", "xlink:href", "<image", "FIFA", "fifa"]) {
+      expect(iconRefs.includes(bad), `favicon must not reference: "${bad}"`).toBe(false);
+    }
+    expect(icon).toContain("<circle");
+    // The rasterised Apple touch icon exists alongside it.
+    expect(existsSync(join(process.cwd(), "app/apple-icon.png"))).toBe(true);
   });
 
   it("no affiliation/endorsement claims anywhere in the brand surfaces", () => {
