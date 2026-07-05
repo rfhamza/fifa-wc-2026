@@ -24,7 +24,9 @@
     "live:state:cadence": "vite-node --config vitest.config.ts scripts/live-state/scheduler-cadence-run.ts"
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "@vercel/blob": "^2.4.1",
+    "@vercel/speed-insights": "^2.0.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.446.0",
