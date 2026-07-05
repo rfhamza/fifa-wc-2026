@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { DataSourceBadge } from "@/components/data-source-badge";
@@ -36,6 +38,8 @@ export default function RootLayout({
             <p>Deterministic model + Monte Carlo. Model feature values (Elo, economy, squad, form) remain placeholders.</p>
           </div>
         </footer>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
