@@ -583,13 +583,36 @@ describe("route live-read hardening (Phase 1.28O)", () => {
 describe("scheduled write workflow governance (Phase 1.28O)", () => {
   const yml = readFileSync(join(process.cwd(), ".github/workflows/live-state-write-blob-scheduled.yml"), "utf8");
 
-  it("runs on schedule (7,37) + workflow_dispatch, and no other triggers", () => {
+  it("wakes every 5 minutes + workflow_dispatch, and no other triggers", () => {
     expect(yml.includes("schedule:")).toBe(true);
-    expect(yml.includes('cron: "7,37 * * * *"')).toBe(true);
+    // Every-5-min wake; the cadence guard decides run-vs-skip (30-min baseline + match windows).
+    expect(yml.includes('cron: "*/5 * * * *"')).toBe(true);
+    expect(yml.includes('cron: "7,37 * * * *"')).toBe(false);
     expect(yml.includes("workflow_dispatch:")).toBe(true);
     expect(/^\s*push:/m.test(yml)).toBe(false);
     expect(/^\s*pull_request:/m.test(yml)).toBe(false);
     expect(/^\s*workflow_run:/m.test(yml)).toBe(false);
+  });
+
+  it("gates the provider write behind BOTH the kill-switch AND the cadence guard", () => {
+    // A deterministic cadence step decides run-vs-skip and its output is required.
+    expect(yml.includes("id: cadence")).toBe(true);
+    expect(yml.includes("npm run live:state:cadence")).toBe(true);
+    // The provider-write + forecast steps require both guard AND cadence to be true.
+    expect(
+      yml.includes(
+        "if: steps.guard.outputs.run == 'true' && steps.cadence.outputs.run == 'true'",
+      ),
+    ).toBe(true);
+    // The cadence step itself gates only on the kill-switch (never self-references).
+    expect(/id: cadence\n\s*if: steps\.guard\.outputs\.run == 'true'\n/.test(yml)).toBe(true);
+    // Cadence decision must not receive any secret (it reads committed data + the clock only).
+    const cadenceStep = yml.slice(
+      yml.indexOf("id: cadence"),
+      yml.indexOf("Write provider-derived sanitized live-state"),
+    );
+    expect(cadenceStep.includes("secrets.")).toBe(false);
+    expect(cadenceStep.includes("TOKEN")).toBe(false);
   });
 
   it("declares no workflow inputs (source/object_path are not configurable)", () => {

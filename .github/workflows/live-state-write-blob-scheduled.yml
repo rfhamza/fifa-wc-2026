@@ -9,10 +9,23 @@ name: live-state-write-blob-scheduled
 # Kill-switch: scheduled runs no-op unless the repo VARIABLE LIVE_STATE_SCHEDULER_ENABLED
 # == "true". Manual workflow_dispatch always runs (for safe verification), even when the
 # variable is false. Disabled by default.
+#
+# Cadence (two tiers, decided by the deterministic guard scripts/live-state/scheduler-cadence-run.ts
+# from committed fixtures + the system UTC clock only - NO provider fetch, NO Blob read, NO secret):
+#   - BASELINE: attempted every 30 minutes across the day. The guard runs after checkout +
+#     npm ci, so the clock is never exactly on minute 0/30; the baseline fires on the first
+#     5-minute wake landing within 5 min AFTER a 30-minute mark (a stateless latency tolerance).
+#   - MATCH WINDOW: attempted every 5 minutes while inside a match polling window
+#     (kickoff - 45 min .. kickoff + 240 min), covering pre-match, normal + stoppage time,
+#     extra time, penalties and provider-delay lag. Off-window, off-boundary wake-ups skip.
+# GitHub scheduled workflows are BEST-EFFORT: a wake-up can be delayed or dropped, so a 30-minute
+# baseline can still be missed on a large delay. The wide match window absorbs ordinary drift, and
+# manual workflow_dispatch remains available for operational recovery.
 on:
   schedule:
-    # Every 30 minutes, offset off the hour (UTC, best-effort). Conservative Tier-2 cadence.
-    - cron: "7,37 * * * *"
+    # Wake every 5 minutes (UTC, best-effort); the cadence guard decides run-vs-skip so
+    # provider calls only happen on 30-min baselines and inside match windows.
+    - cron: "*/5 * * * *"
   workflow_dispatch: {}
 
 # Read-only: this workflow must never write to the repo, packages, or deployments.
@@ -53,8 +66,20 @@ jobs:
             echo "run=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Write provider-derived sanitized live-state to the PRIVATE provider object
+      # Cadence guard: even when enabled, a scheduled (every-5-min) wake-up only refreshes
+      # on a 30-minute baseline boundary OR inside a match window. Deterministic; reads only
+      # committed fixtures + the system UTC clock (NO provider fetch, NO Blob read, NO secret).
+      # workflow_dispatch always refreshes (the runner short-circuits non-schedule events).
+      - name: Decide refresh cadence (30-min baseline + 5-min match windows)
+        id: cadence
         if: steps.guard.outputs.run == 'true'
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+        run: |
+          npm run live:state:cadence -- --event "$GITHUB_EVENT_NAME"
+
+      - name: Write provider-derived sanitized live-state to the PRIVATE provider object
+        if: steps.guard.outputs.run == 'true' && steps.cadence.outputs.run == 'true'
         # Tokens are provided ONLY here, as env vars. They are never echoed or written.
         # Missing required secret -> the writer fails safe (exit 1, no write).
         env:
@@ -70,7 +95,7 @@ jobs:
       # forecast-current runs before forecast-matches; a forecast failure turns the Action
       # red but cannot corrupt live-state (separate objects; validate-then-write).
       - name: Refresh forecast-current from the live-state Blob
-        if: steps.guard.outputs.run == 'true'
+        if: steps.guard.outputs.run == 'true' && steps.cadence.outputs.run == 'true'
         # Forecast steps need ONLY the Blob token (read live-state + read/write forecast
         # objects). They never fetch football-data, so FOOTBALL_DATA_TOKEN is NOT provided.
         env:
@@ -80,7 +105,7 @@ jobs:
           npm run forecast:refresh:current -- --source blob --live-state-object-path live-state.provider.sanitized.json --forecast-object-path forecast-current.provider.sanitized.json
 
       - name: Refresh forecast-matches from the live-state Blob
-        if: steps.guard.outputs.run == 'true'
+        if: steps.guard.outputs.run == 'true' && steps.cadence.outputs.run == 'true'
         env:
           BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
         run: |
@@ -88,7 +113,7 @@ jobs:
           npm run forecast:refresh:matches -- --source blob --live-state-object-path live-state.provider.sanitized.json --matches-object-path forecast-matches.provider.sanitized.json --forecast-current-object-path forecast-current.provider.sanitized.json
 
       - name: Smoke-check the refreshed forecast objects
-        if: steps.guard.outputs.run == 'true'
+        if: steps.guard.outputs.run == 'true' && steps.cadence.outputs.run == 'true'
         env:
           BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
         run: |
