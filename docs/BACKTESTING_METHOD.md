@@ -182,6 +182,19 @@ candidate** (ablation: -climate, -structural, -tournamentContext, -manager); and
 variants (**raw vs opponent-Elo residual vs + friendly-match discount**) once historical Elo as-of
 is available.
 
+## Candidate: in-tournament performance driver (pre-registered)
+A new candidate strength signal, `inTournamentPerformance`, is pre-registered (frozen definition,
+formula, constants, leakage rules, backtest subsets and activation rule) **before** any harness code
+or historical result, in `docs/BACKTESTING_IN_TOURNAMENT_PERFORMANCE.md`. It is opponent-adjusted
+(residual vs the baseline model's own pre-match expectation), margin-aware (capped), and shrunk
+toward zero at small samples; it is walk-forward and day-strict, uses only a team's own prior
+completed matches in the same tournament, and is scored at 90 minutes. It is validated against the
+**four-driver** historical baseline only (a stated limitation — the packs carry no
+squad/climate/structural/tournamentContext/recentForm data). It is **not implemented, not active,
+not public, and not tuned**; calibration remains **NO-GO**. Staged path: 1A pre-registration (doc
+only) -> 1B isolated harness (synthetic + weight-0-parity tests, no real metrics) -> 1C run the
+sweep once, report, apply the frozen rule -> production shadow only if the pre-registered gates pass.
+
 ## Intended outputs (later phases)
 - candidate weight ranges with LOTO spread;
 - whether to raise/lower/keep the tournamentContext +/-15 cap;

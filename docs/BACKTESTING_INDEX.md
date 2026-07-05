@@ -94,6 +94,15 @@
 - **Allowed:** reading the decision record and the gated, staged path.
 - **Prohibited:** any production probability/weight change outside a separately approved stage-6 PR; tuning hidden inside calibration; treating the 4-of-10-driver diagnostic ladder as the production model.
 
+### In-tournament performance driver (candidate; pre-registration)
+- **Purpose:** the frozen pre-registration for a candidate `inTournamentPerformance` driver — a controlled, opponent-adjusted, shrunk strength signal from a team's own completed matches inside the tournament. Definition, formula, constants, leakage rules, backtest subsets and the activation decision rule are fixed **before** any harness code or historical result.
+- **Scope:** validated against the **primary** cohort (2010/2014/2018/2022) over the **four-driver** historical baseline only (a limitation, stated in the doc); no 2026 data in the backtest.
+- **Status:** **Stage 1A only** — not implemented, not active, not public, not tuned. Calibration remains **NO-GO**.
+- **Canonical docs:** `docs/BACKTESTING_IN_TOURNAMENT_PERFORMANCE.md`.
+- **Canonical code:** none yet (harness is Stage 1B; results are Stage 1C).
+- **Allowed:** reading the pre-registered rule; implementing the isolated harness later (Stage 1B) with synthetic + weight-0-parity tests only.
+- **Prohibited:** computing/committing real historical metrics before Stage 1C; any production driver/weight/output change before a separately approved later stage; changing the frozen rule without a governance-amendment PR merged before the affected run.
+
 ## Supporting references
 
 - `docs/BACKTESTING_DATA_CONTRACT.md` — historical source-pack schema and leakage rules.
