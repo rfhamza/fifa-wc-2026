@@ -122,6 +122,32 @@ no weight tuning, no production/probability change**; per-tournament diagnostics
   or tournament replay. The diagnostic ladder is a **4-of-10-driver subset**, not the production model.
   Documentation only — no parameters, no production change.
 
+### Stage 1B — candidate in-tournament-performance harness (isolated, no real results)
+Pre-registered by `docs/BACKTESTING_IN_TOURNAMENT_PERFORMANCE.md` (Stage 1A). Stage 1B adds the
+**isolated harness only** — the pure signal math plus a walk-forward evaluator and the sweep / LOTO /
+activation-rule **shapes** — proven with **synthetic** fixtures. It commits **no real historical sweep
+numbers** (the real 1998–2022 run is a later Stage 1C); it is a **candidate diagnostic**, not a
+production driver.
+- `in-tournament-performance.ts` — pure frozen Formula C (`PERF_K`, `PERF_MARGIN_CAP`,
+  `PERF_CONTRIBUTION_CAP`, `PERF_ALPHA`, `PERF_SWEEP_WEIGHTS=[0,5,10,15,20,25]`): per-match surprise vs the
+  **baseline** expectation → shrunk tournament signal → capped pairwise contribution. No I/O, no clock,
+  no historical/production-data import.
+- `walk-forward.ts` — day-strict walk-forward over a pack (`runWalkForward`): predict every match of a
+  day from history as of the prior day's close (same-day matches excluded), then apply the day's results.
+  Per weight it composes `net = round(baseDriverSum + contribution, 1)` through the shared prediction core.
+- `performance-sweep.ts` / `performance-loto.ts` — subset partition + macro-average metric shape and the
+  LOTO fold shape (nothing fitted). Every output carries the candidate governance flags
+  `{ candidateDriverDiagnostic:true, supplementaryOnly:true, headlineEligible:false,
+  calibrationEligible:false, tuningEligible:false, productionEligible:false }`; field names are neutral
+  (`byWeight`, `deltaVsZero`, `selectedWeight` — never `best*`/`recommended*`/`optimal*`).
+- `activation-rule.ts` — the pure frozen G1–G5 decision + smallest-passing-weight selection; `weight 0`
+  (keep zero) is a legitimate outcome.
+- **Acceptance proof:** at **weight 0** the walk-forward per-match triples are **bit-identical** to the
+  existing `evaluateVariant` on all four primary packs and both stage modes
+  (`tests/backtesting-walk-forward.test.ts`) — Stage 1B does not alter any baseline prediction. **No**
+  `MODEL_WEIGHTS` entry, **no** production/config/prediction-core change, **no** snapshot regen, and
+  **calibration remains NO-GO**.
+
 ### Parity vs production (see `docs/BACKTESTING_PARITY_AUDIT.md`)
 **Phase 1.18C-6:** the evaluator now **calls the shared pure prediction core**
 (`lib/model/prediction-core.ts`, the same `data/model-inputs`-free core production delegates to) instead
