@@ -7,9 +7,10 @@
 > a separate governance-amendment PR that is merged *before* the affected run — never after seeing
 > a number. This is the anti-cherry-picking anchor for the whole workstream.
 >
-> **Status:** not implemented, not active, not public, not tuned. Calibration remains **NO-GO**
-> (`docs/BACKTESTING_CALIBRATION_GOVERNANCE.md`). This document does not approve any production
-> probability or weight change.
+> **Status:** a **candidate**, **shadow-only**, **evidence-gated** driver — not implemented, not
+> active, not public, not tuned. Its **weight remains 0 unless separately approved in a later stage**.
+> Calibration remains **NO-GO** (`docs/BACKTESTING_CALIBRATION_GOVERNANCE.md`). This document does
+> not approve any production probability or weight change.
 
 ## 0. Scope and rollout position
 
@@ -189,8 +190,11 @@ timestamp — validate-what-you-run).
 | Third-place match | includes own semi-final loss (motivation confound noted, not modelled) | 5 |
 | Penalties / extra-time as *inputs* | historical: scored at 90' (exact); 2026 knockout: recorded score as a 90' proxy (bounded, Section 5) | - |
 
-**Never used:** the result of match N; any later match; final standings; the eventual champion;
-post-match-N bracket state; post-tournament Elo or FIFA ranking; any hindsight-inferred label.
+**Never used (explicitly forbidden):** the result of match N; any later match; final standings; the
+eventual champion; post-match-N bracket state; post-tournament Elo or FIFA ranking; any
+hindsight-inferred label; **any 2026 tuning** (the backtest sees zero 2026 data); and **any manual
+correction based on intuition** (the signal is a deterministic function of committed results and the
+baseline model — no eye test, no manual override).
 
 **Recursive-contamination rule (hard).** `expectedPoints` and `expectedMargin` are always computed
 from the **baseline model with `inTournamentPerformance` forced to 0** — at every matchday, in both
