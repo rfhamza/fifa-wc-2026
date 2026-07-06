@@ -97,11 +97,11 @@
 ### In-tournament performance driver (candidate; pre-registration)
 - **Purpose:** the frozen pre-registration for a candidate `inTournamentPerformance` driver — a controlled, opponent-adjusted, shrunk strength signal from a team's own completed matches inside the tournament. Definition, formula, constants, leakage rules, backtest subsets and the activation decision rule are fixed **before** any harness code or historical result.
 - **Scope:** validated against the **primary** cohort (2010/2014/2018/2022) over the **four-driver** historical baseline only (a limitation, stated in the doc); no 2026 data in the backtest.
-- **Status:** **Stage 1A only** — not implemented, not active, not public, not tuned. Calibration remains **NO-GO**.
-- **Canonical docs:** `docs/BACKTESTING_IN_TOURNAMENT_PERFORMANCE.md`.
-- **Canonical code:** none yet (harness is Stage 1B; results are Stage 1C).
-- **Allowed:** reading the pre-registered rule; implementing the isolated harness later (Stage 1B) with synthetic + weight-0-parity tests only.
-- **Prohibited:** computing/committing real historical metrics before Stage 1C; any production driver/weight/output change before a separately approved later stage; changing the frozen rule without a governance-amendment PR merged before the affected run.
+- **Status:** **Stage 1C complete — evidence-gated NEGATIVE result.** The frozen G1-G5 rule was applied once to the real 1998-2022 sweep: **no candidate weight passes** (fails G1 primary-RPS and G3 fold-consistency), so `selectedWeight = 0` and **no Stage 2 shadow** is authorised. Not implemented, not active, not public, not tuned. Calibration remains **NO-GO**.
+- **Canonical docs:** `docs/BACKTESTING_IN_TOURNAMENT_PERFORMANCE.md` (frozen pre-registration); `docs/BACKTESTING_IN_TOURNAMENT_PERFORMANCE_RESULTS.md` (Stage 1C results + verdict).
+- **Canonical code:** harness `lib/backtesting/{in-tournament-performance,walk-forward,performance-sweep,performance-loto,activation-rule}.ts` (Stage 1B); results aggregator `lib/backtesting/performance-results.ts` (Stage 1C). Source of truth for the numbers: `tests/backtesting-performance-results.test.ts`.
+- **Allowed:** reading the pinned results; reporting the supplementary stretch cohort (1998/2002/2006) as context only.
+- **Prohibited:** re-running under new thresholds/subsets/formula after seeing the result; any production driver/weight/output change or Stage 2 shadow (the gates failed); changing the frozen rule without a governance-amendment PR merged before the affected run.
 
 ## Supporting references
 
