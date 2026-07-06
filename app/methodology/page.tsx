@@ -224,6 +224,22 @@ export default function MethodologyPage() {
           <strong>planned modelling upgrades</strong>, not active drivers
           today.
         </p>
+        <p>
+          We did test whether short-run results should re-rate strength. A{" "}
+          <strong>results-based in-tournament performance signal</strong> -
+          measuring whether teams were outperforming or underperforming the
+          model&apos;s pre-match expectations, using results and a capped goal
+          margin - was checked against past World Cups in an isolated
+          historical backtest, using a rule fixed in advance.
+        </p>
+        <p>
+          It <strong>did not improve predictive accuracy consistently
+          enough</strong> under that rule, so it <strong>remains inactive at
+          zero weight</strong>. This is a deliberate governance decision, not
+          an oversight: results reshape the tournament path, but BeyondVAR does
+          not chase short-run form narratives unless they pass historical
+          validation first.
+        </p>
       </Section>
 
       <Section title="What will be improved later">
