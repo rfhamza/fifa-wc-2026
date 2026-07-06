@@ -1,14 +1,17 @@
 import { MatchForecastCentre } from "@/components/matches/match-forecast-centre";
 import { getAllFixturePredictions } from "@/lib/model/forecast";
 import {
+  getRuntimeCurrentForecastSnapshot,
   getRuntimeCurrentSnapshotPolicy,
   getRuntimeMatchForecasts,
 } from "@/lib/model/forecast-runtime-store";
+import { listForecastSnapshots } from "@/lib/model/forecast-snapshot-store";
 import {
   buildCentreRuntimeIndex,
   type CentreBaseMatch,
   type CentreSimIndex,
 } from "@/lib/ui/match-centre";
+import { buildMatchImpactIntervals } from "@/lib/ui/match-impact";
 import { teams } from "@/lib/data";
 import type { TeamLookup } from "@/lib/live-client/public-safe-view.client";
 
@@ -82,6 +85,12 @@ export default async function MatchesPage() {
 
   const source = (await getRuntimeCurrentSnapshotPolicy()).currentSource;
 
+  // Precompute the committed public checkpoint intervals for the Match Impact panels
+  // (server-only snapshots; passed to the client as compact, public-safe data). No
+  // simulation, no snapshot regeneration, no live-state/provider/Blob write.
+  const currentSnapshot = await getRuntimeCurrentForecastSnapshot();
+  const impactIntervals = buildMatchImpactIntervals(listForecastSnapshots(), currentSnapshot);
+
   return (
     <MatchForecastCentre
       baseMatches={baseMatches}
@@ -90,6 +99,7 @@ export default async function MatchesPage() {
       matchesObjectAvailable={matchesObjectAvailable}
       teams={TEAM_LOOKUP}
       source={source}
+      impactIntervals={impactIntervals}
     />
   );
 }

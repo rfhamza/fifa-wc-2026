@@ -194,6 +194,34 @@ describe("Movement surface copy is honest + non-overclaiming", () => {
   });
 });
 
+// Match Impact ("What changed?") — pure selector + progressive-disclosure panel.
+const matchImpactLib = read("lib/ui/match-impact.ts");
+const matchImpactPanel = read("components/matches/match-impact-panel.tsx");
+
+describe("Match Impact copy is honest, checkpoint-framed, and non-overclaiming", () => {
+  it("frames probability movement by checkpoint interval, never the single match", () => {
+    expect(matchImpactLib).toContain("Forecast movement since");
+    expect(matchImpactPanel).toContain("Across this forecast interval");
+    expect(matchImpactPanel.toLowerCase()).toContain("not this match alone");
+  });
+
+  it("uses clear stage labels, never bare win%/final% or betting/causal language", () => {
+    expect(matchImpactPanel).toContain("Title chance");
+    for (const bad of ["because", "rival", "easier path", "harder path", "will beat", "will face", "guaranteed", "betting odds", "momentum", "win %", "final %", "form proves"]) {
+      expect(matchImpactLib.toLowerCase(), `impact lib overclaims: "${bad}"`).not.toContain(bad);
+      expect(matchImpactPanel.toLowerCase(), `impact panel overclaims: "${bad}"`).not.toContain(bad);
+    }
+  });
+
+  it("surfaces elimination only as a status event, never inferred from a 0% probability", () => {
+    expect(matchImpactLib).toContain("Impact data is unavailable for this checkpoint.");
+    expect(matchImpactLib.toLowerCase()).not.toContain("0% means");
+    expect(matchImpactLib.toLowerCase()).not.toContain("zero title chance means");
+    // The eliminating-round guard is by knockout stage, not by probability.
+    expect(matchImpactLib).toContain("knockout-result");
+  });
+});
+
 // UX-4A: /bracket surface + its pure node/label source.
 const bracketPage = read("components/bracket/bracket-page.tsx");
 const bracketLib = read("lib/ui/bracket-view.ts");
