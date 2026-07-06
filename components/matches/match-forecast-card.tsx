@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { ChevronDown } from "lucide-react";
 import { FlagGlyph } from "@/components/flag-glyph";
 import { Badge } from "@/components/ui/badge";
 import { ProbabilityBar } from "@/components/charts/probability-bar";
+import { MatchImpactPanel } from "@/components/matches/match-impact-panel";
 import { cn, pct } from "@/lib/utils";
 import { formatKickoff } from "@/lib/ui/home-sections";
 import {
@@ -11,6 +13,7 @@ import {
   stageLabel,
   type MatchCentreRow,
 } from "@/lib/ui/match-centre";
+import type { MatchImpactSummary } from "@/lib/ui/match-impact";
 import type { LiveViewMatch, TeamLookup } from "@/lib/live-client/public-safe-view.client";
 
 /**
@@ -23,10 +26,18 @@ export function MatchForecastCard({
   row,
   live,
   teams,
+  impact,
+  showImpactCta = false,
+  impactOpen = false,
+  onToggleImpact,
 }: {
   row: MatchCentreRow;
   live: LiveViewMatch | undefined;
   teams: TeamLookup;
+  impact?: MatchImpactSummary;
+  showImpactCta?: boolean;
+  impactOpen?: boolean;
+  onToggleImpact?: () => void;
 }) {
   const kickoff = formatKickoff(row.kickoff);
   const teamsConfirmed = Boolean(row.teamA && row.teamB);
@@ -136,6 +147,23 @@ export function MatchForecastCard({
         >
           View in bracket
         </Link>
+      ) : null}
+
+      {/* Progressive disclosure: "What changed?" impact (completed matches with real content only). */}
+      {showImpactCta && impact ? (
+        <div className="flex flex-col gap-3">
+          <button
+            type="button"
+            aria-expanded={impactOpen}
+            aria-controls={`impact-panel-${row.matchNumber}`}
+            onClick={onToggleImpact}
+            className="flex items-center gap-1 self-start rounded text-xs font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            What changed?
+            <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", impactOpen && "rotate-180")} aria-hidden />
+          </button>
+          {impactOpen ? <MatchImpactPanel summary={impact} teams={teams} /> : null}
+        </div>
       ) : null}
     </div>
   );

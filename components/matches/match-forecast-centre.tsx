@@ -20,6 +20,12 @@ import {
   type CentreSimIndex,
   type MatchCentreFilter,
 } from "@/lib/ui/match-centre";
+import {
+  buildMatchImpactSummary,
+  findIntervalForMatch,
+  shouldShowMatchImpactCta,
+  type MatchImpactInterval,
+} from "@/lib/ui/match-impact";
 
 const FILTERS: ReadonlyArray<{ value: MatchCentreFilter; label: string }> = [
   { value: "all", label: "All" },
@@ -37,6 +43,7 @@ export function MatchForecastCentre({
   matchesObjectAvailable,
   teams,
   source,
+  impactIntervals,
 }: {
   baseMatches: CentreBaseMatch[];
   simIndex: CentreSimIndex;
@@ -44,9 +51,11 @@ export function MatchForecastCentre({
   matchesObjectAvailable: boolean;
   teams: TeamLookup;
   source: ForecastSourceKind;
+  impactIntervals: MatchImpactInterval[];
 }) {
   const [live, setLive] = useState<LiveViewMatch[] | null | "loading">("loading");
   const [filter, setFilter] = useState<MatchCentreFilter>("all");
+  const [expandedMatch, setExpandedMatch] = useState<number | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -95,9 +104,24 @@ export function MatchForecastCentre({
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 [&>*]:min-w-0">
-          {rows.map((row) => (
-            <MatchForecastCard key={row.matchNumber} row={row} live={liveMap.get(row.matchNumber)} teams={teams} />
-          ))}
+          {rows.map((row) => {
+            const interval = findIntervalForMatch(impactIntervals, row.matchNumber);
+            const impact = buildMatchImpactSummary({ row, teams, interval });
+            return (
+              <MatchForecastCard
+                key={row.matchNumber}
+                row={row}
+                live={liveMap.get(row.matchNumber)}
+                teams={teams}
+                impact={impact}
+                showImpactCta={shouldShowMatchImpactCta(row, impact)}
+                impactOpen={expandedMatch === row.matchNumber}
+                onToggleImpact={() =>
+                  setExpandedMatch((cur) => (cur === row.matchNumber ? null : row.matchNumber))
+                }
+              />
+            );
+          })}
         </div>
       )}
     </div>
