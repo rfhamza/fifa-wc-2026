@@ -328,31 +328,46 @@ export async function runFetchLiveState(deps: FetchDeps): Promise<RunResult> {
   // --- validate + derive internally ---
   let state = deriveFrom(normalized);
 
-  // Recovery pass (Phase 1.28S): a finished/active knockout the exact (round,kickoffUtc)
-  // join missed - e.g. a kickoff rescheduled after the official PDF - can still be
-  // identified by its RESOLVED team pair against the internally derived bracket. This keeps
-  // a genuine result from spuriously hard-blocking the write, while a truly unidentifiable
-  // completed result still fails closed (team pair matches no resolved slot -> stays unmapped).
+  // Recovery pass (Phase 1.28S; Phase 1.28X: iterated to a fixed point): a finished/active
+  // knockout the exact (round,kickoffUtc) join missed - e.g. a kickoff rescheduled after the
+  // official PDF - can still be identified by its RESOLVED team pair against the internally
+  // derived bracket. This keeps a genuine result from spuriously hard-blocking the write, while
+  // a truly unidentifiable completed result still fails closed (team pair matches no resolved
+  // slot -> stays unmapped).
+  //
+  // Why a LOOP and not a single pass: a LATER round's participants only become resolved once an
+  // EARLIER round's drifted result is recovered AND re-ingested (the internal bracket propagates
+  // R32 winners into R16 slots, R16 winners into QF slots, ...). A single pass reads the
+  // pre-recovery bracket, so it recovers R32 (whose participants come from the completed group
+  // stage) but leaves the R16 slot - still unresolved at that instant - blocking. So we repeat:
+  // recover -> re-normalize -> re-derive, and recover again against the now-more-resolved
+  // bracket, until a pass finds nothing new. Every pass uses the SAME strict
+  // exactly-one-resolved-slot rule in augmentKnockoutMapByTeams (orientation-insensitive,
+  // round-family-sensitive, ambiguity/placeholder/taken-target all fail closed), so iterating
+  // never weakens safety - it only lets a genuine knockout cascade resolve. Bounded by the
+  // knockout-round depth to guarantee termination.
+  const MAX_RECOVERY_PASSES = 8; // > the 6 knockout rounds; a hard stop against any cycle
   let recoveredByTeams: KnockoutTeamRecovery[] = [];
-  if (knockoutBridge.diagnostics.unmatchedPlayable > 0) {
+  for (let pass = 0; pass < MAX_RECOVERY_PASSES; pass += 1) {
+    // Nothing left that would block: every playable unmatched row has already been recovered.
+    if (knockoutBridge.diagnostics.unmatchedPlayable - recoveredByTeams.length <= 0) break;
     const aug = augmentKnockoutMapByTeams(matchesPayload, knockoutMatchIdMap, state.bracket);
-    if (aug.recovered.length > 0) {
-      knockoutMatchIdMap = aug.knockoutMatchIdMap;
-      recoveredByTeams = aug.recovered;
-      for (const r of aug.recovered) {
-        log(
-          `RECOVERED knockout by team identity: providerId=${r.providerId} ${r.stage} -> M${r.matchNumber} ` +
-            `[${r.teamA} v ${r.teamB}] (kickoff drifted from the official schedule; identified by participants).`,
-        );
-      }
-      try {
-        normalized = normalizeWith(knockoutMatchIdMap);
-      } catch (e) {
-        log(`ERROR: normalization failed after knockout team-identity recovery: ${e instanceof Error ? e.message : "unknown"}`);
-        return { exitCode: 1, error: "normalize-failed" };
-      }
-      state = deriveFrom(normalized);
+    if (aug.recovered.length === 0) break; // fixed point: the resolved bracket yields no new match
+    knockoutMatchIdMap = aug.knockoutMatchIdMap;
+    recoveredByTeams = [...recoveredByTeams, ...aug.recovered];
+    for (const r of aug.recovered) {
+      log(
+        `RECOVERED knockout by team identity: providerId=${r.providerId} ${r.stage} -> M${r.matchNumber} ` +
+          `[${r.teamA} v ${r.teamB}] (kickoff drifted from the official schedule; identified by participants).`,
+      );
     }
+    try {
+      normalized = normalizeWith(knockoutMatchIdMap);
+    } catch (e) {
+      log(`ERROR: normalization failed after knockout team-identity recovery: ${e instanceof Error ? e.message : "unknown"}`);
+      return { exitCode: 1, error: "normalize-failed" };
+    }
+    state = deriveFrom(normalized);
   }
 
   // Cross-check: bridged knockout matches with resolved teams must agree with the

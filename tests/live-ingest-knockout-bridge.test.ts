@@ -339,6 +339,227 @@ describe("runFetchLiveState recovers a drifted finished knockout end-to-end (no 
   });
 });
 
+/**
+ * Hotfix (Phase 1.28X): team-identity recovery must work for LAST_16 and later knockout
+ * rounds, not just LAST_32. `augmentKnockoutMapByTeams` is already stage-generic; these unit
+ * tests pin that a resolved roundOf16 slot is recovered orientation-insensitively and
+ * round-family-sensitively, and that every fail-closed guard still holds for roundOf16.
+ */
+describe("augmentKnockoutMapByTeams is generic across knockout rounds (roundOf16+)", () => {
+  // A synthetic internally-derived bracket. Teams come from internal derivation, NEVER the
+  // provider (the provider stays a sanitized score source, not the bracket source of truth).
+  const bracketOf = (
+    rows: Array<{ matchNumber: number; stage: string; home: string | null; away: string | null }>,
+  ): LiveBracketState =>
+    ({
+      matches: rows.map((r) => ({
+        matchNumber: r.matchNumber, stage: r.stage, homeTeamId: r.home, awayTeamId: r.away,
+        winner: null, status: "scheduled", resolved: false,
+      })),
+      unresolved: [], unresolvedTies: [], derivedFrom: "results",
+    } as unknown as LiveBracketState);
+  // Provider team objects resolve by NAME (never the synthetic provider id).
+  const fdTeam = (appId: string, id: number): FdMatch["homeTeam"] =>
+    ({ id, name: getTeam(appId).name, shortName: getTeam(appId).name, tla: null });
+  // M89 is the first official roundOf16 slot (LAST_16 2026-07-04T21:00:00Z).
+  const R16_SLOT = { matchNumber: 89, stage: "roundOf16" as const };
+
+  it("recovers a drifted LAST_16 result by team identity (the observed Mexico v England case)", () => {
+    const bracket = bracketOf([{ ...R16_SLOT, home: "mexico", away: "england" }]);
+    const payload = wc([ko({
+      id: 537378, stage: "LAST_16", status: "IN_PLAY", utcDate: "2026-07-04T21:00:07Z",
+      homeTeam: fdTeam("mexico", 900101), awayTeam: fdTeam("england", 900102),
+      score: { winner: null, duration: "REGULAR", fullTime: { home: 1, away: 0 } },
+    })]);
+    const aug = augmentKnockoutMapByTeams(payload, {}, bracket);
+    expect(aug.knockoutMatchIdMap["537378"]).toBe(89);
+    expect(aug.recovered).toHaveLength(1);
+    expect(aug.recovered[0]).toMatchObject({ providerId: "537378", matchNumber: 89, stage: "roundOf16" });
+    expect([aug.recovered[0]!.teamA, aug.recovered[0]!.teamB].sort()).toEqual(["england", "mexico"]);
+  });
+
+  it("recovers regardless of provider home/away orientation", () => {
+    const bracket = bracketOf([{ ...R16_SLOT, home: "mexico", away: "england" }]);
+    // Provider lists England home / Mexico away - opposite of the internal slot orientation.
+    const payload = wc([ko({
+      id: 537378, stage: "LAST_16", status: "FINISHED", utcDate: "2026-07-04T21:00:07Z",
+      homeTeam: fdTeam("england", 1), awayTeam: fdTeam("mexico", 2),
+      score: { winner: "HOME_TEAM", duration: "REGULAR", fullTime: { home: 2, away: 1 } },
+    })]);
+    expect(augmentKnockoutMapByTeams(payload, {}, bracket).knockoutMatchIdMap["537378"]).toBe(89);
+  });
+
+  it("does NOT recover when the same team pair only matches a DIFFERENT round family", () => {
+    // The pair is resolved in roundOf32; the provider row is LAST_16 -> no roundOf16 candidate.
+    const bracket = bracketOf([{ matchNumber: 73, stage: "roundOf32", home: "mexico", away: "england" }]);
+    const payload = wc([ko({
+      id: 537378, stage: "LAST_16", status: "FINISHED", utcDate: "2026-07-04T21:00:07Z",
+      homeTeam: fdTeam("mexico", 1), awayTeam: fdTeam("england", 2),
+      score: { winner: "HOME_TEAM", duration: "REGULAR", fullTime: { home: 1, away: 0 } },
+    })]);
+    const aug = augmentKnockoutMapByTeams(payload, {}, bracket);
+    expect(aug.recovered).toEqual([]);
+    expect(aug.knockoutMatchIdMap).toEqual({});
+  });
+
+  it("fails closed (no recovery) when the team pair is ambiguous across two roundOf16 slots", () => {
+    const bracket = bracketOf([
+      { matchNumber: 89, stage: "roundOf16", home: "mexico", away: "england" },
+      { matchNumber: 90, stage: "roundOf16", home: "england", away: "mexico" }, // same unordered pair
+    ]);
+    const payload = wc([ko({
+      id: 537378, stage: "LAST_16", status: "IN_PLAY", utcDate: "2026-07-04T21:00:07Z",
+      homeTeam: fdTeam("mexico", 1), awayTeam: fdTeam("england", 2),
+      score: { winner: null, duration: "REGULAR", fullTime: { home: 0, away: 0 } },
+    })]);
+    const aug = augmentKnockoutMapByTeams(payload, {}, bracket);
+    expect(aug.recovered).toEqual([]);
+    expect(aug.knockoutMatchIdMap["537378"]).toBeUndefined();
+  });
+
+  it("does NOT recover a LAST_16 result whose teams match no resolved roundOf16 slot", () => {
+    const bracket = bracketOf([{ ...R16_SLOT, home: "brazil", away: "argentina" }]);
+    const payload = wc([ko({
+      id: 537378, stage: "LAST_16", status: "FINISHED", utcDate: "2026-07-04T21:00:07Z",
+      homeTeam: fdTeam("mexico", 1), awayTeam: fdTeam("england", 2),
+      score: { winner: "HOME_TEAM", duration: "REGULAR", fullTime: { home: 1, away: 0 } },
+    })]);
+    expect(augmentKnockoutMapByTeams(payload, {}, bracket).recovered).toEqual([]);
+  });
+
+  it("does NOT recover against an unresolved (placeholder) roundOf16 slot", () => {
+    const bracket = bracketOf([{ ...R16_SLOT, home: "mexico", away: null }]);
+    const payload = wc([ko({
+      id: 537378, stage: "LAST_16", status: "IN_PLAY", utcDate: "2026-07-04T21:00:07Z",
+      homeTeam: fdTeam("mexico", 1), awayTeam: fdTeam("england", 2),
+      score: { winner: null, duration: "REGULAR", fullTime: { home: 0, away: 0 } },
+    })]);
+    expect(augmentKnockoutMapByTeams(payload, {}, bracket).recovered).toEqual([]);
+  });
+
+  it("does NOT recover an unknown/unsupported provider stage even if the teams match a slot", () => {
+    const bracket = bracketOf([{ ...R16_SLOT, home: "mexico", away: "england" }]);
+    const payload = wc([ko({
+      id: 537378, stage: "LAST_64", status: "FINISHED", utcDate: "2026-07-04T21:00:07Z",
+      homeTeam: fdTeam("mexico", 1), awayTeam: fdTeam("england", 2),
+      score: { winner: "HOME_TEAM", duration: "REGULAR", fullTime: { home: 1, away: 0 } },
+    })]);
+    expect(augmentKnockoutMapByTeams(payload, {}, bracket).recovered).toEqual([]);
+  });
+});
+
+/**
+ * Hotfix (Phase 1.28X): the recovery pass must ITERATE to a fixed point. A later round's
+ * participants only resolve once an earlier round's drifted result is recovered AND
+ * re-ingested, so a single pass recovers R32 but leaves a drifted R16 result blocking. This
+ * is the exact scheduled-workflow failure (a live LAST_16 Mexico v England hard-blocking the
+ * write). Offline; no network, no Blob, no secrets.
+ */
+describe("runFetchLiveState iterates team-identity recovery across knockout rounds (R32 -> R16 cascade)", () => {
+  const UPDATED = "2026-07-06T00:30:00Z";
+  const ASOF_RUN = "2026-07-06T01:30:00Z";
+  const matchesFetch = (payload: unknown): FetchLike => async () => ({
+    status: 200, ok: true, headers: { get: () => null }, text: async () => JSON.stringify(payload),
+  });
+  const providerTeam = (appId: string, seq: number): FdMatch["homeTeam"] => ({
+    id: 900000 + seq, name: getTeam(appId).name, shortName: getTeam(appId).name, tla: null,
+  });
+  // Drift the kickoff by 7 seconds: misses the exact (round,kickoffUtc) string join while
+  // preserving per-match uniqueness (the schedule's HH:MM stays intact, so no provider
+  // (stage,utcDate) collision even across 16 R32 rows).
+  const driftKickoff = (kickoffUtc: string): string => `${kickoffUtc.slice(0, 17)}07Z`;
+  const allGroupsFinished = (): FdMatch[] =>
+    reference.groupMatches.map((gm, i) => ({
+      id: 400000 + i,
+      utcDate: `2026-06-${String(11 + (i % 15)).padStart(2, "0")}T${String(i % 24).padStart(2, "0")}:03:00Z`,
+      status: "FINISHED", stage: "GROUP_STAGE", group: `GROUP_${gm.group}`, lastUpdated: UPDATED,
+      homeTeam: providerTeam(gm.homeTeamId, i * 2), awayTeam: providerTeam(gm.awayTeamId, i * 2 + 1),
+      score: { winner: "HOME_TEAM", duration: "REGULAR", fullTime: { home: 1, away: 0 } },
+    }));
+  const deriveBracket = (rows: FdMatch[]): LiveBracketState => {
+    const payload = wc(rows);
+    const bridge = buildKnockoutMatchIdMap(payload);
+    const norm = normalizeFootballDataMatches(payload, {
+      reference, asOf: ASOF_RUN, expectFullTournament: false, knockoutMatchIdMap: bridge.knockoutMatchIdMap,
+    });
+    return ingestLiveSnapshot(norm.snapshot, reference, { generatedAt: ASOF_RUN, staleAfterSeconds: 24 * 60 * 60 }).bracket;
+  };
+
+  it("recovers a drifted LAST_16 result only after its drifted R32 feeders are recovered + re-ingested", async () => {
+    const groupRows = allGroupsFinished();
+
+    // 1. Groups complete -> discover the 16 resolved roundOf32 slots (internal ground truth).
+    const r32Slots = deriveBracket(groupRows).matches.filter(
+      (m) => m.stage === "roundOf32" && m.homeTeamId && m.awayTeamId,
+    );
+    expect(r32Slots).toHaveLength(16);
+
+    // Exact-time R32 rows (home wins) - used ONLY to discover the roundOf16 pairing.
+    const r32Exact: FdMatch[] = r32Slots.map((slot, i) => {
+      const official = officialKnockoutSchedule.find((r) => r.matchNumber === slot.matchNumber)!;
+      return {
+        id: 560000 + i, utcDate: official.kickoffUtc, status: "FINISHED", stage: "LAST_32", group: null, lastUpdated: UPDATED,
+        homeTeam: providerTeam(slot.homeTeamId!, 6000 + i * 2), awayTeam: providerTeam(slot.awayTeamId!, 6000 + i * 2 + 1),
+        score: { winner: "HOME_TEAM", duration: "REGULAR", fullTime: { home: 2, away: 0 } },
+      };
+    });
+
+    // 2. With all R32 complete, roundOf16 slots resolve. Pick one as the target.
+    const r16Slot = deriveBracket([...groupRows, ...r32Exact]).matches.find(
+      (m) => m.stage === "roundOf16" && m.homeTeamId && m.awayTeamId,
+    )!;
+    expect(r16Slot).toBeTruthy();
+
+    // 3. Now DRIFT every R32 row (each needs team-identity recovery) and add a DRIFTED, IN_PLAY
+    //    roundOf16 row for the target slot. The R16 slot is unresolved until the R32s are
+    //    recovered AND re-ingested - a single recovery pass would leave it hard-blocking.
+    const r32Drifted: FdMatch[] = r32Exact.map((row) => ({ ...row, utcDate: driftKickoff(row.utcDate) }));
+    const r16Official = officialKnockoutSchedule.find((r) => r.matchNumber === r16Slot.matchNumber)!;
+    const r16Row: FdMatch = {
+      id: 537378, utcDate: driftKickoff(r16Official.kickoffUtc), status: "IN_PLAY", stage: "LAST_16", group: null, lastUpdated: UPDATED,
+      homeTeam: providerTeam(r16Slot.homeTeamId!, 7001), awayTeam: providerTeam(r16Slot.awayTeamId!, 7002),
+      score: { winner: null, duration: "REGULAR", fullTime: { home: 1, away: 0 } },
+    };
+
+    const logs: string[] = [];
+    const r = await runFetchLiveState({
+      token: "fd-secret", fetchImpl: matchesFetch(wc([...groupRows, ...r32Drifted, r16Row])), now: () => ASOF_RUN,
+      writeArtifact: () => {}, log: (l) => logs.push(l), reference,
+      options: { standings: false, dryRun: true, summaryOnly: true, expectFullTournament: false, outDir: "artifacts/test" },
+    });
+
+    expect(r.exitCode).toBe(0);
+    expect(r.summary!.unmappedCount).toBe(0); // the drifted LAST_16 no longer hard-blocks the write
+    expect(r.summary!.knockoutBridgeRecoveredByTeams).toBe(17); // 16 R32 + 1 R16, across iterated passes
+    expect(
+      r.state!.matches.some((m) => m.matchId === `M${r16Slot.matchNumber}` && m.status === "in-progress"),
+    ).toBe(true);
+    expect(logs.join("\n")).toContain(`roundOf16 -> M${r16Slot.matchNumber}`);
+    // Provider ids never leak into persisted state; tokens never appear in logs.
+    expect(JSON.stringify(r.state!.matches)).not.toContain("537378");
+    expect(logs.join("\n")).not.toContain("fd-secret");
+  });
+
+  it("still fails closed on a drifted LAST_16 result whose roundOf16 slot never resolves", async () => {
+    // No R32 results -> no resolved roundOf16 slot -> a genuine, unidentifiable LAST_16 result
+    // MUST keep blocking (the iteration must not invent a mapping the bracket cannot support).
+    const groupRows = allGroupsFinished();
+    const r16Row: FdMatch = {
+      id: 537378, utcDate: "2026-07-04T21:00:07Z", status: "IN_PLAY", stage: "LAST_16", group: null, lastUpdated: UPDATED,
+      homeTeam: providerTeam("mexico", 7001), awayTeam: providerTeam("england", 7002),
+      score: { winner: null, duration: "REGULAR", fullTime: { home: 1, away: 0 } },
+    };
+    const logs: string[] = [];
+    const r = await runFetchLiveState({
+      token: "fd-secret", fetchImpl: matchesFetch(wc([...groupRows, r16Row])), now: () => ASOF_RUN,
+      writeArtifact: () => {}, log: (l) => logs.push(l), reference,
+      options: { standings: false, dryRun: true, summaryOnly: true, expectFullTournament: false, outDir: "artifacts/test" },
+    });
+    expect(r.summary!.unmappedCount).toBeGreaterThan(0); // still fails closed
+    expect(r.summary!.knockoutBridgeRecoveredByTeams).toBe(0);
+  });
+});
+
 // Provider utcDate is only ever a cross-check; assert we never derive official kickoffUtc from it.
 describe("source-of-truth guard", () => {
   it("official kickoffUtc is derived from ET source, matching provider utcDate as a cross-check only", () => {
