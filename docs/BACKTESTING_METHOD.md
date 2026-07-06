@@ -195,6 +195,14 @@ not public, and not tuned**; calibration remains **NO-GO**. Staged path: 1A pre-
 only) -> 1B isolated harness (synthetic + weight-0-parity tests, no real metrics) -> 1C run the
 sweep once, report, apply the frozen rule -> production shadow only if the pre-registered gates pass.
 
+**Stage 1C result (complete): pre-registered NEGATIVE.** The real 1998-2022 sweep was run once and the
+frozen G1-G5 rule applied (pure aggregator `lib/backtesting/performance-results.ts`; numbers pinned by
+`tests/backtesting-performance-results.test.ts`; readable copy in
+`docs/BACKTESTING_IN_TOURNAMENT_PERFORMANCE_RESULTS.md`). On the primary cohort the driver slightly
+degrades the group MD2+MD3 subset (fails G1) and improves in only 1 of 4 tournaments (fails G3), so no
+candidate weight passes: `selectedWeight = 0`. The stretch cohort (1998/2002/2006) is reported as
+context only and never feeds the gates. No production shadow is authorised; **calibration remains NO-GO.**
+
 ## Intended outputs (later phases)
 - candidate weight ranges with LOTO spread;
 - whether to raise/lower/keep the tournamentContext +/-15 cap;
