@@ -94,6 +94,29 @@ describe("methodology distinguishes tournament-state updates from team-strength 
     expect(lc).toContain("approximately level");
   });
 
+  it("explains a results-based in-tournament signal was tested and left inactive", () => {
+    expect(lc).toContain("results-based in-tournament performance signal");
+    expect(lc).toContain("outperforming or underperforming");
+    expect(lc).toContain("historical backtest");
+    expect(lc).toContain("did not improve predictive accuracy consistently");
+    expect(lc).toContain("remains inactive at zero weight");
+    // Framed as a governance decision, not an oversight, and non-dismissive of results.
+    expect(lc).toContain("deliberate governance decision, not");
+    expect(lc).toContain("pass historical validation");
+  });
+
+  it("does not dismiss results or in-tournament form as meaningless", () => {
+    for (const bad of [
+      "form does not matter",
+      "in-tournament form is useless",
+      "momentum is fake",
+      "the model ignores results",
+      "results do not matter",
+    ]) {
+      expect(lc, `methodology over-dismisses form/results: "${bad}"`).not.toContain(bad);
+    }
+  });
+
   it("never implies live form-adjusted / performance-reactive probabilities", () => {
     // Strip the negated FIFA disclaimer so its wording never false-positives.
     const DISCLAIMER =
