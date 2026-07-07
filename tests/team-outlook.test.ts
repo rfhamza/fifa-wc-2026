@@ -7,10 +7,12 @@ import {
   deriveTeamHeroStatus,
   type TeamHeroModel,
   type TeamMatchContext,
+  type TeamMatchHistoryRow,
   type TeamTrajectoryModel,
   type TeamTrajectoryPoint,
   type TrajectoryStage,
 } from "@/lib/ui/team-trajectory";
+import type { TeamLite } from "@/lib/live-client/public-safe-view.client";
 
 /**
  * Team Outlook Storytelling (UX-6B) selectors — pure. Synthetic model/hero/context; no
@@ -177,5 +179,259 @@ describe("buildTeamOutlookStory: route from here + links", () => {
     const s = buildTeamOutlookStory({ teamId: "mexico", hero: hero(), model: TRAJECTORY, status: "active", context: noMatch });
     expect(s.bracketLink).toBe("/bracket?team=mexico");
     expect(s.relevantMatchLinks[0]).toEqual({ label: "Trace path in bracket", href: "/bracket?team=mexico" });
+  });
+});
+
+/* ----------------------------------------------------------------------------
+ * Personalized storytelling (UX-6B follow-up). Synthetic live-state result + history
+ * rows; the narrative is data-driven (no hardcoded team stories), leads with the most
+ * meaningful factual tournament event, and mentions probability movement only after it.
+ * -------------------------------------------------------------------------- */
+function teamLite(id: string, name: string): TeamLite {
+  return { id, name, flag: "", countryCode: id.toUpperCase().slice(0, 3) };
+}
+
+function historyRow(over: Partial<TeamMatchHistoryRow> & { matchNumber: number }): TeamMatchHistoryRow {
+  return {
+    matchNumber: over.matchNumber,
+    stageLabel: over.stageLabel ?? "Group stage",
+    isKnockout: over.isKnockout ?? false,
+    opponent: over.opponent ?? null,
+    provenanceLabel: over.provenanceLabel ?? "No pre-match forecast captured",
+    hasForecast: over.hasForecast ?? false,
+    teamWin: over.teamWin ?? null,
+    draw: over.draw ?? null,
+    teamLoss: over.teamLoss ?? null,
+    teamAdvance: over.teamAdvance ?? null,
+  };
+}
+
+function completedContext(
+  matchNumber: number,
+  opponentId: string | null,
+  score: string | null,
+  won: boolean | null,
+  next?: { matchNumber: number; opponentId: string | null },
+): TeamMatchContext {
+  return {
+    inProgress: null,
+    lastCompleted: { matchNumber, opponentId, score, won },
+    nextScheduled: next ? { matchNumber: next.matchNumber, opponentId: next.opponentId, score: null, kickoff: null } : null,
+  };
+}
+
+describe("buildTeamOutlookStory: story priority leads with the tournament event", () => {
+  it("an eliminated team leads with elimination, naming opponent + scoreline + stage", () => {
+    const s = buildTeamOutlookStory({
+      teamId: "brazil",
+      teamName: "Brazil",
+      hero: hero({ teamId: "brazil" }),
+      model: TRAJECTORY,
+      status: "active", // group qualification still reads active; the knockout loss is canonical
+      qualification: "qualified",
+      context: completedContext(90, "norway", "2–3", false),
+      matchHistory: [historyRow({ matchNumber: 90, stageLabel: "Round of 16", isKnockout: true, opponent: teamLite("norway", "Norway") })],
+    });
+    expect(s.storyType).toBe("eliminated");
+    expect(s.primaryNarrative).toBe(
+      "Brazil's tournament ended after a narrow 2–3 knockout defeat to Norway. They are now out of the title race.",
+    );
+    expect(s.supportingNarrative).toBeNull();
+    // A lost knockout resolves the route to eliminated even though `status` is group-only.
+    expect(s.routeState).toBe("eliminated");
+    expect(s.nextMatchNumber).toBeNull();
+    expect(s.latestTeamMatch).toEqual({
+      matchNumber: 90,
+      opponentId: "norway",
+      opponentName: "Norway",
+      stageLabel: "Round of 16",
+      isKnockout: true,
+      score: "2–3",
+      won: false,
+      opponentIsHost: false,
+    });
+  });
+
+  it("a knockout winner leads with advancement, including scoreline, host context, and the next match", () => {
+    const s = buildTeamOutlookStory({
+      teamId: "england",
+      teamName: "England",
+      hero: hero({ teamId: "england" }),
+      model: TRAJECTORY,
+      status: "active",
+      context: completedContext(79, "mexico", "3–2", true, { matchNumber: 84, opponentId: "france" }),
+      matchHistory: [historyRow({ matchNumber: 79, stageLabel: "Quarter-final", isKnockout: true, opponent: teamLite("mexico", "Mexico") })],
+    });
+    expect(s.storyType).toBe("advanced");
+    // "host nation Mexico" because the opponent is a WC2026 co-host; NO stadium/venue is claimed.
+    expect(s.primaryNarrative).toBe("England advanced after a tight 3–2 knockout win over host nation Mexico.");
+    expect(s.supportingNarrative).toBe("Next match: Match 84.");
+    expect(s.opponentContext).toBe("host nation Mexico");
+    expect(s.scorelineContext).toBe("3–2");
+    expect(s.stageContext).toBe("Quarter-final");
+    expect(s.relevantMatchLinks).toContainEqual({ label: "View match", href: "/bracket?match=84" });
+  });
+
+  it("adds host-nation context only for co-host opponents and never a venue/stadium", () => {
+    const base = {
+      teamId: "germany",
+      teamName: "Germany",
+      hero: hero({ teamId: "germany" }),
+      model: TRAJECTORY,
+      status: "active" as const,
+    };
+    const host = buildTeamOutlookStory({
+      ...base,
+      context: completedContext(80, "canada", "1–0", true),
+      matchHistory: [historyRow({ matchNumber: 80, stageLabel: "Round of 16", isKnockout: true, opponent: teamLite("canada", "Canada") })],
+    });
+    const nonHost = buildTeamOutlookStory({
+      ...base,
+      context: completedContext(80, "france", "1–0", true),
+      matchHistory: [historyRow({ matchNumber: 80, stageLabel: "Round of 16", isKnockout: true, opponent: teamLite("france", "France") })],
+    });
+    expect(host.opponentContext).toBe("host nation Canada");
+    expect(nonHost.opponentContext).toBe("France");
+    expect(nonHost.primaryNarrative).not.toContain("host nation");
+    for (const s of [host, nonHost]) {
+      const copy = `${s.primaryNarrative} ${s.supportingNarrative ?? ""}`.toLowerCase();
+      expect(copy).not.toContain("stadium");
+      expect(copy).not.toContain("venue");
+      expect(copy).not.toContain("estadio");
+    }
+  });
+
+  it("a non-decisive latest result is described factually with opponent, scoreline, and stage", () => {
+    const s = buildTeamOutlookStory({
+      teamId: "england",
+      teamName: "England",
+      hero: hero({ teamId: "england" }),
+      model: TRAJECTORY,
+      status: "active",
+      qualification: "undecided",
+      context: completedContext(40, "japan", "2–2", null),
+      matchHistory: [historyRow({ matchNumber: 40, stageLabel: "Group stage", isKnockout: false, opponent: teamLite("japan", "Japan") })],
+    });
+    expect(s.storyType).toBe("latest-result");
+    expect(s.primaryNarrative).toBe("England's latest result was a 2–2 draw with Japan in the group stage.");
+  });
+
+  it("skips higher/lower-rated opponent phrasing in the MVP (opponent strength not client-safe)", () => {
+    const s = buildTeamOutlookStory({
+      teamId: "england",
+      teamName: "England",
+      hero: hero({ teamId: "england" }),
+      model: TRAJECTORY,
+      status: "active",
+      context: completedContext(79, "mexico", "3–2", true),
+      matchHistory: [historyRow({ matchNumber: 79, stageLabel: "Quarter-final", isKnockout: true, opponent: teamLite("mexico", "Mexico") })],
+    });
+    const copy = `${s.primaryNarrative} ${s.supportingNarrative ?? ""}`;
+    expect(copy).not.toMatch(/rated/i);
+    expect(copy).not.toMatch(/stronger|weaker|small team/i);
+  });
+
+  it("never labels 0% title chance as eliminated (status stays internal-state-only)", () => {
+    const status = deriveTeamHeroStatus("mexico", /* isZeroTitle */ true, new Map([["mexico", "undecided"]]));
+    const s = buildTeamOutlookStory({
+      teamId: "mexico",
+      teamName: "Mexico",
+      hero: hero({ isZeroTitle: true }),
+      model: TRAJECTORY,
+      status,
+      context: noMatch,
+    });
+    expect(s.currentStatus).toBe("zero-title");
+    expect(s.currentStatusLabel).toBe("0% title chance");
+    expect(s.storyType).not.toBe("eliminated");
+    expect(s.primaryNarrative).not.toContain("tournament ended");
+    expect(s.primaryNarrative).not.toContain("out of the title race");
+    expect(s.latestTeamMatch).toBeNull();
+  });
+
+  it("falls back to interval-framed forecast movement when there is no decisive result", () => {
+    // Latest interval on TRAJECTORY: group stage complete (0.20) -> current projection (0.14) = -6.0 pp.
+    const s = buildTeamOutlookStory({
+      teamId: "england",
+      teamName: "England",
+      hero: hero({ teamId: "england" }),
+      model: TRAJECTORY,
+      status: "active",
+      qualification: "undecided",
+      context: noMatch,
+    });
+    expect(s.storyType).toBe("movement");
+    expect(s.primaryNarrative).toBe(
+      "Across the latest forecast interval, England's title chance moved down by 6.0 percentage points.",
+    );
+    // Interval-framed: no single-match causal wording.
+    expect(s.primaryNarrative).toContain("latest forecast interval");
+  });
+
+  it("uses the neutral fallback with fewer than two checkpoints", () => {
+    const s = buildTeamOutlookStory({
+      teamId: "england",
+      teamName: "England",
+      hero: hero({ teamId: "england", currentTitleProbability: 0.1 }),
+      model: model([point("Tournament start", 0, 0.1)]),
+      status: "active",
+      context: noMatch,
+    });
+    expect(s.storyType).toBe("neutral");
+    expect(s.primaryNarrative).toBe(
+      "England's tournament outlook is mostly stable across the latest forecast checkpoint.",
+    );
+    expect(s.fallbackReason).toBe("Trajectory data is unavailable for this checkpoint.");
+  });
+
+  it("suppresses the scoreline for a level-score (penalties/extra-time) knockout win", () => {
+    // Regulation level score with a canonical winner -> decided beyond 90'; the "3–2"-style
+    // scoreline would misread, so advancement is stated without it and without "tight".
+    const s = buildTeamOutlookStory({
+      teamId: "spain",
+      teamName: "Spain",
+      hero: hero({ teamId: "spain" }),
+      model: TRAJECTORY,
+      status: "active",
+      context: completedContext(82, "italy", "1–1", true),
+      matchHistory: [historyRow({ matchNumber: 82, stageLabel: "Semi-final", isKnockout: true, opponent: teamLite("italy", "Italy") })],
+    });
+    expect(s.storyType).toBe("advanced");
+    expect(s.primaryNarrative).toBe("Spain advanced after a knockout win over Italy.");
+    expect(s.primaryNarrative).not.toContain("1–1");
+    expect(s.primaryNarrative).not.toContain("tight");
+  });
+
+  it("degrades to a factual latest result when a knockout row is missing (no stage/opponent known)", () => {
+    // No matchHistory row for the completed match -> isKnockout is unknown (false); rather
+    // than mislabel advancement, it states the result factually with no opponent/stage.
+    const s = buildTeamOutlookStory({
+      teamId: "portugal",
+      teamName: "Portugal",
+      hero: hero({ teamId: "portugal" }),
+      model: TRAJECTORY,
+      status: "active",
+      context: completedContext(83, "wales", "2–1", true),
+      matchHistory: [],
+    });
+    expect(s.storyType).toBe("latest-result");
+    expect(s.primaryNarrative).toBe("Portugal's latest result was a narrow 2–1 win.");
+    expect(s.latestTeamMatch?.isKnockout).toBe(false);
+    expect(s.latestTeamMatch?.opponentName).toBeNull();
+  });
+
+  it("is data-driven: the same advancement template renders for any team/opponent", () => {
+    const s = buildTeamOutlookStory({
+      teamId: "argentina",
+      teamName: "Argentina",
+      hero: hero({ teamId: "argentina" }),
+      model: TRAJECTORY,
+      status: "active",
+      context: completedContext(81, "croatia", "1–0", true),
+      matchHistory: [historyRow({ matchNumber: 81, stageLabel: "Quarter-final", isKnockout: true, opponent: teamLite("croatia", "Croatia") })],
+    });
+    expect(s.storyType).toBe("advanced");
+    expect(s.primaryNarrative).toBe("Argentina advanced after a tight 1–0 knockout win over Croatia.");
+    expect(s.primaryNarrative).not.toContain("host nation"); // Croatia is not a co-host
   });
 });

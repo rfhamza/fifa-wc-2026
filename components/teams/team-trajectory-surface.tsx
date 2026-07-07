@@ -91,8 +91,18 @@ export function TeamTrajectorySurface({
     [liveMatches, teamId],
   );
   const outlook = useMemo(
-    () => buildTeamOutlookStory({ teamId, hero, model, status, context }),
-    [teamId, hero, model, status, context],
+    () =>
+      buildTeamOutlookStory({
+        teamId,
+        teamName,
+        hero,
+        model,
+        status,
+        context,
+        matchHistory,
+        qualification: qual?.get(teamId) ?? null,
+      }),
+    [teamId, teamName, hero, model, status, context, matchHistory, qual],
   );
 
   return (

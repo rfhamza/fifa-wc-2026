@@ -34,6 +34,14 @@ export function TeamOutlookCard({ story }: { story: TeamOutlookStory }) {
         </Badge>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Personalized story summary (UX-6B follow-up): one primary + one supporting line. */}
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-foreground">{story.primaryNarrative}</p>
+          {story.supportingNarrative ? (
+            <p className="text-sm text-muted-foreground">{story.supportingNarrative}</p>
+          ) : null}
+        </div>
+
         <div className="grid grid-cols-2 gap-3">
           <StatTile
             label="Title chance"
