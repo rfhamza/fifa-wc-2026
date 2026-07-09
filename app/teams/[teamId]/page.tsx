@@ -42,6 +42,7 @@ import {
   type TeamMatchForecastInput,
 } from "@/lib/ui/team-trajectory";
 import { TeamTrajectorySurface } from "@/components/teams/team-trajectory-surface";
+import type { TeamStrength } from "@/lib/ui/team-outlook";
 import { pct } from "@/lib/utils";
 import { Users, ThermometerSun } from "lucide-react";
 
@@ -114,6 +115,21 @@ export default async function TeamPage({ params }: { params: { teamId: string } 
       return t ? { id: t.id, name: t.name, flag: t.flag, countryCode: t.countryCode } : null;
     },
   });
+
+  // Public team-strength inputs (FIFA rank, Elo rating/rank, squad quality) for the outlook
+  // card's upset/mismatch context. Already-public values (shown as tiles below); passed as a
+  // serializable map so the client selector can compare the viewed team vs its opponents.
+  const teamStrengthById: Record<string, TeamStrength> = {};
+  for (const [id, t] of teamById) {
+    const f = getFifaRanking(id);
+    const e = getEloRating(id);
+    teamStrengthById[id] = {
+      fifaRank: f?.fifaRank ?? t.fifaRanking ?? null,
+      eloRating: e?.eloRating ?? t.elo ?? null,
+      eloRank: e?.eloRank ?? null,
+      squadQuality: t.squadQuality ?? null,
+    };
+  }
 
   const prob = getStageProbability(team.id);
   const fixtures = getFixturesForTeam(team.id);
@@ -188,6 +204,7 @@ export default async function TeamPage({ params }: { params: { teamId: string } 
         model={trajectoryModel}
         matchHistory={matchHistory}
         matchesObjectAvailable={matchesObjectAvailable}
+        teamStrengthById={teamStrengthById}
       />
 
       {/* Core metrics (model inputs carry an honest source status; Phase 1.7) */}

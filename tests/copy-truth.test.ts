@@ -448,6 +448,9 @@ const trajectorySurface = read("components/teams/team-trajectory-surface.tsx");
 const trajectoryChart = read("components/charts/team-trajectory-chart.tsx");
 const teamMatchHistory = read("components/teams/team-match-history.tsx");
 const teamPageUx6 = read("app/teams/[teamId]/page.tsx");
+// UX-6B: team outlook storytelling (compact summary card + pure selector).
+const teamOutlookLib = read("lib/ui/team-outlook.ts");
+const teamOutlookCard = read("components/teams/team-outlook-card.tsx");
 
 describe("Team forecast trajectory copy is honest (UX-6)", () => {
   it("uses the public checkpoint labels and the retained-checkpoint explanation", () => {
@@ -471,27 +474,74 @@ describe("Team forecast trajectory copy is honest (UX-6)", () => {
   });
 
   it("never surfaces the non-public M54/M73 checkpoints or arbitrary-checkpoint wording", () => {
-    const src = `${trajectoryLib} ${trajectorySurface} ${trajectoryChart} ${teamMatchHistory}`;
+    const src = `${trajectoryLib} ${trajectorySurface} ${trajectoryChart} ${teamMatchHistory} ${teamOutlookLib} ${teamOutlookCard}`;
     for (const bad of ["After Match 54", "After Match 73", "M54", "M73", "historical manual checkpoint", "knockout-lock proof", "arbitrary checkpoint", "match-by-match"]) {
       expect(src.includes(bad), `UX-6 leaks non-public checkpoint wording: "${bad}"`).toBe(false);
     }
     // "after-every-match" may appear ONLY in the explicit clarification sentence.
     const clarifications = trajectorySurface.split("after-every-match").length - 1;
     expect(clarifications).toBe(1);
-    for (const f of [trajectoryLib, trajectoryChart, teamMatchHistory]) {
+    for (const f of [trajectoryLib, trajectoryChart, teamMatchHistory, teamOutlookLib, teamOutlookCard]) {
       expect(f.includes("after-every-match timeline")).toBe(false);
     }
   });
 
   it("no causal / betting / ambiguous-metric claims in the trajectory surfaces", () => {
-    const src = `${trajectoryLib} ${trajectorySurface} ${trajectoryChart} ${teamMatchHistory}`.toLowerCase();
-    for (const bad of ["because", "caused by", "probability rose", "guaranteed", "will face", "easier path", "harder path", "path became", "win %", "final %", "vercel-storage", "blob_read_write_token"]) {
+    const src = `${trajectoryLib} ${trajectorySurface} ${trajectoryChart} ${teamMatchHistory} ${teamOutlookLib} ${teamOutlookCard}`.toLowerCase();
+    for (const bad of ["because", "caused by", "probability rose", "guaranteed", "will face", "easier path", "harder path", "path became", "win %", "final %", "vercel-storage", "blob_read_write_token", "became easier", "became harder", "momentum", "form proves", "morale", "small team", "weak team", "giant killing", "footballing giant"]) {
       expect(src, `UX-6 copy overclaims/leaks: "${bad}"`).not.toContain(bad);
     }
     // Movement sentences are built from public-milestone labels ("Changed between {from}
     // and {to}") plus the anchored total; no non-public interval wording appears.
     expect(trajectoryLib).toContain("Changed between ${from.label.toLowerCase()} and ${to.label.toLowerCase()}");
     expect(trajectoryLib).toContain("Changed since tournament start");
+  });
+
+  it("the outlook card uses the required section labels and soft route wording (UX-6B)", () => {
+    for (const label of ["Current outlook", "Route from here", "Forecast movement", "Title chance", "Reach final"]) {
+      expect(teamOutlookCard, `UX-6B outlook card is missing the "${label}" label`).toContain(label);
+    }
+    // Route stays soft and non-causal; the selector owns the bracket-link copy and
+    // the card must not reintroduce the second "after-every-match" mention (the
+    // surface owns the single allowed one).
+    expect(teamOutlookLib).toContain("Trace path in bracket");
+    expect(teamOutlookCard).not.toContain("after-every-match");
+  });
+
+  it("the personalized outlook narrative is data-driven and uses only approved wording (UX-6B follow-up)", () => {
+    // The card renders the precomputed narrative; the selector owns the templates.
+    expect(teamOutlookCard).toContain("story.primaryNarrative");
+    expect(teamOutlookCard).toContain("story.supportingNarrative");
+    // Approved, neutral, non-causal story templates are present in the selector.
+    for (const phrase of [
+      "advanced after a",
+      "tournament ended after a",
+      "out of the title race",
+      "did not advance from the group stage",
+      "came through the group stage",
+      "latest result was",
+      "Across the latest forecast interval",
+      "mostly stable across the latest forecast checkpoint",
+      "The route updates in the bracket view.",
+      "host nation",
+      // Upset / strength-context refinement templates.
+      "upset",
+      "exited the World Cup",
+      "advancing to",
+      "lower-ranked",
+      "higher-rated",
+    ]) {
+      expect(teamOutlookLib, `UX-6B narrative is missing template: "${phrase}"`).toContain(phrase);
+    }
+    // No hardcoded team-specific stories: example display names from the brief must not
+    // appear as literals in the selector or card (host-nation team IDs are lowercase and
+    // are structural tournament facts, not story text).
+    for (const name of ["England", "Brazil", "Norway", "Mexico", "Argentina", "Estadio", "Azteca"]) {
+      expect(teamOutlookLib, `UX-6B hardcodes a team story: "${name}"`).not.toContain(name);
+      expect(teamOutlookCard, `UX-6B hardcodes a team story: "${name}"`).not.toContain(name);
+    }
+    // The card stays compact — a summary, not a dense probability table.
+    expect(teamOutlookCard).not.toContain("<table");
   });
 
   it("the team page is live-aware and wires the trajectory (no static re-freeze)", () => {

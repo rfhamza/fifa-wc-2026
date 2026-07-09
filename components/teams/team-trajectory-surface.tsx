@@ -10,6 +10,7 @@ import { SourceBadge } from "@/components/ui/source-badge";
 import { MoverChip } from "@/components/ui/mover-chip";
 import { TeamTrajectoryChart } from "@/components/charts/team-trajectory-chart";
 import { TeamMatchHistory } from "@/components/teams/team-match-history";
+import { TeamOutlookCard } from "@/components/teams/team-outlook-card";
 import {
   fetchPublicSafeLiveState,
   type LiveViewMatch,
@@ -31,6 +32,7 @@ import {
   type TeamTrajectoryModel,
   type TrajectoryStage,
 } from "@/lib/ui/team-trajectory";
+import { buildTeamOutlookStory, type TeamStrength } from "@/lib/ui/team-outlook";
 
 const TRAJECTORY_CAPTION =
   "This view compares retained public forecast checkpoints — tournament start, group matchday 1, " +
@@ -55,6 +57,7 @@ export function TeamTrajectorySurface({
   model,
   matchHistory,
   matchesObjectAvailable,
+  teamStrengthById = {},
 }: {
   teamId: string;
   teamName: string;
@@ -62,6 +65,8 @@ export function TeamTrajectorySurface({
   model: TeamTrajectoryModel;
   matchHistory: TeamMatchHistoryRow[];
   matchesObjectAvailable: boolean;
+  /** Public team-strength inputs (viewed team + opponents), for upset/mismatch context. */
+  teamStrengthById?: Record<string, TeamStrength>;
 }) {
   const [stage, setStage] = useState<TrajectoryStage>("winner");
   const [qual, setQual] = useState<Map<string, LiveViewQualification> | null>(null);
@@ -88,9 +93,27 @@ export function TeamTrajectorySurface({
     () => (liveMatches ? deriveTeamMatchContext(liveMatches, teamId) : null),
     [liveMatches, teamId],
   );
+  const outlook = useMemo(
+    () =>
+      buildTeamOutlookStory({
+        teamId,
+        teamName,
+        hero,
+        model,
+        status,
+        context,
+        matchHistory,
+        qualification: qual?.get(teamId) ?? null,
+        strengthById: teamStrengthById,
+      }),
+    [teamId, teamName, hero, model, status, context, matchHistory, qual, teamStrengthById],
+  );
 
   return (
     <section className="space-y-6" aria-label={`Forecast trajectory for ${teamName}`}>
+      {/* Team outlook story (UX-6B): compact summary above the detailed sections. */}
+      <TeamOutlookCard story={outlook} />
+
       {/* Hero strip: current vs tournament-start title chance + status + source. */}
       <Card>
         <CardContent className="flex flex-wrap items-center justify-between gap-4 pt-6">
