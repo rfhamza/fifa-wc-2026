@@ -32,7 +32,7 @@ import {
   type TeamTrajectoryModel,
   type TrajectoryStage,
 } from "@/lib/ui/team-trajectory";
-import { buildTeamOutlookStory } from "@/lib/ui/team-outlook";
+import { buildTeamOutlookStory, type TeamStrength } from "@/lib/ui/team-outlook";
 
 const TRAJECTORY_CAPTION =
   "This view compares retained public forecast checkpoints — tournament start, group matchday 1, " +
@@ -57,6 +57,7 @@ export function TeamTrajectorySurface({
   model,
   matchHistory,
   matchesObjectAvailable,
+  teamStrengthById = {},
 }: {
   teamId: string;
   teamName: string;
@@ -64,6 +65,8 @@ export function TeamTrajectorySurface({
   model: TeamTrajectoryModel;
   matchHistory: TeamMatchHistoryRow[];
   matchesObjectAvailable: boolean;
+  /** Public team-strength inputs (viewed team + opponents), for upset/mismatch context. */
+  teamStrengthById?: Record<string, TeamStrength>;
 }) {
   const [stage, setStage] = useState<TrajectoryStage>("winner");
   const [qual, setQual] = useState<Map<string, LiveViewQualification> | null>(null);
@@ -101,8 +104,9 @@ export function TeamTrajectorySurface({
         context,
         matchHistory,
         qualification: qual?.get(teamId) ?? null,
+        strengthById: teamStrengthById,
       }),
-    [teamId, teamName, hero, model, status, context, matchHistory, qual],
+    [teamId, teamName, hero, model, status, context, matchHistory, qual, teamStrengthById],
   );
 
   return (

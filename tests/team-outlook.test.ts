@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   buildTeamOutlookStory,
+  classifyMatchupResult,
   getTeamKeyMovementInterval,
+  type TeamStrength,
 } from "@/lib/ui/team-outlook";
 import {
   deriveTeamHeroStatus,
@@ -433,5 +435,161 @@ describe("buildTeamOutlookStory: story priority leads with the tournament event"
     expect(s.storyType).toBe("advanced");
     expect(s.primaryNarrative).toBe("Argentina advanced after a tight 1–0 knockout win over Croatia.");
     expect(s.primaryNarrative).not.toContain("host nation"); // Croatia is not a co-host
+  });
+});
+
+/* ----------------------------------------------------------------------------
+ * Upset / strength context (UX-6B refinement). Synthetic public strength inputs
+ * (FIFA rank, Elo rating/rank, squad quality); conservative thresholds. No team names
+ * are hardcoded in the selector — the templates render from data.
+ * -------------------------------------------------------------------------- */
+function strength(over: Partial<TeamStrength> = {}): TeamStrength {
+  return { fifaRank: 18, eloRating: 1850, eloRank: 18, squadQuality: 75, ...over };
+}
+const STRONG = strength({ fifaRank: 3, eloRating: 2050, eloRank: 2, squadQuality: 88 });
+const WEAK = strength({ fifaRank: 25, eloRating: 1830, eloRank: 22, squadQuality: 70 });
+
+describe("classifyMatchupResult", () => {
+  it("flags an upset when the materially weaker side wins", () => {
+    const c = classifyMatchupResult(WEAK, STRONG, /* won */ true);
+    expect(c.verdict).toBe("upset");
+    expect(c.teamWasStronger).toBe(false);
+    expect(c.opponentDescriptor).toBe("higher-rated");
+    expect(c.signalsAvailable).toBe(3);
+  });
+
+  it("flags an upset (major exit) when the materially stronger side loses", () => {
+    const c = classifyMatchupResult(STRONG, WEAK, /* won */ false);
+    expect(c.verdict).toBe("upset");
+    expect(c.teamWasStronger).toBe(true);
+    expect(c.opponentDescriptor).toBe("lower-ranked");
+  });
+
+  it("is 'expected' when the stronger side wins", () => {
+    expect(classifyMatchupResult(STRONG, WEAK, true).verdict).toBe("expected");
+  });
+
+  it("is 'even' when no material strength gap exists", () => {
+    const a = strength({ fifaRank: 8, eloRating: 1950, eloRank: 8, squadQuality: 80 });
+    const b = strength({ fifaRank: 12, eloRating: 1935, eloRank: 11, squadQuality: 77 });
+    const c = classifyMatchupResult(a, b, true);
+    expect(c.verdict).toBe("even");
+    expect(c.teamWasStronger).toBeNull();
+  });
+
+  it("is 'unknown' when strength inputs are missing", () => {
+    expect(classifyMatchupResult(null, STRONG, true).verdict).toBe("unknown");
+    const noData: TeamStrength = { fifaRank: null, eloRating: null, eloRank: null, squadQuality: null };
+    expect(classifyMatchupResult(noData, noData, true).verdict).toBe("unknown");
+  });
+
+  it("requires a strong single signal when only one is available", () => {
+    const wOne: TeamStrength = { fifaRank: 30, eloRating: null, eloRank: null, squadQuality: null };
+    const sOne: TeamStrength = { fifaRank: 8, eloRating: null, eloRank: null, squadQuality: null };
+    // Gap 22 (>= 18) is a strong single signal -> upset stands.
+    expect(classifyMatchupResult(wOne, sOne, true).verdict).toBe("upset");
+    // Gap 12 (>= 10 but < 18) is not strong enough on its own -> not an upset.
+    const wSoft: TeamStrength = { fifaRank: 20, eloRating: null, eloRank: null, squadQuality: null };
+    expect(classifyMatchupResult(wSoft, sOne, true).verdict).toBe("even");
+  });
+});
+
+describe("buildTeamOutlookStory: upset-aware knockout narratives", () => {
+  it("leads with an upset headline when the underdog wins a knockout", () => {
+    const s = buildTeamOutlookStory({
+      teamId: "norway",
+      teamName: "Norway",
+      hero: hero({ teamId: "norway" }),
+      model: TRAJECTORY,
+      status: "active",
+      context: completedContext(90, "brazil", "2–1", true, { matchNumber: 96, opponentId: "france" }),
+      matchHistory: [historyRow({ matchNumber: 90, stageLabel: "Round of 16", isKnockout: true, opponent: teamLite("brazil", "Brazil") })],
+      strengthById: { norway: WEAK, brazil: STRONG },
+    });
+    expect(s.storyType).toBe("upset-win");
+    expect(s.primaryNarrative).toBe("Norway upset Brazil 2–1 in the Round of 16, advancing to the quarterfinals.");
+    expect(s.supportingNarrative).toBe("Next match: Match 96.");
+    expect(s.matchupContext?.verdict).toBe("upset");
+    expect(s.matchupContext?.teamWasStronger).toBe(false);
+  });
+
+  it("leads with a major exit when a higher-rated team is eliminated by a lower-ranked side", () => {
+    const s = buildTeamOutlookStory({
+      teamId: "brazil",
+      teamName: "Brazil",
+      hero: hero({ teamId: "brazil" }),
+      model: TRAJECTORY,
+      status: "active", // group qualification reads active; the knockout loss is canonical
+      qualification: "qualified",
+      context: completedContext(90, "norway", "1–2", false),
+      matchHistory: [historyRow({ matchNumber: 90, stageLabel: "Round of 16", isKnockout: true, opponent: teamLite("norway", "Norway") })],
+      strengthById: { norway: WEAK, brazil: STRONG },
+    });
+    expect(s.storyType).toBe("major-exit");
+    expect(s.primaryNarrative).toBe(
+      "Brazil exited the World Cup in the Round of 16 after a 1–2 defeat to lower-ranked Norway. They are now out of the title race.",
+    );
+    expect(s.routeState).toBe("eliminated");
+    expect(s.matchupContext?.verdict).toBe("upset");
+    expect(s.matchupContext?.teamWasStronger).toBe(true);
+    // Not eliminated merely because of a 0% title probability.
+    expect(s.currentStatus).not.toBe("eliminated");
+    expect(s.primaryNarrative).not.toContain("because");
+  });
+
+  it("stays neutral (no upset) for a host knockout win without a strength mismatch", () => {
+    const s = buildTeamOutlookStory({
+      teamId: "england",
+      teamName: "England",
+      hero: hero({ teamId: "england" }),
+      model: TRAJECTORY,
+      status: "active",
+      context: completedContext(79, "mexico", "3–2", true, { matchNumber: 84, opponentId: "france" }),
+      matchHistory: [historyRow({ matchNumber: 79, stageLabel: "Quarter-final", isKnockout: true, opponent: teamLite("mexico", "Mexico") })],
+      strengthById: {
+        england: strength({ fifaRank: 8, eloRating: 1950, eloRank: 8, squadQuality: 80 }),
+        mexico: strength({ fifaRank: 12, eloRating: 1935, eloRank: 11, squadQuality: 77 }),
+      },
+    });
+    expect(s.storyType).toBe("advanced");
+    expect(s.primaryNarrative).toBe("England advanced after a tight 3–2 knockout win over host nation Mexico.");
+    expect(s.primaryNarrative).not.toContain("upset");
+    expect(s.primaryNarrative).not.toContain("morale");
+    expect(s.matchupContext?.verdict).toBe("even");
+  });
+
+  it("adds higher-rated context when a team loses a knockout to a stronger side (not an upset)", () => {
+    const s = buildTeamOutlookStory({
+      teamId: "wales",
+      teamName: "Wales",
+      hero: hero({ teamId: "wales" }),
+      model: TRAJECTORY,
+      status: "active",
+      context: completedContext(88, "france", "0–2", false),
+      matchHistory: [historyRow({ matchNumber: 88, stageLabel: "Round of 16", isKnockout: true, opponent: teamLite("france", "France") })],
+      strengthById: { wales: WEAK, france: STRONG },
+    });
+    expect(s.storyType).toBe("eliminated");
+    expect(s.primaryNarrative).toBe(
+      "Wales's tournament ended after a 0–2 knockout defeat to higher-rated France. They are now out of the title race.",
+    );
+    expect(s.matchupContext?.verdict).toBe("expected");
+  });
+
+  it("does not label a group-stage win an upset (upset detection is knockout-only)", () => {
+    const s = buildTeamOutlookStory({
+      teamId: "norway",
+      teamName: "Norway",
+      hero: hero({ teamId: "norway" }),
+      model: TRAJECTORY,
+      status: "active",
+      qualification: "undecided",
+      context: completedContext(20, "brazil", "1–0", true),
+      matchHistory: [historyRow({ matchNumber: 20, stageLabel: "Group stage", isKnockout: false, opponent: teamLite("brazil", "Brazil") })],
+      strengthById: { norway: WEAK, brazil: STRONG },
+    });
+    expect(s.storyType).toBe("latest-result");
+    expect(s.primaryNarrative).toBe("Norway's latest result was a clean-sheet 1–0 win over Brazil in the group stage.");
+    expect(s.primaryNarrative).not.toContain("upset");
   });
 });

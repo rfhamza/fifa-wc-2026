@@ -488,7 +488,7 @@ describe("Team forecast trajectory copy is honest (UX-6)", () => {
 
   it("no causal / betting / ambiguous-metric claims in the trajectory surfaces", () => {
     const src = `${trajectoryLib} ${trajectorySurface} ${trajectoryChart} ${teamMatchHistory} ${teamOutlookLib} ${teamOutlookCard}`.toLowerCase();
-    for (const bad of ["because", "caused by", "probability rose", "guaranteed", "will face", "easier path", "harder path", "path became", "win %", "final %", "vercel-storage", "blob_read_write_token", "became easier", "became harder", "momentum", "form proves", "morale"]) {
+    for (const bad of ["because", "caused by", "probability rose", "guaranteed", "will face", "easier path", "harder path", "path became", "win %", "final %", "vercel-storage", "blob_read_write_token", "became easier", "became harder", "momentum", "form proves", "morale", "small team", "weak team", "giant killing", "footballing giant"]) {
       expect(src, `UX-6 copy overclaims/leaks: "${bad}"`).not.toContain(bad);
     }
     // Movement sentences are built from public-milestone labels ("Changed between {from}
@@ -524,6 +524,12 @@ describe("Team forecast trajectory copy is honest (UX-6)", () => {
       "mostly stable across the latest forecast checkpoint",
       "The route updates in the bracket view.",
       "host nation",
+      // Upset / strength-context refinement templates.
+      "upset",
+      "exited the World Cup",
+      "advancing to",
+      "lower-ranked",
+      "higher-rated",
     ]) {
       expect(teamOutlookLib, `UX-6B narrative is missing template: "${phrase}"`).toContain(phrase);
     }
