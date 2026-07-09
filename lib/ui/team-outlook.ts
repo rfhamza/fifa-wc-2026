@@ -302,6 +302,12 @@ export interface TeamOutlookStory {
   primaryNarrative: string;
   supportingNarrative: string | null;
   latestTeamMatch: TeamOutlookMatch | null;
+  /**
+   * Strength-vs-result classification of the latest completed match. Stage-agnostic — a
+   * `verdict` of "upset" means the result went against the strength gap at ANY stage; the
+   * narrative only promotes it to an "upset"/"major exit" headline for KNOCKOUT matches.
+   * Consumers rendering this directly should apply the same knockout gate.
+   */
   matchupContext: TeamMatchupContext | null;
   opponentContext: string | null;
   scorelineContext: string | null;
@@ -342,11 +348,21 @@ function describeLatestMatch(
   };
 }
 
-/** Opponent label for headline copy: host prefix > "higher-rated" > plain name (never "lower-ranked"). */
-function opponentLabelForCopy(match: TeamOutlookMatch, matchup: TeamMatchupContext): string | null {
+/**
+ * Opponent label for headline copy: host prefix > (defeats only) "higher-rated" > plain
+ * name. A win never labels the opponent "higher-rated" — beating a higher-rated side is an
+ * upset, headlined separately — so routine advancement copy stays neutral by construction.
+ */
+function opponentLabelForCopy(
+  match: TeamOutlookMatch,
+  matchup: TeamMatchupContext,
+  resultContext: "win" | "loss",
+): string | null {
   if (!match.opponentName) return null;
   if (match.opponentIsHost) return `host nation ${match.opponentName}`;
-  if (matchup.opponentDescriptor === "higher-rated") return `higher-rated ${match.opponentName}`;
+  if (resultContext === "loss" && matchup.opponentDescriptor === "higher-rated") {
+    return `higher-rated ${match.opponentName}`;
+  }
   return match.opponentName;
 }
 
@@ -402,7 +418,6 @@ function buildTeamStoryNarrative(input: NarrativeInput): NarrativeResult {
     : null;
   const isUpsetWin = wonKnockout && matchup.verdict === "upset" && !!plainName && !!stageInfo;
   const isMajorExit = lostKnockout && matchup.verdict === "upset" && !!plainName && !!stageInfo;
-  const copyLabel = match ? opponentLabelForCopy(match, matchup) : null;
 
   // Route (soft, non-causal) and forecast-movement supporting lines.
   const routeContext =
@@ -446,7 +461,8 @@ function buildTeamStoryNarrative(input: NarrativeInput): NarrativeResult {
     // Priority 3 — routine knockout elimination (canonical: a lost knockout match).
     storyType = "eliminated";
     const narrow = parts && parts.margin === 1 ? "narrow " : "";
-    const oppPhrase = copyLabel ? ` to ${copyLabel}` : "";
+    const lossLabel = match ? opponentLabelForCopy(match, matchup, "loss") : null;
+    const oppPhrase = lossLabel ? ` to ${lossLabel}` : "";
     primaryNarrative =
       `${subject}'s tournament ended after a ${narrow}${scoreWord}knockout defeat${oppPhrase}. ` +
       `They are now out of the title race.`;
@@ -455,7 +471,8 @@ function buildTeamStoryNarrative(input: NarrativeInput): NarrativeResult {
     // Priority 3 — routine knockout advancement (canonical: a won knockout match).
     storyType = "advanced";
     const tight = parts && parts.margin === 1 ? "tight " : "";
-    const oppPhrase = copyLabel ? ` over ${copyLabel}` : "";
+    const winLabel = match ? opponentLabelForCopy(match, matchup, "win") : null;
+    const oppPhrase = winLabel ? ` over ${winLabel}` : "";
     primaryNarrative = `${subject} advanced after a ${tight}${scoreWord}knockout win${oppPhrase}.`;
     supportingNarrative = routeContext;
   } else if (status === "eliminated") {

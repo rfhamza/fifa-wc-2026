@@ -576,6 +576,26 @@ describe("buildTeamOutlookStory: upset-aware knockout narratives", () => {
     expect(s.matchupContext?.verdict).toBe("expected");
   });
 
+  it("keeps a routine (expected) knockout win neutral — no strength descriptor in the copy", () => {
+    // Stronger side beats a lower-ranked opponent: expected, not an upset. The advancement
+    // copy names the opponent plainly (never "lower-ranked", never "higher-rated").
+    const s = buildTeamOutlookStory({
+      teamId: "spain",
+      teamName: "Spain",
+      hero: hero({ teamId: "spain" }),
+      model: TRAJECTORY,
+      status: "active",
+      context: completedContext(89, "chile", "2–0", true, { matchNumber: 95, opponentId: "italy" }),
+      matchHistory: [historyRow({ matchNumber: 89, stageLabel: "Round of 16", isKnockout: true, opponent: teamLite("chile", "Chile") })],
+      strengthById: { spain: STRONG, chile: WEAK },
+    });
+    expect(s.storyType).toBe("advanced");
+    expect(s.primaryNarrative).toBe("Spain advanced after a 2–0 knockout win over Chile.");
+    expect(s.primaryNarrative).not.toContain("lower-ranked");
+    expect(s.primaryNarrative).not.toContain("higher-rated");
+    expect(s.matchupContext?.verdict).toBe("expected");
+  });
+
   it("does not label a group-stage win an upset (upset detection is knockout-only)", () => {
     const s = buildTeamOutlookStory({
       teamId: "norway",
