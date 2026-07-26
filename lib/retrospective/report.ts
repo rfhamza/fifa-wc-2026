@@ -25,6 +25,7 @@ import {
   type GroupStageAccuracy,
   type StageAccuracyRow,
   type TeamSurpriseRow,
+  type ThirdPlaceAccuracy,
 } from "@/lib/retrospective/stage-accuracy";
 import {
   binaryReliabilityBins,
@@ -68,6 +69,7 @@ export interface RetrospectiveInput {
   recomputedGroupMatches: GroupMatchEvaluation;
   archivedScorelines: ScorelineEvaluation;
   archivedForecasts: readonly MatchForecastLike[];
+  thirdPlaceAccuracy: ThirdPlaceAccuracy;
   drivers: DriverSummary[];
   teamNames: ReadonlyMap<string, string>;
   /** Third-place probabilities are stored per team; scenario combinations are not. */
@@ -76,6 +78,25 @@ export interface RetrospectiveInput {
 
 /** Outside the pre-tournament top 10 counts as a lower-rated side for narrative purposes. */
 const UNDERDOG_RANK_MIN = 11;
+
+/**
+ * DISPLAY-ONLY mapping from the ledger's internal stage tokens to public labels. Internal
+ * keys are untouched; this only controls how a stage is printed in a table.
+ */
+const MATCH_STAGE_LABELS: Readonly<Record<string, string>> = {
+  group: "Group stage",
+  roundOf32: "Round of 32",
+  roundOf16: "Round of 16",
+  quarterFinal: "Quarterfinal",
+  semiFinal: "Semifinal",
+  thirdPlace: "Third-place match",
+  final: "Final",
+};
+
+/** Public label for a ledger stage token, falling back to the token if unmapped. */
+export function matchStageLabel(stage: string): string {
+  return MATCH_STAGE_LABELS[stage] ?? stage;
+}
 
 const pct = (x: number, dp = 1): string => `${(x * 100).toFixed(dp)}%`;
 const pp = (x: number, dp = 1): string => `${x >= 0 ? "+" : ""}${(x * 100).toFixed(dp)}pp`;
@@ -281,7 +302,19 @@ function sectionTimeline(input: RetrospectiveInput): string {
 
   lines.push("", "### Top five Title chance by checkpoint", "");
   for (const cp of all) {
-    const top5 = titleRanked(cp.snapshot)
+    const ranked = titleRanked(cp.snapshot);
+    // A terminal snapshot has every probability at 0 or 1. Ranking it produces an arbitrary
+    // ordering of zero-probability teams, so state the resolved outcome instead of a "top five".
+    const isTerminal = ranked.every((t) => t.winner === 0 || t.winner === 1);
+    if (isTerminal) {
+      const resolved = ranked.filter((t) => t.winner > 0);
+      lines.push(
+        `- **${cp.label}**: ${resolved.map((t) => `${nameOf(input, t.teamId)} ${pct(t.winner, 2)}`).join(", ")};` +
+          " all other teams 0%. This is a resolved end state, not a ranking.",
+      );
+      continue;
+    }
+    const top5 = ranked
       .slice(0, 5)
       .map((t, i) => `${i + 1}. ${nameOf(input, t.teamId)} ${pct(t.winner, 2)}`)
       .join(" | ");
@@ -428,38 +461,67 @@ function sectionGroups(input: RetrospectiveInput): string {
 }
 
 function sectionThirdPlace(input: RetrospectiveInput): string {
-  const { actual, baseline } = input;
-  const byId = new Map(baseline.teams.map((t) => [t.teamId, t]));
+  const { actual, thirdPlaceAccuracy } = input;
+  const thirdSummary = summarizeBinary(thirdPlaceAccuracy.observations);
+  const thirdBins = binaryReliabilityBins(thirdPlaceAccuracy.observations, 10);
   const lines: string[] = [
     "## 5. Third-place qualification retrospective",
     "",
     "The 2026 format promotes the eight best third-placed teams. Ranking and allocation below are",
     "internal (Article 13 plus the official Annexe C bracket), not provider-derived.",
     "",
-    "| Annexe C rank | Team | Group | Pre-tournament third-place probability | Qualified |",
+    "### Descriptive context - the twelve teams that finished third",
+    "",
+    "This table is **descriptive only**. It is not the evaluation: see the scored section below for",
+    "why a metric computed over these twelve rows would not be a valid test of the forecast.",
+    "",
+    "| Annexe C rank | Team | Group | Baseline qualifyThird | Advanced |",
     "| --: | --- | --- | --: | --- |",
-  ];
-  actual.thirdPlacedRanked.forEach((teamId, i) => {
-    const group = actual.groups.find((g) => g.thirdPlaced === teamId)?.group ?? "?";
-    const qualified = actual.thirdPlaceQualifiers.includes(teamId);
-    lines.push(
-      `| ${i + 1} | ${nameOf(input, teamId)} | ${group} | ${pct(byId.get(teamId)?.qualifyThird ?? 0, 2)} | ${qualified ? "yes" : "no"} |`,
-    );
-  });
-
-  const obs: BinaryObservation[] = actual.thirdPlacedRanked.map((teamId) => ({
-    probability: byId.get(teamId)?.qualifyThird ?? 0,
-    occurred: actual.thirdPlaceQualifiers.includes(teamId),
-    label: teamId,
-  }));
-  const summary = summarizeBinary(obs);
-
-  lines.push(
+    ...thirdPlaceAccuracy.descriptive.map(
+      (r) =>
+        `| ${r.annexeCRank} | ${nameOf(input, r.teamId)} | ${r.group} | ${pct(r.qualifyThird, 2)} | ${r.advanced ? "yes" : "no"} |`,
+    ),
     "",
     `- Third-placed teams that advanced: ${actual.thirdPlaceQualifiers.map((t) => nameOf(input, t)).join(", ")}.`,
     `- Third-placed teams eliminated: ${actual.thirdPlaceEliminated.map((t) => nameOf(input, t)).join(", ")}.`,
-    `- Team-level third-place qualification, scored over the twelve actual third-placed teams:`,
-    `  Brier ${num(summary.brier)}, mean forecast ${pct(summary.meanPredicted, 2)} against a realised rate of ${pct(summary.baseRate, 2)}.`,
+    "",
+    "### Team-level evaluation of `qualifyThird` (all 48 teams)",
+    "",
+    "`qualifyThird` is an **unconditional** pre-tournament probability: P(this team qualifies via",
+    "the third-place route). It is therefore scored across the **whole field**, with the event being",
+    "\"finished third and advanced\". Restricting the scoring to the twelve teams that happened to",
+    "finish third would compare an unconditional forecast against a conditional base rate (8 of 12)",
+    "that it was never forecasting, and would overstate the error.",
+    "",
+    "| Metric | Value |",
+    "| --- | --: |",
+    `| Observations | ${thirdPlaceAccuracy.observationCount} (all teams) |`,
+    `| Positives (finished third and advanced) | ${thirdPlaceAccuracy.positives} |`,
+    `| Mean forecast | ${pct(thirdSummary.meanPredicted, 2)} |`,
+    `| Realised rate | ${pct(thirdSummary.baseRate, 2)} |`,
+    `| Brier | ${num(thirdSummary.brier)} |`,
+    `| Log-loss | ${num(thirdSummary.logLoss)} |`,
+    "",
+    "As in section 10, the mean forecast matching the realised rate here is **mechanical, not a",
+    "calibration result**: exactly eight third-place slots exist, so `qualifyThird` sums to eight",
+    "across the field by construction. The informative quantities are the Brier and log-loss values",
+    "and the bands below, which respond to whether the probability sat on the right teams.",
+    "",
+    `Reliability bands over the same ${thirdPlaceAccuracy.observationCount} observations:`,
+    "",
+    "| Band | Count | Mean forecast | Observed frequency | Gap |",
+    "| --- | --: | --: | --: | --: |",
+    ...thirdBins.map(
+      (b) =>
+        `| ${(b.lower * 100).toFixed(0)}-${(b.upper * 100).toFixed(0)}% | ${b.count} | ${b.count ? pct(b.meanPredicted, 2) : "-"} | ${b.count ? pct(b.empiricalRate, 2) : "-"} | ${b.count ? pp(b.gap, 1) : "-"} |`,
+    ),
+    "",
+    "### Limitation: the conditional question cannot be answered",
+    "",
+    "The model stores the unconditional `qualifyThird` only. It does **not** store",
+    "P(qualifies | finished third), so \"how well did the model rank the actual third-placed teams",
+    "against each other\" cannot be evaluated from these artifacts. The descriptive table above shows",
+    "what happened; it does not score the forecast, and no Brier value is quoted over it.",
     "",
     "### Limitation: no scenario-level Annexe C probabilities",
     "",
@@ -470,7 +532,7 @@ function sectionThirdPlace(input: RetrospectiveInput): string {
         "\nrealised combination against high-probability scenarios cannot be evaluated. Only team-level" +
         "\nthird-place accuracy is reported here, and no scenario-level probability is inferred.",
     "",
-  );
+  ];
   return lines.join("\n");
 }
 
@@ -537,7 +599,7 @@ function sectionBracketPath(input: RetrospectiveInput): string {
     const top = sc ? `${sc.predictedHomeGoals}-${sc.predictedAwayGoals}` : "-";
     const scoreVerdict = sc ? (sc.exact ? "exact" : sc.directionHit ? "direction only" : "miss") : "-";
     lines.push(
-      `| ${row.matchNumber} | ${row.stage} | ${nameOf(input, row.homeTeamId)} v ${nameOf(input, row.awayTeamId)} | ${row.homeGoals}-${row.awayGoals}${pens} | ${nameOf(input, winner)} | ${provenance} | ${adv ? nameOf(input, adv.favourite) : "-"} | ${adv ? pct(adv.favouriteProbability) : "-"} | ${adv ? (adv.favouriteWon ? "yes" : "no") : "-"} | ${top} | ${scoreVerdict} |`,
+      `| ${row.matchNumber} | ${matchStageLabel(row.stage)} | ${nameOf(input, row.homeTeamId)} v ${nameOf(input, row.awayTeamId)} | ${row.homeGoals}-${row.awayGoals}${pens} | ${nameOf(input, winner)} | ${provenance} | ${adv ? nameOf(input, adv.favourite) : "-"} | ${adv ? pct(adv.favouriteProbability) : "-"} | ${adv ? (adv.favouriteWon ? "yes" : "no") : "-"} | ${top} | ${scoreVerdict} |`,
     );
   }
 
@@ -567,7 +629,7 @@ function sectionBracketPath(input: RetrospectiveInput): string {
     "",
     "| Round | Evaluated | Correct | Accuracy |",
     "| --- | --: | --: | --: |",
-    ...a.byStage.map((s) => `| ${s.stage} | ${s.evaluated} | ${s.correct} | ${pct(s.accuracy)} |`),
+    ...a.byStage.map((s) => `| ${matchStageLabel(s.stage)} | ${s.evaluated} | ${s.correct} | ${pct(s.accuracy)} |`),
     "",
     biggest
       ? `**Biggest upset by pre-match probability:** M${biggest.matchNumber}, ${nameOf(input, biggest.favourite)} ` +
@@ -672,7 +734,7 @@ function sectionScorelines(input: RetrospectiveInput): string {
     "",
     "| Stage | With forecast | Total |",
     "| --- | --: | --: |",
-    ...s.coverage.byStage.map((b) => `| ${b.stage} | ${b.withForecast} | ${b.total} |`),
+    ...s.coverage.byStage.map((b) => `| ${matchStageLabel(b.stage)} | ${b.withForecast} | ${b.total} |`),
     "",
     `Group-stage scoreline forecasts were never archived (0 of 72), so no group scoreline accuracy`,
     "is reported. Missing knockout ties: " +

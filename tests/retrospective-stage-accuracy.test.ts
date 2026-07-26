@@ -10,6 +10,7 @@ import {
   buildGroupAccuracy,
   buildStageAccuracy,
   buildTeamSurprise,
+  buildThirdPlaceAccuracy,
   qualifyProbability,
   reachedStage,
 } from "@/lib/retrospective/stage-accuracy";
@@ -172,6 +173,47 @@ describe("buildTeamSurprise", () => {
   it("carries the baseline title rank for narrative use", () => {
     expect(rows.find((r) => r.teamId === "t1")!.baselineTitleRank).toBe(1);
     expect(rows.find((r) => r.teamId === "t4")!.baselineTitleRank).toBe(4);
+  });
+});
+
+describe("buildThirdPlaceAccuracy", () => {
+  const acc = buildThirdPlaceAccuracy(snapshot, actual);
+
+  it("scores the unconditional qualifyThird across the whole field", () => {
+    // Four teams in this fixture, so four observations - NOT just the one that finished third.
+    expect(acc.observationCount).toBe(4);
+    expect(acc.observations.length).toBe(4);
+    expect(acc.observations.map((o) => o.label)).toEqual(["t1", "t2", "t3", "t4"]);
+  });
+
+  it("uses each team's own qualifyThird as the forecast probability", () => {
+    const t3 = acc.observations.find((o) => o.label === "t3")!;
+    expect(t3.probability).toBeCloseTo(0.2, 9);
+    const t1 = acc.observations.find((o) => o.label === "t1")!;
+    expect(t1.probability).toBeCloseTo(0.04, 9);
+  });
+
+  it("counts only teams that finished third AND advanced as positives", () => {
+    expect(acc.positives).toBe(1);
+    expect(acc.observations.filter((o) => o.occurred).map((o) => o.label)).toEqual(["t3"]);
+    // t4 won the group and the tournament; it never counts toward the third-place route.
+    expect(acc.observations.find((o) => o.label === "t4")!.occurred).toBe(false);
+  });
+
+  it("keeps the actual third-placed teams as descriptive context with their Annexe C rank", () => {
+    expect(acc.descriptive.length).toBe(1);
+    expect(acc.descriptive[0]).toMatchObject({
+      teamId: "t3",
+      group: "A",
+      annexeCRank: 1,
+      advanced: true,
+    });
+    expect(acc.descriptive[0]!.qualifyThird).toBeCloseTo(0.2, 9);
+  });
+
+  it("does not restrict scoring to the descriptive subset", () => {
+    // The whole point of the fix: descriptive rows are far fewer than scored observations.
+    expect(acc.descriptive.length).toBeLessThan(acc.observationCount);
   });
 });
 

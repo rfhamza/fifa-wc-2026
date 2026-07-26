@@ -84,7 +84,7 @@ group-stage milestones; the terminal M104 artifact is included as the endpoint.
 - **Group matchday 1 complete (M24)**: 1. Spain 27.00% | 2. Argentina 24.90% | 3. France 14.20% | 4. England 8.15% | 5. Brazil 5.05%
 - **Group matchday 2 complete (M48)**: 1. Spain 28.85% | 2. Argentina 25.20% | 3. France 13.40% | 4. England 6.75% | 5. Portugal 5.10%
 - **Group stage complete (M72)**: 1. Argentina 30.10% | 2. Spain 25.55% | 3. France 14.30% | 4. England 7.95% | 5. Brazil 4.65%
-- **M104 (final, terminal)**: 1. Spain 100.00% | 2. Algeria 0.00% | 3. Argentina 0.00% | 4. Australia 0.00% | 5. Austria 0.00%
+- **M104 (final, terminal)**: Spain 100.00%; all other teams 0%. This is a resolved end state, not a ranking.
 
 ### Limitation: no knockout-stage title-probability path
 
@@ -176,7 +176,12 @@ Actual placings come from internal Article 13 standings, never from provider fie
 The 2026 format promotes the eight best third-placed teams. Ranking and allocation below are
 internal (Article 13 plus the official Annexe C bracket), not provider-derived.
 
-| Annexe C rank | Team | Group | Pre-tournament third-place probability | Qualified |
+### Descriptive context - the twelve teams that finished third
+
+This table is **descriptive only**. It is not the evaluation: see the scored section below for
+why a metric computed over these twelve rows would not be a valid test of the forecast.
+
+| Annexe C rank | Team | Group | Baseline qualifyThird | Advanced |
 | --: | --- | --- | --: | --- |
 | 1 | DR Congo | K | 20.30% | yes |
 | 2 | Sweden | F | 29.55% | yes |
@@ -193,8 +198,50 @@ internal (Article 13 plus the official Annexe C bracket), not provider-derived.
 
 - Third-placed teams that advanced: DR Congo, Sweden, Ecuador, Ghana, Bosnia & Herzegovina, Algeria, Paraguay, Senegal.
 - Third-placed teams eliminated: Iran, South Korea, Scotland, Uruguay.
-- Team-level third-place qualification, scored over the twelve actual third-placed teams:
-  Brier 0.4297, mean forecast 21.54% against a realised rate of 66.67%.
+
+### Team-level evaluation of `qualifyThird` (all 48 teams)
+
+`qualifyThird` is an **unconditional** pre-tournament probability: P(this team qualifies via
+the third-place route). It is therefore scored across the **whole field**, with the event being
+"finished third and advanced". Restricting the scoring to the twelve teams that happened to
+finish third would compare an unconditional forecast against a conditional base rate (8 of 12)
+that it was never forecasting, and would overstate the error.
+
+| Metric | Value |
+| --- | --: |
+| Observations | 48 (all teams) |
+| Positives (finished third and advanced) | 8 |
+| Mean forecast | 16.67% |
+| Realised rate | 16.67% |
+| Brier | 0.1315 |
+| Log-loss | 0.4193 |
+
+As in section 10, the mean forecast matching the realised rate here is **mechanical, not a
+calibration result**: exactly eight third-place slots exist, so `qualifyThird` sums to eight
+across the field by construction. The informative quantities are the Brier and log-loss values
+and the bands below, which respond to whether the probability sat on the right teams.
+
+Reliability bands over the same 48 observations:
+
+| Band | Count | Mean forecast | Observed frequency | Gap |
+| --- | --: | --: | --: | --: |
+| 0-10% | 15 | 6.47% | 6.67% | +0.2pp |
+| 10-20% | 16 | 14.53% | 6.25% | -8.3pp |
+| 20-30% | 12 | 24.20% | 41.67% | +17.5pp |
+| 30-40% | 3 | 32.33% | 33.33% | +1.0pp |
+| 40-50% | 2 | 41.52% | 0.00% | -41.5pp |
+| 50-60% | 0 | - | - | - |
+| 60-70% | 0 | - | - | - |
+| 70-80% | 0 | - | - | - |
+| 80-90% | 0 | - | - | - |
+| 90-100% | 0 | - | - | - |
+
+### Limitation: the conditional question cannot be answered
+
+The model stores the unconditional `qualifyThird` only. It does **not** store
+P(qualifies | finished third), so "how well did the model rank the actual third-placed teams
+against each other" cannot be evaluated from these artifacts. The descriptive table above shows
+what happened; it does not score the forecast, and no Brier value is quoted over it.
 
 ### Limitation: no scenario-level Annexe C probabilities
 
@@ -235,38 +282,38 @@ aggregate. No forecast is reconstructed for those ties.
 
 | M | Stage | Match | Score | Winner | Provenance | Pre-match favourite | Favourite prob. | Favourite won | Top scoreline | Scoreline |
 | --: | --- | --- | --- | --- | --- | --- | --: | --- | --- | --- |
-| 73 | roundOf32 | South Africa v Canada | 0-1 | Canada | unavailable | - | - | - | - | - |
-| 74 | roundOf32 | Germany v Paraguay | 1-1 (pens 3-4) | Paraguay | unavailable | - | - | - | - | - |
-| 75 | roundOf32 | Netherlands v Morocco | 1-1 (pens 2-3) | Morocco | unavailable | - | - | - | - | - |
-| 76 | roundOf32 | Brazil v Japan | 2-1 | Brazil | unavailable | - | - | - | - | - |
-| 77 | roundOf32 | France v Sweden | 3-0 | France | archived-pre-match-forecast | France | 93.0% | yes | 2-0 | direction only |
-| 78 | roundOf32 | Ivory Coast v Norway | 1-2 | Norway | unavailable | - | - | - | - | - |
-| 79 | roundOf32 | Mexico v Ecuador | 2-0 | Mexico | archived-pre-match-forecast | Mexico | 53.8% | yes | 1-1 | miss |
-| 80 | roundOf32 | England v DR Congo | 2-1 | England | archived-pre-match-forecast | England | 93.2% | yes | 2-0 | direction only |
-| 81 | roundOf32 | United States v Bosnia & Herzegovina | 2-0 | United States | archived-pre-match-forecast | United States | 80.8% | yes | 1-0 | direction only |
-| 82 | roundOf32 | Belgium v Senegal | 3-2 | Belgium | archived-pre-match-forecast | Belgium | 60.9% | yes | 1-1 | miss |
-| 83 | roundOf32 | Portugal v Croatia | 2-1 | Portugal | archived-pre-match-forecast | Portugal | 66.4% | yes | 1-1 | miss |
-| 84 | roundOf32 | Spain v Austria | 3-0 | Spain | archived-pre-match-forecast | Spain | 90.6% | yes | 2-0 | direction only |
-| 85 | roundOf32 | Switzerland v Algeria | 2-0 | Switzerland | archived-pre-match-forecast | Switzerland | 66.5% | yes | 1-1 | miss |
-| 86 | roundOf32 | Argentina v Cape Verde | 3-2 | Argentina | archived-pre-match-forecast | Argentina | 98.0% | yes | 2-0 | direction only |
-| 87 | roundOf32 | Colombia v Ghana | 1-0 | Colombia | archived-pre-match-forecast | Colombia | 97.7% | yes | 2-0 | direction only |
-| 88 | roundOf32 | Australia v Egypt | 1-1 (pens 2-4) | Egypt | archived-pre-match-forecast | Australia | 60.1% | no | 1-1 | exact |
-| 89 | roundOf16 | Paraguay v France | 0-1 | France | archived-pre-match-forecast | France | 83.0% | yes | 0-1 | exact |
-| 90 | roundOf16 | Canada v Morocco | 0-3 | Morocco | archived-pre-match-forecast | Morocco | 58.4% | yes | 1-1 | miss |
-| 91 | roundOf16 | Brazil v Norway | 1-2 | Norway | archived-pre-match-forecast | Brazil | 69.7% | no | 1-0 | miss |
-| 92 | roundOf16 | Mexico v England | 2-3 | England | archived-pre-match-forecast | England | 64.1% | yes | 1-1 | miss |
-| 93 | roundOf16 | Portugal v Spain | 0-1 | Spain | archived-pre-match-forecast | Spain | 70.8% | yes | 0-1 | exact |
-| 94 | roundOf16 | United States v Belgium | 1-4 | Belgium | archived-pre-match-forecast | Belgium | 68.2% | yes | 0-1 | direction only |
-| 95 | roundOf16 | Argentina v Egypt | 3-2 | Argentina | archived-pre-match-forecast | Argentina | 95.9% | yes | 2-0 | direction only |
-| 96 | roundOf16 | Switzerland v Colombia | 0-0 (pens 4-3) | Switzerland | archived-pre-match-forecast | Colombia | 67.2% | no | 0-1 | miss |
-| 97 | quarterFinal | France v Morocco | 2-0 | France | archived-pre-match-forecast | France | 79.1% | yes | 1-0 | direction only |
-| 98 | quarterFinal | Spain v Belgium | 2-1 | Spain | archived-pre-match-forecast | Spain | 83.3% | yes | 1-0 | direction only |
-| 99 | quarterFinal | Norway v England | 1-2 | England | unavailable | - | - | - | - | - |
-| 100 | quarterFinal | Argentina v Switzerland | 3-1 | Argentina | archived-pre-match-forecast | Argentina | 82.7% | yes | 1-0 | direction only |
-| 101 | semiFinal | France v Spain | 0-2 | Spain | archived-pre-match-forecast | Spain | 61.6% | yes | 1-1 | miss |
-| 102 | semiFinal | England v Argentina | 1-2 | Argentina | archived-pre-match-forecast | Argentina | 66.3% | yes | 1-1 | miss |
-| 103 | thirdPlace | France v England | 4-6 | England | archived-pre-match-forecast | France | 57.4% | no | 1-1 | miss |
-| 104 | final | Spain v Argentina | 1-0 | Spain | archived-pre-match-forecast | Spain | 52.4% | yes | 1-1 | miss |
+| 73 | Round of 32 | South Africa v Canada | 0-1 | Canada | unavailable | - | - | - | - | - |
+| 74 | Round of 32 | Germany v Paraguay | 1-1 (pens 3-4) | Paraguay | unavailable | - | - | - | - | - |
+| 75 | Round of 32 | Netherlands v Morocco | 1-1 (pens 2-3) | Morocco | unavailable | - | - | - | - | - |
+| 76 | Round of 32 | Brazil v Japan | 2-1 | Brazil | unavailable | - | - | - | - | - |
+| 77 | Round of 32 | France v Sweden | 3-0 | France | archived-pre-match-forecast | France | 93.0% | yes | 2-0 | direction only |
+| 78 | Round of 32 | Ivory Coast v Norway | 1-2 | Norway | unavailable | - | - | - | - | - |
+| 79 | Round of 32 | Mexico v Ecuador | 2-0 | Mexico | archived-pre-match-forecast | Mexico | 53.8% | yes | 1-1 | miss |
+| 80 | Round of 32 | England v DR Congo | 2-1 | England | archived-pre-match-forecast | England | 93.2% | yes | 2-0 | direction only |
+| 81 | Round of 32 | United States v Bosnia & Herzegovina | 2-0 | United States | archived-pre-match-forecast | United States | 80.8% | yes | 1-0 | direction only |
+| 82 | Round of 32 | Belgium v Senegal | 3-2 | Belgium | archived-pre-match-forecast | Belgium | 60.9% | yes | 1-1 | miss |
+| 83 | Round of 32 | Portugal v Croatia | 2-1 | Portugal | archived-pre-match-forecast | Portugal | 66.4% | yes | 1-1 | miss |
+| 84 | Round of 32 | Spain v Austria | 3-0 | Spain | archived-pre-match-forecast | Spain | 90.6% | yes | 2-0 | direction only |
+| 85 | Round of 32 | Switzerland v Algeria | 2-0 | Switzerland | archived-pre-match-forecast | Switzerland | 66.5% | yes | 1-1 | miss |
+| 86 | Round of 32 | Argentina v Cape Verde | 3-2 | Argentina | archived-pre-match-forecast | Argentina | 98.0% | yes | 2-0 | direction only |
+| 87 | Round of 32 | Colombia v Ghana | 1-0 | Colombia | archived-pre-match-forecast | Colombia | 97.7% | yes | 2-0 | direction only |
+| 88 | Round of 32 | Australia v Egypt | 1-1 (pens 2-4) | Egypt | archived-pre-match-forecast | Australia | 60.1% | no | 1-1 | exact |
+| 89 | Round of 16 | Paraguay v France | 0-1 | France | archived-pre-match-forecast | France | 83.0% | yes | 0-1 | exact |
+| 90 | Round of 16 | Canada v Morocco | 0-3 | Morocco | archived-pre-match-forecast | Morocco | 58.4% | yes | 1-1 | miss |
+| 91 | Round of 16 | Brazil v Norway | 1-2 | Norway | archived-pre-match-forecast | Brazil | 69.7% | no | 1-0 | miss |
+| 92 | Round of 16 | Mexico v England | 2-3 | England | archived-pre-match-forecast | England | 64.1% | yes | 1-1 | miss |
+| 93 | Round of 16 | Portugal v Spain | 0-1 | Spain | archived-pre-match-forecast | Spain | 70.8% | yes | 0-1 | exact |
+| 94 | Round of 16 | United States v Belgium | 1-4 | Belgium | archived-pre-match-forecast | Belgium | 68.2% | yes | 0-1 | direction only |
+| 95 | Round of 16 | Argentina v Egypt | 3-2 | Argentina | archived-pre-match-forecast | Argentina | 95.9% | yes | 2-0 | direction only |
+| 96 | Round of 16 | Switzerland v Colombia | 0-0 (pens 4-3) | Switzerland | archived-pre-match-forecast | Colombia | 67.2% | no | 0-1 | miss |
+| 97 | Quarterfinal | France v Morocco | 2-0 | France | archived-pre-match-forecast | France | 79.1% | yes | 1-0 | direction only |
+| 98 | Quarterfinal | Spain v Belgium | 2-1 | Spain | archived-pre-match-forecast | Spain | 83.3% | yes | 1-0 | direction only |
+| 99 | Quarterfinal | Norway v England | 1-2 | England | unavailable | - | - | - | - | - |
+| 100 | Quarterfinal | Argentina v Switzerland | 3-1 | Argentina | archived-pre-match-forecast | Argentina | 82.7% | yes | 1-0 | direction only |
+| 101 | Semifinal | France v Spain | 0-2 | Spain | archived-pre-match-forecast | Spain | 61.6% | yes | 1-1 | miss |
+| 102 | Semifinal | England v Argentina | 1-2 | Argentina | archived-pre-match-forecast | Argentina | 66.3% | yes | 1-1 | miss |
+| 103 | Third-place match | France v England | 4-6 | England | archived-pre-match-forecast | France | 57.4% | no | 1-1 | miss |
+| 104 | Final | Spain v Argentina | 1-0 | Spain | archived-pre-match-forecast | Spain | 52.4% | yes | 1-1 | miss |
 
 ### Aggregate - archived pre-match forecasts only
 
@@ -289,12 +336,12 @@ Coverage: 26 of 32 knockout ties. Missing: M73, M74, M75, M76, M78, M99.
 
 | Round | Evaluated | Correct | Accuracy |
 | --- | --: | --: | --: |
-| roundOf32 | 11 | 10 | 90.9% |
-| roundOf16 | 8 | 6 | 75.0% |
-| quarterFinal | 3 | 3 | 100.0% |
-| semiFinal | 2 | 2 | 100.0% |
-| thirdPlace | 1 | 0 | 0.0% |
-| final | 1 | 1 | 100.0% |
+| Round of 32 | 11 | 10 | 90.9% |
+| Round of 16 | 8 | 6 | 75.0% |
+| Quarterfinal | 3 | 3 | 100.0% |
+| Semifinal | 2 | 2 | 100.0% |
+| Third-place match | 1 | 0 | 0.0% |
+| Final | 1 | 1 | 100.0% |
 
 **Biggest upset by pre-match probability:** M91, Brazil favoured at 69.7% to advance; Norway progressed. This is also the highest-confidence miss in the archived set.
 
@@ -382,12 +429,12 @@ forecast against a number that includes penalty kicks.
 
 | Stage | With forecast | Total |
 | --- | --: | --: |
-| roundOf32 | 11 | 16 |
-| roundOf16 | 8 | 8 |
-| quarterFinal | 3 | 4 |
-| semiFinal | 2 | 2 |
-| thirdPlace | 1 | 1 |
-| final | 1 | 1 |
+| Round of 32 | 11 | 16 |
+| Round of 16 | 8 | 8 |
+| Quarterfinal | 3 | 4 |
+| Semifinal | 2 | 2 |
+| Third-place match | 1 | 1 |
+| Final | 1 | 1 |
 
 Group-stage scoreline forecasts were never archived (0 of 72), so no group scoreline accuracy
 is reported. Missing knockout ties: M73, M74, M75, M76, M78, M99.

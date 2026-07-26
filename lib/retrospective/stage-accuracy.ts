@@ -194,6 +194,67 @@ export const LIKELY_QUALIFIER_MIN = 0.5;
 /** Combined probability of reaching the Round of 32 via either route. */
 export const qualifyProbability = (t: ForecastTeamProbabilities): number => t.qualifyTop2 + t.qualifyThird;
 
+/** One actual third-placed team, for the descriptive Annexe C table. */
+export interface ThirdPlaceDescriptiveRow {
+  teamId: string;
+  group: string;
+  annexeCRank: number;
+  qualifyThird: number;
+  advanced: boolean;
+}
+
+export interface ThirdPlaceAccuracy {
+  /** Descriptive context: the twelve teams that actually finished third. */
+  descriptive: ThirdPlaceDescriptiveRow[];
+  /**
+   * The evaluable forecast target. `qualifyThird` is an UNCONDITIONAL pre-tournament
+   * probability - P(this team qualifies via the third-place route) - so it must be scored
+   * over ALL teams, not only the twelve that happened to finish third. Scoring the
+   * conditional subset would compare an unconditional forecast against a base rate
+   * (8 of 12) it was never forecasting.
+   */
+  observations: BinaryObservation[];
+  /** Teams that finished third AND advanced. */
+  positives: number;
+  /** Total teams scored (the whole field). */
+  observationCount: number;
+}
+
+/**
+ * Third-place qualification accuracy. Pure.
+ *
+ * The model stores only the unconditional `qualifyThird`; it does NOT store
+ * P(qualifies | finished third), so conditional accuracy among the actual third-placed
+ * teams cannot be evaluated from these artifacts. Callers must not present a Brier score
+ * computed over the twelve actual third-placed teams as an evaluation of `qualifyThird`.
+ */
+export function buildThirdPlaceAccuracy(snapshot: ForecastSnapshot, actual: ActualOutcomes): ThirdPlaceAccuracy {
+  const byId = new Map(snapshot.teams.map((t) => [t.teamId, t]));
+  const qualifiedThird = new Set(actual.thirdPlaceQualifiers);
+
+  const descriptive: ThirdPlaceDescriptiveRow[] = actual.thirdPlacedRanked.map((teamId, i) => ({
+    teamId,
+    group: actual.groups.find((g) => g.thirdPlaced === teamId)?.group ?? "?",
+    annexeCRank: i + 1,
+    qualifyThird: byId.get(teamId)?.qualifyThird ?? 0,
+    advanced: qualifiedThird.has(teamId),
+  }));
+
+  // Unconditional target, scored across the whole field.
+  const observations: BinaryObservation[] = snapshot.teams.map((t) => ({
+    probability: t.qualifyThird,
+    occurred: qualifiedThird.has(t.teamId),
+    label: t.teamId,
+  }));
+
+  return {
+    descriptive,
+    observations,
+    positives: observations.filter((o) => o.occurred).length,
+    observationCount: observations.length,
+  };
+}
+
 export function buildGroupAccuracy(snapshot: ForecastSnapshot, actual: ActualOutcomes): GroupStageAccuracy[] {
   const byId = new Map(snapshot.teams.map((t) => [t.teamId, t]));
   const qualifierSet = new Set(actual.qualifiers);

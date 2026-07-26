@@ -28,6 +28,7 @@ import {
   buildGroupAccuracy,
   buildStageAccuracy,
   buildTeamSurprise,
+  buildThirdPlaceAccuracy,
   qualifyProbability,
 } from "@/lib/retrospective/stage-accuracy";
 import {
@@ -106,6 +107,7 @@ const recomputedGroupMatches = evaluateGroupMatches(ledger, recomputedGroupForec
 const stageAccuracy = buildStageAccuracy(baseline, actual);
 const groupAccuracy = buildGroupAccuracy(baseline, actual);
 const surprise = buildTeamSurprise(baseline, actual);
+const thirdPlaceAccuracy = buildThirdPlaceAccuracy(baseline, actual);
 
 /** Mean signed driver contributions across a team's three group fixtures. */
 function driverSummaryFor(teamId: string): DriverSummary {
@@ -175,6 +177,7 @@ const input: RetrospectiveInput = {
   recomputedGroupMatches,
   archivedScorelines,
   archivedForecasts,
+  thirdPlaceAccuracy,
   drivers,
   teamNames: new Map(teams.map((t) => [t.id, t.name])),
   annexeCScenarioProbabilitiesAvailable: false,
@@ -249,6 +252,45 @@ describe("post-tournament retrospective: group-stage metrics", () => {
     const exits = groupAccuracy.flatMap((g) => g.unexpectedExits);
     expect(upsets).toContain("ghana");
     expect(exits).toContain("uruguay");
+  });
+});
+
+describe("post-tournament retrospective: third-place qualification metric", () => {
+  it("scores the UNCONDITIONAL qualifyThird across the whole field, not the third-placed subset", () => {
+    // qualifyThird is P(qualifies via the third-place route) for ANY team, so restricting the
+    // scoring to the twelve teams that happened to finish third would evaluate it against a
+    // conditional base rate (8/12) it was never forecasting.
+    expect(thirdPlaceAccuracy.observationCount).toBe(48);
+    expect(thirdPlaceAccuracy.observations.length).toBe(48);
+    expect(thirdPlaceAccuracy.positives).toBe(8);
+  });
+
+  it("counts only teams that finished third AND advanced as positives", () => {
+    const positives = thirdPlaceAccuracy.observations.filter((o) => o.occurred).map((o) => o.label).sort();
+    expect(positives).toEqual([...actual.thirdPlaceQualifiers].sort());
+    // A group winner or runner-up never counts, however deep it went.
+    expect(positives).not.toContain(CHAMPION);
+  });
+
+  it("keeps the twelve actual third-placed teams as descriptive context only", () => {
+    expect(thirdPlaceAccuracy.descriptive.length).toBe(12);
+    expect(thirdPlaceAccuracy.descriptive.filter((r) => r.advanced).length).toBe(8);
+    expect(thirdPlaceAccuracy.descriptive.map((r) => r.annexeCRank)).toEqual(
+      Array.from({ length: 12 }, (_, i) => i + 1),
+    );
+  });
+
+  it("no longer quotes a Brier score over the twelve third-placed teams", () => {
+    expect(report).not.toContain("scored over the twelve actual third-placed teams");
+    expect(report).toContain("### Team-level evaluation of `qualifyThird` (all 48 teams)");
+    expect(report).toContain("| Observations | 48 (all teams) |");
+    expect(report).toContain("| Positives (finished third and advanced) | 8 |");
+  });
+
+  it("states that the conditional question cannot be answered from the stored forecast", () => {
+    expect(report).toContain("### Limitation: the conditional question cannot be answered");
+    expect(report).toContain("P(qualifies | finished third)");
+    expect(report).toContain("descriptive only");
   });
 });
 
@@ -367,6 +409,23 @@ describe("post-tournament retrospective: report content", () => {
     for (const banned of ["win %", "final %", "small team", "weak team", "fluke", "giant killing"]) {
       expect({ banned, present: report.toLowerCase().includes(banned) }).toEqual({ banned, present: false });
     }
+  });
+
+  it("uses public stage labels in tables, never internal stage tokens", () => {
+    for (const label of ["Round of 32", "Round of 16", "Quarterfinal", "Semifinal", "Third-place match", "Final"]) {
+      expect({ label, present: report.includes(label) }).toEqual({ label, present: true });
+    }
+    // Internal tokens must not leak into a rendered table cell.
+    for (const token of ["| roundOf32 |", "| roundOf16 |", "| quarterFinal |", "| semiFinal |", "| thirdPlace |"]) {
+      expect({ token, present: report.includes(token) }).toEqual({ token, present: false });
+    }
+  });
+
+  it("states the terminal endpoint as a resolved outcome, not a ranked top five", () => {
+    expect(report).toContain("all other teams 0%");
+    expect(report).toContain("resolved end state, not a ranking");
+    // The terminal line must not present zero-probability teams as ranked contenders.
+    expect(report).not.toMatch(/terminal\)\*\*: 1\. /);
   });
 
   it("labels both forecast provenances wherever match numbers appear", () => {
