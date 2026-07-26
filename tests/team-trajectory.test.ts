@@ -252,8 +252,52 @@ describe("buildTeamHeroModel + status", () => {
     expect(hero.baselineTitleProbability).toBeNull();
     expect(hero.titleDeltaPp).toBeNull();
     expect(hero.currentRank).toBeNull();
+    expect(hero.baselineRank).toBeNull();
     expect(hero.isZeroTitle).toBe(false);
     expect(hero.asOfLabel).toBeNull();
+  });
+
+  /**
+   * Regression: the "Tournament start" line rendered the baseline PROBABILITY next to the
+   * CURRENT rank. Once results lock, an eliminated team collapses to a 0% title chance and
+   * its current rank becomes an arbitrary tie-break position among the other 0% teams - so
+   * the label reported, e.g., a pre-tournament #2 side as "Tournament start: 21% · Rank #37".
+   * Baseline and current rank must stay separate, and the surface must read the baseline one.
+   */
+  it("keeps the tournament-start rank separate from the current rank", () => {
+    const rankedSnap = (winner: number, rank: number, id: string): ForecastSnapshot =>
+      ({
+        meta: { snapshotId: id, asOf: "2026-07-19T22:00:00Z", completedMatchesLocked: 104 },
+        teams: [{ teamId: "argentina", rank, ...stagesAt(winner) }],
+      }) as unknown as ForecastSnapshot;
+
+    // Pre-tournament #2 at 21.1%; eliminated by the final, so terminal rank is #37 at 0%.
+    const hero = buildTeamHeroModel({
+      teamId: "argentina",
+      current: rankedSnap(0, 37, "current-after-match-104"),
+      baseline: rankedSnap(0.211, 2, "baseline-pre-tournament"),
+      comparison: null,
+      source: "blob",
+    });
+
+    expect(hero.baselineRank).toBe(2);
+    expect(hero.currentRank).toBe(37);
+    expect(hero.baselineRank).not.toBe(hero.currentRank);
+    // The tournament-start pair must be internally consistent: baseline probability + baseline rank.
+    expect({ prob: hero.baselineTitleProbability, rank: hero.baselineRank }).toEqual({ prob: 0.211, rank: 2 });
+  });
+
+  it("renders the tournament-start rank, not the current rank, under the tournament-start label", () => {
+    // Source-level guard: this is the exact substitution that caused the bug, and a JSX
+    // change is the only way it can regress. Whitespace is collapsed so wrapping cannot
+    // hide a match.
+    const src = readFileSync(
+      join(process.cwd(), "components/teams/team-trajectory-surface.tsx"),
+      "utf8",
+    ).replace(/\s+/g, " ");
+    expect(src).toContain("Tournament start: {hero.baselineTitleProbability");
+    expect(src).toContain("{hero.baselineRank != null ? <> · Rank #{hero.baselineRank}</> : null}");
+    expect(src).not.toContain("Rank #{hero.currentRank}");
   });
 
   it("eliminated ONLY from live-state; zero title chance is never auto-eliminated", () => {

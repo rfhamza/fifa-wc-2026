@@ -224,6 +224,13 @@ export interface TeamHeroModel {
   /** Signed change in percentage points since tournament start; null when underivable. */
   titleDeltaPp: number | null;
   currentRank: number | null;
+  /**
+   * Title-chance rank in the PRE-TOURNAMENT baseline snapshot. Distinct from
+   * `currentRank`: once results are locked, eliminated teams collapse to a 0% title chance
+   * and their current rank becomes an arbitrary tie-break position, so it must never be
+   * rendered as the team's tournament-start standing.
+   */
+  baselineRank: number | null;
   /** Current title chance rounds to 0% (a forecast fact, NOT elimination). */
   isZeroTitle: boolean;
   source: ForecastSourceKind;
@@ -255,6 +262,7 @@ export function buildTeamHeroModel(input: BuildTeamHeroModelInput): TeamHeroMode
     baselineTitleProbability: base?.winner ?? null,
     titleDeltaPp,
     currentRank: cur?.rank ?? null,
+    baselineRank: base?.rank ?? null,
     isZeroTitle: cur ? roundsToZeroPct(cur.winner) : false,
     source,
     asOfLabel: formatAsOf(current?.meta.asOf ?? null),
