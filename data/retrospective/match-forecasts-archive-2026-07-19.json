@@ -1,0 +1,1263 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-07-19T22:14:39.461Z",
+  "sourceLiveStateAsOf": "2026-07-19T22:14:34.135Z",
+  "sourceLiveStateGeneratedAt": "2026-07-19T22:14:34.135Z",
+  "sourceLiveStateObjectPath": "live-state.provider.sanitized.json",
+  "publicSourcePolicy": "provider-public-delayed",
+  "attribution": {
+    "sourceName": "football-data.org",
+    "sourceUrl": "https://www.football-data.org/",
+    "text": "Match forecasts derived internally from the model; standings and bracket use FIFA Article 13. Data may be delayed."
+  },
+  "matchForecasts": [
+    {
+      "matchNumber": 77,
+      "stage": "roundOf32",
+      "status": "complete",
+      "homeTeamId": "france",
+      "awayTeamId": "sweden",
+      "forecastAsOf": "2026-06-30T21:18:02.969Z",
+      "generatedAt": "2026-06-30T21:18:07.060Z",
+      "forecastProvenance": "archived-pre-match-forecast",
+      "capturedBeforeCompletion": true,
+      "archived": true,
+      "homeWin": 0.8014,
+      "draw": 0.1501,
+      "awayWin": 0.0486,
+      "expectedHomeGoals": 2.23,
+      "expectedAwayGoals": 0.37,
+      "topScorelines": [
+        {
+          "homeGoals": 2,
+          "awayGoals": 0,
+          "probability": 0.1841
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 0,
+          "probability": 0.1654
+        },
+        {
+          "homeGoals": 3,
+          "awayGoals": 0,
+          "probability": 0.1367
+        },
+        {
+          "homeGoals": 4,
+          "awayGoals": 0,
+          "probability": 0.0761
+        },
+        {
+          "homeGoals": 0,
+          "awayGoals": 0,
+          "probability": 0.0743
+        }
+      ],
+      "sourceSnapshotId": "current-2026-06-30-after-match-078",
+      "homeAdvance": 0.9301,
+      "awayAdvance": 0.07,
+      "advancementBasis": "derived-from-90min-and-shootout-model"
+    },
+    {
+      "matchNumber": 79,
+      "stage": "roundOf32",
+      "status": "complete",
+      "homeTeamId": "mexico",
+      "awayTeamId": "ecuador",
+      "forecastAsOf": "2026-06-30T21:18:02.969Z",
+      "generatedAt": "2026-06-30T21:18:07.060Z",
+      "forecastProvenance": "archived-pre-match-forecast",
+      "capturedBeforeCompletion": true,
+      "archived": true,
+      "homeWin": 0.3998,
+      "draw": 0.2632,
+      "awayWin": 0.337,
+      "expectedHomeGoals": 1.37,
+      "expectedAwayGoals": 1.23,
+      "topScorelines": [
+        {
+          "homeGoals": 1,
+          "awayGoals": 1,
+          "probability": 0.1252
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 0,
+          "probability": 0.1015
+        },
+        {
+          "homeGoals": 0,
+          "awayGoals": 1,
+          "probability": 0.0916
+        },
+        {
+          "homeGoals": 2,
+          "awayGoals": 1,
+          "probability": 0.0856
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 2,
+          "probability": 0.0772
+        }
+      ],
+      "sourceSnapshotId": "current-2026-06-30-after-match-078",
+      "homeAdvance": 0.5385,
+      "awayAdvance": 0.4615,
+      "advancementBasis": "derived-from-90min-and-shootout-model"
+    },
+    {
+      "matchNumber": 80,
+      "stage": "roundOf32",
+      "status": "complete",
+      "homeTeamId": "england",
+      "awayTeamId": "congo-dr",
+      "forecastAsOf": "2026-06-30T21:18:02.969Z",
+      "generatedAt": "2026-06-30T21:18:07.060Z",
+      "forecastProvenance": "archived-pre-match-forecast",
+      "capturedBeforeCompletion": true,
+      "archived": true,
+      "homeWin": 0.8043,
+      "draw": 0.1485,
+      "awayWin": 0.0471,
+      "expectedHomeGoals": 2.23,
+      "expectedAwayGoals": 0.37,
+      "topScorelines": [
+        {
+          "homeGoals": 2,
+          "awayGoals": 0,
+          "probability": 0.1854
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 0,
+          "probability": 0.166
+        },
+        {
+          "homeGoals": 3,
+          "awayGoals": 0,
+          "probability": 0.1381
+        },
+        {
+          "homeGoals": 4,
+          "awayGoals": 0,
+          "probability": 0.0771
+        },
+        {
+          "homeGoals": 0,
+          "awayGoals": 0,
+          "probability": 0.0743
+        }
+      ],
+      "sourceSnapshotId": "current-2026-06-30-after-match-078",
+      "homeAdvance": 0.9317,
+      "awayAdvance": 0.0682,
+      "advancementBasis": "derived-from-90min-and-shootout-model"
+    },
+    {
+      "matchNumber": 81,
+      "stage": "roundOf32",
+      "status": "complete",
+      "homeTeamId": "usa",
+      "awayTeamId": "bosnia-herzegovina",
+      "forecastAsOf": "2026-06-30T21:18:02.969Z",
+      "generatedAt": "2026-06-30T21:18:07.060Z",
+      "forecastProvenance": "archived-pre-match-forecast",
+      "capturedBeforeCompletion": true,
+      "archived": true,
+      "homeWin": 0.6534,
+      "draw": 0.2131,
+      "awayWin": 0.1335,
+      "expectedHomeGoals": 1.89,
+      "expectedAwayGoals": 0.71,
+      "topScorelines": [
+        {
+          "homeGoals": 1,
+          "awayGoals": 0,
+          "probability": 0.1402
+        },
+        {
+          "homeGoals": 2,
+          "awayGoals": 0,
+          "probability": 0.1324
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 1,
+          "probability": 0.0998
+        },
+        {
+          "homeGoals": 2,
+          "awayGoals": 1,
+          "probability": 0.0942
+        },
+        {
+          "homeGoals": 3,
+          "awayGoals": 0,
+          "probability": 0.0833
+        }
+      ],
+      "sourceSnapshotId": "current-2026-06-30-after-match-078",
+      "homeAdvance": 0.8083,
+      "awayAdvance": 0.1917,
+      "advancementBasis": "derived-from-90min-and-shootout-model"
+    },
+    {
+      "matchNumber": 82,
+      "stage": "roundOf32",
+      "status": "complete",
+      "homeTeamId": "belgium",
+      "awayTeamId": "senegal",
+      "forecastAsOf": "2026-06-30T21:18:02.969Z",
+      "generatedAt": "2026-06-30T21:18:07.060Z",
+      "forecastProvenance": "archived-pre-match-forecast",
+      "capturedBeforeCompletion": true,
+      "archived": true,
+      "homeWin": 0.4606,
+      "draw": 0.2581,
+      "awayWin": 0.2813,
+      "expectedHomeGoals": 1.49,
+      "expectedAwayGoals": 1.11,
+      "topScorelines": [
+        {
+          "homeGoals": 1,
+          "awayGoals": 1,
+          "probability": 0.1228
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 0,
+          "probability": 0.1109
+        },
+        {
+          "homeGoals": 2,
+          "awayGoals": 1,
+          "probability": 0.0916
+        },
+        {
+          "homeGoals": 2,
+          "awayGoals": 0,
+          "probability": 0.0827
+        },
+        {
+          "homeGoals": 0,
+          "awayGoals": 1,
+          "probability": 0.0823
+        }
+      ],
+      "sourceSnapshotId": "current-2026-06-30-after-match-078",
+      "homeAdvance": 0.6085,
+      "awayAdvance": 0.3915,
+      "advancementBasis": "derived-from-90min-and-shootout-model"
+    },
+    {
+      "matchNumber": 83,
+      "stage": "roundOf32",
+      "status": "complete",
+      "homeTeamId": "portugal",
+      "awayTeamId": "croatia",
+      "forecastAsOf": "2026-06-30T21:18:02.969Z",
+      "generatedAt": "2026-06-30T21:18:07.060Z",
+      "forecastProvenance": "archived-pre-match-forecast",
+      "capturedBeforeCompletion": true,
+      "archived": true,
+      "homeWin": 0.5104,
+      "draw": 0.2506,
+      "awayWin": 0.2391,
+      "expectedHomeGoals": 1.59,
+      "expectedAwayGoals": 1.01,
+      "topScorelines": [
+        {
+          "homeGoals": 1,
+          "awayGoals": 1,
+          "probability": 0.1191
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 0,
+          "probability": 0.1184
+        },
+        {
+          "homeGoals": 2,
+          "awayGoals": 1,
+          "probability": 0.0949
+        },
+        {
+          "homeGoals": 2,
+          "awayGoals": 0,
+          "probability": 0.0943
+        },
+        {
+          "homeGoals": 0,
+          "awayGoals": 1,
+          "probability": 0.0747
+        }
+      ],
+      "sourceSnapshotId": "current-2026-06-30-after-match-078",
+      "homeAdvance": 0.6637,
+      "awayAdvance": 0.3364,
+      "advancementBasis": "derived-from-90min-and-shootout-model"
+    },
+    {
+      "matchNumber": 84,
+      "stage": "roundOf32",
+      "status": "complete",
+      "homeTeamId": "spain",
+      "awayTeamId": "austria",
+      "forecastAsOf": "2026-06-30T21:18:02.969Z",
+      "generatedAt": "2026-06-30T21:18:07.060Z",
+      "forecastProvenance": "archived-pre-match-forecast",
+      "capturedBeforeCompletion": true,
+      "archived": true,
+      "homeWin": 0.7689,
+      "draw": 0.1661,
+      "awayWin": 0.065,
+      "expectedHomeGoals": 2.15,
+      "expectedAwayGoals": 0.45,
+      "topScorelines": [
+        {
+          "homeGoals": 2,
+          "awayGoals": 0,
+          "probability": 0.1712
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 0,
+          "probability": 0.1595
+        },
+        {
+          "homeGoals": 3,
+          "awayGoals": 0,
+          "probability": 0.1225
+        },
+        {
+          "homeGoals": 2,
+          "awayGoals": 1,
+          "probability": 0.0776
+        },
+        {
+          "homeGoals": 0,
+          "awayGoals": 0,
+          "probability": 0.0743
+        }
+      ],
+      "sourceSnapshotId": "current-2026-06-30-after-match-078",
+      "homeAdvance": 0.9063,
+      "awayAdvance": 0.0937,
+      "advancementBasis": "derived-from-90min-and-shootout-model"
+    },
+    {
+      "matchNumber": 85,
+      "stage": "roundOf32",
+      "status": "complete",
+      "homeTeamId": "switzerland",
+      "awayTeamId": "algeria",
+      "forecastAsOf": "2026-06-30T21:18:02.969Z",
+      "generatedAt": "2026-06-30T21:18:07.060Z",
+      "forecastProvenance": "archived-pre-match-forecast",
+      "capturedBeforeCompletion": true,
+      "archived": true,
+      "homeWin": 0.5113,
+      "draw": 0.2504,
+      "awayWin": 0.2383,
+      "expectedHomeGoals": 1.6,
+      "expectedAwayGoals": 1,
+      "topScorelines": [
+        {
+          "homeGoals": 1,
+          "awayGoals": 1,
+          "probability": 0.119
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 0,
+          "probability": 0.1185
+        },
+        {
+          "homeGoals": 2,
+          "awayGoals": 1,
+          "probability": 0.095
+        },
+        {
+          "homeGoals": 2,
+          "awayGoals": 0,
+          "probability": 0.0945
+        },
+        {
+          "homeGoals": 0,
+          "awayGoals": 1,
+          "probability": 0.0746
+        }
+      ],
+      "sourceSnapshotId": "current-2026-06-30-after-match-078",
+      "homeAdvance": 0.6654,
+      "awayAdvance": 0.3346,
+      "advancementBasis": "derived-from-90min-and-shootout-model"
+    },
+    {
+      "matchNumber": 86,
+      "stage": "roundOf32",
+      "status": "complete",
+      "homeTeamId": "argentina",
+      "awayTeamId": "cape-verde",
+      "forecastAsOf": "2026-06-30T21:18:02.969Z",
+      "generatedAt": "2026-06-30T21:18:07.060Z",
+      "forecastProvenance": "archived-pre-match-forecast",
+      "capturedBeforeCompletion": true,
+      "archived": true,
+      "homeWin": 0.8946,
+      "draw": 0.0908,
+      "awayWin": 0.0146,
+      "expectedHomeGoals": 2.65,
+      "expectedAwayGoals": 0.18,
+      "topScorelines": [
+        {
+          "homeGoals": 2,
+          "awayGoals": 0,
+          "probability": 0.2073
+        },
+        {
+          "homeGoals": 3,
+          "awayGoals": 0,
+          "probability": 0.183
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 0,
+          "probability": 0.1565
+        },
+        {
+          "homeGoals": 4,
+          "awayGoals": 0,
+          "probability": 0.1212
+        },
+        {
+          "homeGoals": 5,
+          "awayGoals": 0,
+          "probability": 0.0642
+        }
+      ],
+      "sourceSnapshotId": "current-2026-06-30-after-match-078",
+      "homeAdvance": 0.9796,
+      "awayAdvance": 0.0204,
+      "advancementBasis": "derived-from-90min-and-shootout-model"
+    },
+    {
+      "matchNumber": 87,
+      "stage": "roundOf32",
+      "status": "complete",
+      "homeTeamId": "colombia",
+      "awayTeamId": "ghana",
+      "forecastAsOf": "2026-06-30T21:18:02.969Z",
+      "generatedAt": "2026-06-30T21:18:07.060Z",
+      "forecastProvenance": "archived-pre-match-forecast",
+      "capturedBeforeCompletion": true,
+      "archived": true,
+      "homeWin": 0.8834,
+      "draw": 0.1004,
+      "awayWin": 0.0162,
+      "expectedHomeGoals": 2.53,
+      "expectedAwayGoals": 0.18,
+      "topScorelines": [
+        {
+          "homeGoals": 2,
+          "awayGoals": 0,
+          "probability": 0.2129
+        },
+        {
+          "homeGoals": 3,
+          "awayGoals": 0,
+          "probability": 0.1796
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 0,
+          "probability": 0.1682
+        },
+        {
+          "homeGoals": 4,
+          "awayGoals": 0,
+          "probability": 0.1137
+        },
+        {
+          "homeGoals": 0,
+          "awayGoals": 0,
+          "probability": 0.0665
+        }
+      ],
+      "sourceSnapshotId": "current-2026-06-30-after-match-078",
+      "homeAdvance": 0.9771,
+      "awayAdvance": 0.0229,
+      "advancementBasis": "derived-from-90min-and-shootout-model"
+    },
+    {
+      "matchNumber": 88,
+      "stage": "roundOf32",
+      "status": "complete",
+      "homeTeamId": "australia",
+      "awayTeamId": "egypt",
+      "forecastAsOf": "2026-06-30T21:18:02.969Z",
+      "generatedAt": "2026-06-30T21:18:07.060Z",
+      "forecastProvenance": "archived-pre-match-forecast",
+      "capturedBeforeCompletion": true,
+      "archived": true,
+      "homeWin": 0.454,
+      "draw": 0.2589,
+      "awayWin": 0.2871,
+      "expectedHomeGoals": 1.48,
+      "expectedAwayGoals": 1.12,
+      "topScorelines": [
+        {
+          "homeGoals": 1,
+          "awayGoals": 1,
+          "probability": 0.1231
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 0,
+          "probability": 0.1099
+        },
+        {
+          "homeGoals": 2,
+          "awayGoals": 1,
+          "probability": 0.0911
+        },
+        {
+          "homeGoals": 0,
+          "awayGoals": 1,
+          "probability": 0.0833
+        },
+        {
+          "homeGoals": 2,
+          "awayGoals": 0,
+          "probability": 0.0812
+        }
+      ],
+      "sourceSnapshotId": "current-2026-06-30-after-match-078",
+      "homeAdvance": 0.6014,
+      "awayAdvance": 0.3986,
+      "advancementBasis": "derived-from-90min-and-shootout-model"
+    },
+    {
+      "matchNumber": 89,
+      "stage": "roundOf16",
+      "status": "complete",
+      "homeTeamId": "paraguay",
+      "awayTeamId": "france",
+      "forecastAsOf": "2026-07-01T00:18:35.409Z",
+      "generatedAt": "2026-07-01T00:18:41.161Z",
+      "forecastProvenance": "archived-pre-match-forecast",
+      "capturedBeforeCompletion": true,
+      "archived": true,
+      "homeWin": 0.118,
+      "draw": 0.2046,
+      "awayWin": 0.6773,
+      "expectedHomeGoals": 0.66,
+      "expectedAwayGoals": 1.94,
+      "topScorelines": [
+        {
+          "homeGoals": 0,
+          "awayGoals": 1,
+          "probability": 0.144
+        },
+        {
+          "homeGoals": 0,
+          "awayGoals": 2,
+          "probability": 0.1397
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 1,
+          "probability": 0.0952
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 2,
+          "probability": 0.0923
+        },
+        {
+          "homeGoals": 0,
+          "awayGoals": 3,
+          "probability": 0.0903
+        }
+      ],
+      "sourceSnapshotId": "current-2026-07-01-after-match-078",
+      "homeAdvance": 0.1699,
+      "awayAdvance": 0.83,
+      "advancementBasis": "derived-from-90min-and-shootout-model"
+    },
+    {
+      "matchNumber": 90,
+      "stage": "roundOf16",
+      "status": "complete",
+      "homeTeamId": "canada",
+      "awayTeamId": "morocco",
+      "forecastAsOf": "2026-06-30T21:18:02.969Z",
+      "generatedAt": "2026-06-30T21:18:07.060Z",
+      "forecastProvenance": "archived-pre-match-forecast",
+      "capturedBeforeCompletion": true,
+      "archived": true,
+      "homeWin": 0.301,
+      "draw": 0.2605,
+      "awayWin": 0.4385,
+      "expectedHomeGoals": 1.15,
+      "expectedAwayGoals": 1.45,
+      "topScorelines": [
+        {
+          "homeGoals": 1,
+          "awayGoals": 1,
+          "probability": 0.1239
+        },
+        {
+          "homeGoals": 0,
+          "awayGoals": 1,
+          "probability": 0.1075
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 2,
+          "probability": 0.0897
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 0,
+          "probability": 0.0856
+        },
+        {
+          "homeGoals": 0,
+          "awayGoals": 2,
+          "probability": 0.0778
+        }
+      ],
+      "sourceSnapshotId": "current-2026-06-30-after-match-078",
+      "homeAdvance": 0.4162,
+      "awayAdvance": 0.5838,
+      "advancementBasis": "derived-from-90min-and-shootout-model"
+    },
+    {
+      "matchNumber": 91,
+      "stage": "roundOf16",
+      "status": "complete",
+      "homeTeamId": "brazil",
+      "awayTeamId": "norway",
+      "forecastAsOf": "2026-06-30T21:18:02.969Z",
+      "generatedAt": "2026-06-30T21:18:07.060Z",
+      "forecastProvenance": "archived-pre-match-forecast",
+      "capturedBeforeCompletion": true,
+      "archived": true,
+      "homeWin": 0.5411,
+      "draw": 0.2444,
+      "awayWin": 0.2144,
+      "expectedHomeGoals": 1.66,
+      "expectedAwayGoals": 0.94,
+      "topScorelines": [
+        {
+          "homeGoals": 1,
+          "awayGoals": 0,
+          "probability": 0.123
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 1,
+          "probability": 0.1161
+        },
+        {
+          "homeGoals": 2,
+          "awayGoals": 0,
+          "probability": 0.1019
+        },
+        {
+          "homeGoals": 2,
+          "awayGoals": 1,
+          "probability": 0.0961
+        },
+        {
+          "homeGoals": 0,
+          "awayGoals": 0,
+          "probability": 0.0743
+        }
+      ],
+      "sourceSnapshotId": "current-2026-06-30-after-match-078",
+      "homeAdvance": 0.6971,
+      "awayAdvance": 0.3028,
+      "advancementBasis": "derived-from-90min-and-shootout-model"
+    },
+    {
+      "matchNumber": 92,
+      "stage": "roundOf16",
+      "status": "complete",
+      "homeTeamId": "mexico",
+      "awayTeamId": "england",
+      "forecastAsOf": "2026-07-01T19:22:41.128Z",
+      "generatedAt": "2026-07-01T19:22:47.100Z",
+      "forecastProvenance": "archived-pre-match-forecast",
+      "capturedBeforeCompletion": true,
+      "archived": true,
+      "homeWin": 0.2567,
+      "draw": 0.2542,
+      "awayWin": 0.4891,
+      "expectedHomeGoals": 1.05,
+      "expectedAwayGoals": 1.55,
+      "topScorelines": [
+        {
+          "homeGoals": 1,
+          "awayGoals": 1,
+          "probability": 0.1209
+        },
+        {
+          "homeGoals": 0,
+          "awayGoals": 1,
+          "probability": 0.1152
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 2,
+          "probability": 0.0937
+        },
+        {
+          "homeGoals": 0,
+          "awayGoals": 2,
+          "probability": 0.0893
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 0,
+          "probability": 0.0779
+        }
+      ],
+      "sourceSnapshotId": "current-2026-07-01-after-match-080",
+      "homeAdvance": 0.3594,
+      "awayAdvance": 0.6406,
+      "advancementBasis": "derived-from-90min-and-shootout-model"
+    },
+    {
+      "matchNumber": 93,
+      "stage": "roundOf16",
+      "status": "complete",
+      "homeTeamId": "portugal",
+      "awayTeamId": "spain",
+      "forecastAsOf": "2026-07-03T04:29:26.878Z",
+      "generatedAt": "2026-07-03T04:29:30.713Z",
+      "forecastProvenance": "archived-pre-match-forecast",
+      "capturedBeforeCompletion": true,
+      "archived": true,
+      "homeWin": 0.206,
+      "draw": 0.242,
+      "awayWin": 0.5519,
+      "expectedHomeGoals": 0.92,
+      "expectedAwayGoals": 1.68,
+      "topScorelines": [
+        {
+          "homeGoals": 0,
+          "awayGoals": 1,
+          "probability": 0.1246
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 1,
+          "probability": 0.1149
+        },
+        {
+          "homeGoals": 0,
+          "awayGoals": 2,
+          "probability": 0.1046
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 2,
+          "probability": 0.0964
+        },
+        {
+          "homeGoals": 0,
+          "awayGoals": 0,
+          "probability": 0.0743
+        }
+      ],
+      "sourceSnapshotId": "current-2026-07-03-after-match-084",
+      "homeAdvance": 0.2916,
+      "awayAdvance": 0.7083,
+      "advancementBasis": "derived-from-90min-and-shootout-model"
+    },
+    {
+      "matchNumber": 94,
+      "stage": "roundOf16",
+      "status": "complete",
+      "homeTeamId": "usa",
+      "awayTeamId": "belgium",
+      "forecastAsOf": "2026-07-02T19:43:31.190Z",
+      "generatedAt": "2026-07-02T19:43:34.991Z",
+      "forecastProvenance": "archived-pre-match-forecast",
+      "capturedBeforeCompletion": true,
+      "archived": true,
+      "homeWin": 0.2262,
+      "draw": 0.2475,
+      "awayWin": 0.5263,
+      "expectedHomeGoals": 0.97,
+      "expectedAwayGoals": 1.63,
+      "topScorelines": [
+        {
+          "homeGoals": 0,
+          "awayGoals": 1,
+          "probability": 0.1208
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 1,
+          "probability": 0.1176
+        },
+        {
+          "homeGoals": 0,
+          "awayGoals": 2,
+          "probability": 0.0982
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 2,
+          "probability": 0.0956
+        },
+        {
+          "homeGoals": 0,
+          "awayGoals": 0,
+          "probability": 0.0743
+        }
+      ],
+      "sourceSnapshotId": "current-2026-07-02-after-match-082",
+      "homeAdvance": 0.3185,
+      "awayAdvance": 0.6815,
+      "advancementBasis": "derived-from-90min-and-shootout-model"
+    },
+    {
+      "matchNumber": 95,
+      "stage": "roundOf16",
+      "status": "complete",
+      "homeTeamId": "argentina",
+      "awayTeamId": "egypt",
+      "forecastAsOf": "2026-07-04T04:23:17.861Z",
+      "generatedAt": "2026-07-04T04:23:23.745Z",
+      "forecastProvenance": "archived-pre-match-forecast",
+      "capturedBeforeCompletion": true,
+      "archived": true,
+      "homeWin": 0.845,
+      "draw": 0.1262,
+      "awayWin": 0.0287,
+      "expectedHomeGoals": 2.34,
+      "expectedAwayGoals": 0.26,
+      "topScorelines": [
+        {
+          "homeGoals": 2,
+          "awayGoals": 0,
+          "probability": 0.2038
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 0,
+          "probability": 0.174
+        },
+        {
+          "homeGoals": 3,
+          "awayGoals": 0,
+          "probability": 0.1592
+        },
+        {
+          "homeGoals": 4,
+          "awayGoals": 0,
+          "probability": 0.0932
+        },
+        {
+          "homeGoals": 0,
+          "awayGoals": 0,
+          "probability": 0.0743
+        }
+      ],
+      "sourceSnapshotId": "current-2026-07-04-after-match-088",
+      "homeAdvance": 0.9586,
+      "awayAdvance": 0.0413,
+      "advancementBasis": "derived-from-90min-and-shootout-model"
+    },
+    {
+      "matchNumber": 96,
+      "stage": "roundOf16",
+      "status": "complete",
+      "homeTeamId": "switzerland",
+      "awayTeamId": "colombia",
+      "forecastAsOf": "2026-07-04T04:23:17.861Z",
+      "generatedAt": "2026-07-04T04:23:23.745Z",
+      "forecastProvenance": "archived-pre-match-forecast",
+      "capturedBeforeCompletion": true,
+      "archived": true,
+      "homeWin": 0.2335,
+      "draw": 0.2493,
+      "awayWin": 0.5172,
+      "expectedHomeGoals": 0.99,
+      "expectedAwayGoals": 1.61,
+      "topScorelines": [
+        {
+          "homeGoals": 0,
+          "awayGoals": 1,
+          "probability": 0.1194
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 1,
+          "probability": 0.1185
+        },
+        {
+          "homeGoals": 0,
+          "awayGoals": 2,
+          "probability": 0.096
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 2,
+          "probability": 0.0952
+        },
+        {
+          "homeGoals": 0,
+          "awayGoals": 0,
+          "probability": 0.0743
+        }
+      ],
+      "sourceSnapshotId": "current-2026-07-04-after-match-088",
+      "homeAdvance": 0.3284,
+      "awayAdvance": 0.6716,
+      "advancementBasis": "derived-from-90min-and-shootout-model"
+    },
+    {
+      "matchNumber": 97,
+      "stage": "quarterFinal",
+      "status": "complete",
+      "homeTeamId": "france",
+      "awayTeamId": "morocco",
+      "forecastAsOf": "2026-07-04T23:42:37.350Z",
+      "generatedAt": "2026-07-04T23:42:42.655Z",
+      "forecastProvenance": "archived-pre-match-forecast",
+      "capturedBeforeCompletion": true,
+      "archived": true,
+      "homeWin": 0.6345,
+      "draw": 0.2194,
+      "awayWin": 0.1462,
+      "expectedHomeGoals": 1.85,
+      "expectedAwayGoals": 0.75,
+      "topScorelines": [
+        {
+          "homeGoals": 1,
+          "awayGoals": 0,
+          "probability": 0.1373
+        },
+        {
+          "homeGoals": 2,
+          "awayGoals": 0,
+          "probability": 0.1269
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 1,
+          "probability": 0.1032
+        },
+        {
+          "homeGoals": 2,
+          "awayGoals": 1,
+          "probability": 0.0954
+        },
+        {
+          "homeGoals": 3,
+          "awayGoals": 0,
+          "probability": 0.0782
+        }
+      ],
+      "sourceSnapshotId": "current-2026-07-04-after-match-090",
+      "homeAdvance": 0.7906,
+      "awayAdvance": 0.2095,
+      "advancementBasis": "derived-from-90min-and-shootout-model"
+    },
+    {
+      "matchNumber": 98,
+      "stage": "quarterFinal",
+      "status": "complete",
+      "homeTeamId": "spain",
+      "awayTeamId": "belgium",
+      "forecastAsOf": "2026-07-07T03:33:13.242Z",
+      "generatedAt": "2026-07-07T03:33:17.025Z",
+      "forecastProvenance": "archived-pre-match-forecast",
+      "capturedBeforeCompletion": true,
+      "archived": true,
+      "homeWin": 0.6804,
+      "draw": 0.2035,
+      "awayWin": 0.1161,
+      "expectedHomeGoals": 1.95,
+      "expectedAwayGoals": 0.65,
+      "topScorelines": [
+        {
+          "homeGoals": 1,
+          "awayGoals": 0,
+          "probability": 0.1445
+        },
+        {
+          "homeGoals": 2,
+          "awayGoals": 0,
+          "probability": 0.1406
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 1,
+          "probability": 0.0945
+        },
+        {
+          "homeGoals": 2,
+          "awayGoals": 1,
+          "probability": 0.092
+        },
+        {
+          "homeGoals": 3,
+          "awayGoals": 0,
+          "probability": 0.0912
+        }
+      ],
+      "sourceSnapshotId": "current-2026-07-07-after-match-094",
+      "homeAdvance": 0.833,
+      "awayAdvance": 0.167,
+      "advancementBasis": "derived-from-90min-and-shootout-model"
+    },
+    {
+      "matchNumber": 100,
+      "stage": "quarterFinal",
+      "status": "complete",
+      "homeTeamId": "argentina",
+      "awayTeamId": "switzerland",
+      "forecastAsOf": "2026-07-07T23:16:42.402Z",
+      "generatedAt": "2026-07-07T23:16:46.418Z",
+      "forecastProvenance": "archived-pre-match-forecast",
+      "capturedBeforeCompletion": true,
+      "archived": true,
+      "homeWin": 0.674,
+      "draw": 0.2058,
+      "awayWin": 0.1202,
+      "expectedHomeGoals": 1.93,
+      "expectedAwayGoals": 0.67,
+      "topScorelines": [
+        {
+          "homeGoals": 1,
+          "awayGoals": 0,
+          "probability": 0.1435
+        },
+        {
+          "homeGoals": 2,
+          "awayGoals": 0,
+          "probability": 0.1386
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 1,
+          "probability": 0.0958
+        },
+        {
+          "homeGoals": 2,
+          "awayGoals": 1,
+          "probability": 0.0926
+        },
+        {
+          "homeGoals": 3,
+          "awayGoals": 0,
+          "probability": 0.0893
+        }
+      ],
+      "sourceSnapshotId": "current-2026-07-07-after-match-096",
+      "homeAdvance": 0.8268,
+      "awayAdvance": 0.1732,
+      "advancementBasis": "derived-from-90min-and-shootout-model"
+    },
+    {
+      "matchNumber": 101,
+      "stage": "semiFinal",
+      "status": "complete",
+      "homeTeamId": "france",
+      "awayTeamId": "spain",
+      "forecastAsOf": "2026-07-10T21:16:57.967Z",
+      "generatedAt": "2026-07-10T21:17:03.320Z",
+      "forecastProvenance": "archived-pre-match-forecast",
+      "capturedBeforeCompletion": true,
+      "archived": true,
+      "homeWin": 0.276,
+      "draw": 0.2574,
+      "awayWin": 0.4667,
+      "expectedHomeGoals": 1.1,
+      "expectedAwayGoals": 1.51,
+      "topScorelines": [
+        {
+          "homeGoals": 1,
+          "awayGoals": 1,
+          "probability": 0.1224
+        },
+        {
+          "homeGoals": 0,
+          "awayGoals": 1,
+          "probability": 0.1118
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 2,
+          "probability": 0.0921
+        },
+        {
+          "homeGoals": 0,
+          "awayGoals": 2,
+          "probability": 0.0841
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 0,
+          "probability": 0.0813
+        }
+      ],
+      "sourceSnapshotId": "current-2026-07-10-after-match-098",
+      "homeAdvance": 0.3845,
+      "awayAdvance": 0.6156,
+      "advancementBasis": "derived-from-90min-and-shootout-model"
+    },
+    {
+      "matchNumber": 102,
+      "stage": "semiFinal",
+      "status": "complete",
+      "homeTeamId": "england",
+      "awayTeamId": "argentina",
+      "forecastAsOf": "2026-07-12T22:03:19.578Z",
+      "generatedAt": "2026-07-12T22:03:23.873Z",
+      "forecastProvenance": "archived-pre-match-forecast",
+      "capturedBeforeCompletion": true,
+      "archived": true,
+      "homeWin": 0.2396,
+      "draw": 0.2507,
+      "awayWin": 0.5097,
+      "expectedHomeGoals": 1.01,
+      "expectedAwayGoals": 1.59,
+      "topScorelines": [
+        {
+          "homeGoals": 1,
+          "awayGoals": 1,
+          "probability": 0.1192
+        },
+        {
+          "homeGoals": 0,
+          "awayGoals": 1,
+          "probability": 0.1183
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 2,
+          "probability": 0.0949
+        },
+        {
+          "homeGoals": 0,
+          "awayGoals": 2,
+          "probability": 0.0942
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 0,
+          "probability": 0.0748
+        }
+      ],
+      "sourceSnapshotId": "current-2026-07-12-after-match-100",
+      "homeAdvance": 0.337,
+      "awayAdvance": 0.663,
+      "advancementBasis": "derived-from-90min-and-shootout-model"
+    },
+    {
+      "matchNumber": 103,
+      "stage": "thirdPlace",
+      "status": "complete",
+      "homeTeamId": "france",
+      "awayTeamId": "england",
+      "forecastAsOf": "2026-07-15T21:40:45.467Z",
+      "generatedAt": "2026-07-15T21:40:50.883Z",
+      "forecastProvenance": "archived-pre-match-forecast",
+      "capturedBeforeCompletion": true,
+      "archived": true,
+      "homeWin": 0.4302,
+      "draw": 0.2613,
+      "awayWin": 0.3085,
+      "expectedHomeGoals": 1.43,
+      "expectedAwayGoals": 1.17,
+      "topScorelines": [
+        {
+          "homeGoals": 1,
+          "awayGoals": 1,
+          "probability": 0.1243
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 0,
+          "probability": 0.1062
+        },
+        {
+          "homeGoals": 2,
+          "awayGoals": 1,
+          "probability": 0.0889
+        },
+        {
+          "homeGoals": 0,
+          "awayGoals": 1,
+          "probability": 0.0869
+        },
+        {
+          "homeGoals": 2,
+          "awayGoals": 0,
+          "probability": 0.076
+        }
+      ],
+      "sourceSnapshotId": "current-2026-07-15-after-match-102",
+      "homeAdvance": 0.5739,
+      "awayAdvance": 0.4261,
+      "advancementBasis": "derived-from-90min-and-shootout-model"
+    },
+    {
+      "matchNumber": 104,
+      "stage": "final",
+      "status": "complete",
+      "homeTeamId": "spain",
+      "awayTeamId": "argentina",
+      "forecastAsOf": "2026-07-15T21:40:45.467Z",
+      "generatedAt": "2026-07-15T21:40:50.883Z",
+      "forecastProvenance": "archived-pre-match-forecast",
+      "capturedBeforeCompletion": true,
+      "archived": true,
+      "homeWin": 0.3881,
+      "draw": 0.2636,
+      "awayWin": 0.3482,
+      "expectedHomeGoals": 1.34,
+      "expectedAwayGoals": 1.26,
+      "topScorelines": [
+        {
+          "homeGoals": 1,
+          "awayGoals": 1,
+          "probability": 0.1254
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 0,
+          "probability": 0.0997
+        },
+        {
+          "homeGoals": 0,
+          "awayGoals": 1,
+          "probability": 0.0934
+        },
+        {
+          "homeGoals": 2,
+          "awayGoals": 1,
+          "probability": 0.0842
+        },
+        {
+          "homeGoals": 1,
+          "awayGoals": 2,
+          "probability": 0.0788
+        }
+      ],
+      "sourceSnapshotId": "current-2026-07-15-after-match-102",
+      "homeAdvance": 0.524,
+      "awayAdvance": 0.4759,
+      "advancementBasis": "derived-from-90min-and-shootout-model"
+    }
+  ]
+}

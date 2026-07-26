@@ -1,0 +1,98 @@
+{
+  "schemaVersion": "1.0.0",
+  "purpose": "Read-only INPUT artifacts for the 2026 post-tournament retrospective (PR A). Data + validation only: no analysis, no report, no production behaviour. These files are a frozen, validated copy of the final tournament state so the retrospective report (PR B) can be computed deterministically from committed data.",
+  "generatedAt": "2026-07-26T16:31:08.169Z",
+  "generatedBy": "scripts/retrospective/derive-retrospective-artifacts.ts",
+  "tournament": {
+    "champion": "spain",
+    "runnerUp": "argentina",
+    "finalMatchNumber": 104,
+    "finalScore": "1-0",
+    "matchCount": 104,
+    "archivedMatchForecastCount": 26
+  },
+  "artifacts": [
+    {
+      "file": "results-2026-07-19-after-match-104.json",
+      "kind": "results-ledger",
+      "sourceObject": "live-state.provider.sanitized.json",
+      "sourceAsOf": "2026-07-26T16:31:08.169Z",
+      "derivation": "Shootout correction applied to the source state, then the UNMODIFIED production deriveLedgerFromPublicSafeState (schema + official-fixture validation)."
+    },
+    {
+      "file": "match-forecasts-archive-2026-07-19.json",
+      "kind": "match-forecast-archive",
+      "sourceObject": "forecast-matches.provider.sanitized.json",
+      "derivation": "Committed verbatim (unmodified copy of the export).",
+      "archivedForecastCount": 26,
+      "coverageByStage": {
+        "roundOf32": 11,
+        "roundOf16": 8,
+        "quarterFinal": 3,
+        "semiFinal": 2,
+        "thirdPlace": 1,
+        "final": 1
+      },
+      "coverageNote": "Partial by design: knockout only, 26 of 32 knockout ties. No group-stage match forecast was ever archived. M73, M74, M75, M76, M78 and M99 have no archived pre-match forecast. Any evaluation MUST state this coverage and must not pool archived forecasts with recomputed ones."
+    },
+    {
+      "file": "forecast-current-2026-07-19-after-match-104.json",
+      "kind": "final-current-forecast",
+      "sourceObject": "forecast-current.provider.sanitized.json",
+      "derivation": "Committed verbatim (unmodified copy of the export).",
+      "snapshotId": "current-2026-07-19-after-match-104",
+      "completedMatchesLocked": 104,
+      "terminalNote": "Terminal/degenerate by construction: with all 104 results locked every probability is 0 or 1. It is an END STATE, not a forecast. The intermediate knockout-stage title-probability path is NOT recoverable - the provider current-forecast Blob object is overwritten on every refresh, so only this final state survives. No retrospective may claim an intermediate knockout title-probability path from these artifacts."
+    }
+  ],
+  "shootoutCorrection": {
+    "policy": "retrospective-local",
+    "reason": "The provider folds the penalty shootout into score.fullTime, so a shootout match arrives with an inflated, decisive-looking score. Deriving directly would record the inflated score, DROP the shootout (penalties attach only to a level score) and still pass validation - a silent error.",
+    "rule": "Generic detection: any complete knockout row carrying a shootout whose stored score is NOT level is corrected by subtracting the shootout tally. The corrected score must be level and the shootout winner must match the recorded winner, else derivation throws.",
+    "productionUnchanged": "lib/live-ingest/**, lib/live-state/**, provider adapter, Blob logic and forecast generation are NOT modified. The upstream normalize.ts fix is deferred to a report recommendation.",
+    "correctedRows": [
+      {
+        "matchNumber": 74,
+        "storedHomeGoals": 4,
+        "storedAwayGoals": 5,
+        "penaltiesHome": 3,
+        "penaltiesAway": 4,
+        "correctedHomeGoals": 1,
+        "correctedAwayGoals": 1
+      },
+      {
+        "matchNumber": 75,
+        "storedHomeGoals": 3,
+        "storedAwayGoals": 4,
+        "penaltiesHome": 2,
+        "penaltiesAway": 3,
+        "correctedHomeGoals": 1,
+        "correctedAwayGoals": 1
+      },
+      {
+        "matchNumber": 88,
+        "storedHomeGoals": 3,
+        "storedAwayGoals": 5,
+        "penaltiesHome": 2,
+        "penaltiesAway": 4,
+        "correctedHomeGoals": 1,
+        "correctedAwayGoals": 1
+      },
+      {
+        "matchNumber": 96,
+        "storedHomeGoals": 4,
+        "storedAwayGoals": 3,
+        "penaltiesHome": 4,
+        "penaltiesAway": 3,
+        "correctedHomeGoals": 0,
+        "correctedAwayGoals": 0
+      }
+    ]
+  },
+  "guarantees": {
+    "noProductionLoaderReadsThisPath": true,
+    "noPublicForecastSnapshotChanged": true,
+    "noFilesUnderDataForecast": true,
+    "readOnlyInputs": true
+  }
+}
