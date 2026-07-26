@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { runTournamentSimulation } from "@/lib/simulation/tournament";
 import { createRng, samplePoisson } from "@/lib/simulation/rng";
@@ -276,9 +276,14 @@ describe("forecast behaviour audit - audit-only group-winner sim", () => {
 /* -------------------------------------------------------------------------- */
 
 describe("forecast behaviour audit - doc generation", () => {
-  it("writes docs/FORECAST_BEHAVIOR_AUDIT.md when WRITE_FORECAST_AUDIT=1", () => {
-    if (process.env.WRITE_FORECAST_AUDIT !== "1") return; // CI: assert-only, no write
-
+  /**
+   * Builds the audit markdown, then either WRITES it (WRITE_FORECAST_AUDIT=1) or asserts the
+   * COMMITTED document still matches. The assert path is the drift guard: this document is
+   * generated from live model output, and without it a later weights change silently leaves
+   * the committed copy stale - which is exactly what happened when MODEL_WEIGHTS.manager was
+   * set to 0 the day after the audit was last written.
+   */
+  it("matches the committed audit (or rewrites it when WRITE_FORECAST_AUDIT=1)", () => {
     const snap = runTournamentSimulation({ iterations: ITERATIONS, seed: SEED });
     const byWinner = [...snap.stageProbabilities].sort((a, b) => b.winner - a.winner);
     const byR16 = [...snap.stageProbabilities].sort((a, b) => b.roundOf16 - a.roundOf16);
@@ -342,6 +347,11 @@ describe("forecast behaviour audit - doc generation", () => {
 > Probabilities are **not** conditioned on any match played after 11 Jun 2026 and
 > are **not** compared to actual 2026 outcomes. Sample matches below are
 > **scheduled fixtures, not played**.
+>
+> This audit describes the frozen pre-tournament baseline forecast and
+> does not compare those probabilities to actual 2026 outcomes.
+> For the post-tournament forecast-vs-actual evaluation, see
+> \`docs/POST_TOURNAMENT_RETROSPECTIVE_2026.md\`.
 
 ## 1. Scope - baseline vs live model
 
@@ -451,7 +461,16 @@ model weights were changed in this phase.
 _Regenerate with \`WRITE_FORECAST_AUDIT=1 npx vitest run tests/forecast-behavior.test.ts\`._
 `;
 
-    writeFileSync(resolve(process.cwd(), "docs/FORECAST_BEHAVIOR_AUDIT.md"), md);
+    const auditPath = resolve(process.cwd(), "docs/FORECAST_BEHAVIOR_AUDIT.md");
     expect(md).toContain("Frozen pre-tournament baseline");
+    // The audit stays a BASELINE BEHAVIOUR audit; actual-outcome evaluation lives elsewhere.
+    expect(md).toContain("does not compare those probabilities to actual 2026 outcomes");
+    expect(md).toContain("docs/POST_TOURNAMENT_RETROSPECTIVE_2026.md");
+
+    if (process.env.WRITE_FORECAST_AUDIT === "1") {
+      writeFileSync(auditPath, md);
+      return;
+    }
+    expect(readFileSync(auditPath, "utf8")).toBe(md);
   });
 });
