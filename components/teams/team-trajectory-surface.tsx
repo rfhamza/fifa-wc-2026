@@ -126,9 +126,12 @@ export function TeamTrajectorySurface({
               {hero.titleDeltaPp != null ? <MoverChip deltaPp={hero.titleDeltaPp} /> : null}
               <span className="text-xs text-muted-foreground">Since tournament start</span>
             </div>
+            {/* Both values under this label are TOURNAMENT-START values. `currentRank` must
+                not appear here: once results lock, an eliminated team's current rank is an
+                arbitrary tie-break position among the 0% teams, not its starting standing. */}
             <div className="text-xs text-muted-foreground tabular-nums">
               Tournament start: {hero.baselineTitleProbability != null ? pct(hero.baselineTitleProbability) : "—"}
-              {hero.currentRank != null ? <> · Rank #{hero.currentRank}</> : null}
+              {hero.baselineRank != null ? <> · Rank #{hero.baselineRank}</> : null}
             </div>
           </div>
           <div className="flex flex-col items-start gap-2 sm:items-end">

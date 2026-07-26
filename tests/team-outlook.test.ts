@@ -59,6 +59,7 @@ function hero(over: Partial<TeamHeroModel> = {}): TeamHeroModel {
     baselineTitleProbability: 0.1,
     titleDeltaPp: 4,
     currentRank: 5,
+    baselineRank: 8,
     isZeroTitle: false,
     source: "blob",
     asOfLabel: null,
